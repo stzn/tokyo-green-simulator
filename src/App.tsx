@@ -6,13 +6,16 @@ import { DetailSidebar } from './components/DetailSidebar'
 import { FilterPanel } from './components/FilterPanel'
 import { Header } from './components/Header'
 import { LayerPanel } from './components/LayerPanel'
+import { LocatorMiniMap } from './components/LocatorMiniMap'
 import { MapView } from './components/MapView'
 import { StatsBar } from './components/StatsBar'
 import { buildTreeMask, countBySpecies, loadTrees, type TreeData } from './data/trees'
+import { loadWards, type WardFeature } from './data/wards'
 import { buildingFromFeature, createBuildingsLayer, type BuildingFeature } from './layers/buildings'
 import { createGreeningLayers } from './layers/greening'
 import { createParksLayer, parkFromFeature } from './layers/parks'
 import { createTreeLayers } from './layers/trees'
+import type { Extent } from './lib/projection'
 import { useAppStore } from './store/appStore'
 
 type LoadState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: TreeData }
@@ -32,9 +35,24 @@ function useTreeData(): LoadState {
   return state
 }
 
+// 区境界データ（現在地ミニマップ用）。失敗してもミニマップを出さないだけでアプリは止めない
+function useWards(): WardFeature[] | null {
+  const [wards, setWards] = useState<WardFeature[] | null>(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    loadWards(controller.signal)
+      .then(setWards)
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
+  return wards
+}
+
 export default function App() {
   const load = useTreeData()
   const treeData = load.status === 'ready' ? load.data : null
+  const wards = useWards()
+  const [viewBounds, setViewBounds] = useState<Extent | null>(null)
 
   const { layers, treeMode, speciesFilter, wardFilter, selection, greened } = useAppStore(
     useShallow((s) => ({
@@ -82,7 +100,7 @@ export default function App() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-slate-950 font-sans text-slate-100">
-      <MapView layers={deckLayers} onPick={handlePick} />
+      <MapView layers={deckLayers} onPick={handlePick} onViewportChange={setViewBounds} />
 
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-3 p-3 sm:p-4">
         <Header />
@@ -98,6 +116,7 @@ export default function App() {
             >
               レイヤー・絞り込み
             </button>
+            {wards && <LocatorMiniMap wards={wards} bounds={viewBounds} />}
             <aside id="controls-panel" className={`min-h-0 flex-col gap-3 overflow-y-auto ${controlsOpen ? 'flex' : 'hidden'} md:flex`}>
               <LayerPanel />
               {load.status === 'loading' && (

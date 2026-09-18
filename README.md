@@ -14,6 +14,7 @@
 | 絞り込み | 樹種（407種、検索つき）と行政区。GPUフィルタのため14万本でも再アップロードしない |
 | 緑化シミュレーション | 建物を選び、屋上・壁面緑化率を指定して、表面温度低下・冷房等の電力削減・CO2削減を試算。「緑化する」で屋上と壁面に緑が伸びる演出が入り、エリア合計に加算される |
 | 計算根拠の公開 | 「計算方法と出典」から、式・係数・出典リンク、計算に含めていない効果を確認できる |
+| 現在地ミニマップ | 東京23区全体の小さな地図を常時表示し、今の表示範囲をエメラルド色の矩形で重ねて示す。パン・ズーム・回転に追従する |
 
 ## セットアップ
 
@@ -31,9 +32,10 @@ npm run dev        # http://localhost:5173
 ```bash
 npm run data:trees   # 東京都オープンデータ → public/data/trees.json（約1分）
 npm run data:parks   # Overpass API → public/data/parks.geojson（混雑状況によって10〜30分）
+npm run data:wards   # Overpass API → public/data/wards.geojson（行政界。数分〜十数分）
 ```
 
-`data:parks` は区ごとのOverpass応答を `scripts/.cache/parks-raw/` に保存します。途中で失敗しても再実行すると続きから取得し、変換ルールを変えたときも再取得せずに作り直せます。
+`data:parks`／`data:wards` は区ごとのOverpass応答をそれぞれ `scripts/.cache/parks-raw/`／`scripts/.cache/wards-raw/` に保存します。途中で失敗しても再実行すると続きから取得し、変換ルールを変えたときも再取得せずに作り直せます。
 
 ## 開発
 
@@ -53,11 +55,13 @@ npm run build
 
 ```
 scripts/            データ取得（fetch-*.ts）と変換ロジック（lib/）
-public/data/        生成済みデータ（trees.json / parks.geojson）
+public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson）
 src/
-  lib/geo.ts                  面積・外周長など（球面近似）
+  lib/geo.ts                  面積・外周長・リング単純化など（球面近似）
+  lib/projection.ts           現在地ミニマップ用の緯度経度→SVG座標の投影
   lib/simulation/             緑化・樹木の推定ロジックと係数（coefficients.ts）
   data/trees.ts               街路樹データ → 型付き配列、絞り込みマスク
+  data/wards.ts               区境界データ（ミニマップ表示用）の読み込み
   store/appStore.ts           状態管理（zustand）
   layers/                     deck.glのレイヤー生成
   components/                 UI
@@ -70,6 +74,7 @@ src/
 | 3D建物 | 3D都市モデル（Project PLATEAU）東京都23区（国土交通省）／MVT変換: [indigo-lab](https://github.com/indigo-lab/plateau-tokyo23ku-building-mvt-2020) | CC BY 4.0 |
 | 街路樹 | 東京都建設局「[都道の街路樹](https://catalog.data.metro.tokyo.lg.jp/dataset/t000014d2000000029)」 | CC BY 4.0 |
 | 公園 | © OpenStreetMap contributors | ODbL |
+| 行政界（ミニマップ表示用） | © OpenStreetMap contributors | ODbL |
 | ベースマップ | [OpenFreeMap](https://openfreemap.org) © OpenMapTiles | — |
 
 ## 数値の扱いと既知の制約
@@ -90,6 +95,7 @@ src/
 - **推定値**：樹齢は回帰式のある17樹種だけを推定します（CSVの「サクラ」はソメイヨシノ、「スズカケノキ」はプラタナスの式を適用）。それ以外は「推定式なし」と表示します。CO2吸収量は国の算定に合わせて高木のみを対象とし、中木は「対象外」です。
 - **公園の管理者**：OSMの `operator`／`owner` タグを使います。タグが無い場合は、名称に「都立」「区立」とあるときだけ推定し、それ以外は「不明」と表示します（現状、約9割が不明）。区の公園一覧のオープンデータは区によって有無・形式がまちまちで、突き合わせには使えませんでした。
 - **公園の範囲**：Overpassの区域検索は区境をまたぐポリゴンも返すため、区外の公園（例: 戸田公園）が一部含まれます。
+- **行政界（ミニマップ）**：現在地ミニマップの表示専用に大きく単純化（Ramer-Douglas-Peucker、許容誤差0.0015度）しており、正確な区境ではありません。
 - **建物形状**：タイル境界をまたぐ建物は、ピックしたタイル内の形状で外周長を計算します（屋根面積はPLATEAUの属性値を使うため影響しません）。
 - **描画方式**：deck.gl 9.4 と MapLibre 5 の interleaved モードではピッキングが効かなかったため、deck.glのcanvasを地図の上に重ねる方式にしています。MapLibre 6 は deck.gl 9.4 が未対応のため 5 系に固定しています。
 - **依存の脆弱性警告**：`npm audit` で、deck.gl geo-layers が間接的に依存する3D Tiles／glTF／画像パーサのDoS系の警告が出ます。本アプリは信頼できるPLATEAUのMVTしか読み込まず、修正版の提示がメジャーダウングレードのため、現時点では受け入れています。

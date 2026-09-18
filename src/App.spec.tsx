@@ -3,13 +3,16 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { TreesColumnar } from '../scripts/lib/parseTrees'
 import App from './App'
+import type { WardFeature } from './data/wards'
+import type { Extent } from './lib/projection'
 import { useAppStore } from './store/appStore'
 
 // WebGL（MapLibre / deck.gl）はjsdomで動かないため、地図はモックにして受け取ったレイヤーだけを記録する
-const mapViewProps = vi.hoisted(() => ({ layerIds: [] as string[] }))
+const mapViewProps = vi.hoisted(() => ({ layerIds: [] as string[], onViewportChange: null as ((bounds: Extent) => void) | null }))
 vi.mock('./components/MapView', () => ({
-  MapView: ({ layers }: { layers: { id: string }[] }) => {
+  MapView: ({ layers, onViewportChange }: { layers: { id: string }[]; onViewportChange?: (bounds: Extent) => void }) => {
     mapViewProps.layerIds = layers.map((l) => l.id)
+    mapViewProps.onViewportChange = onViewportChange ?? null
     return <div data-testid="map" />
   },
 }))
@@ -78,5 +81,66 @@ describe('機能: スマホ向けのパネル開閉', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
     await userEvent.click(toggle)
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  })
+})
+
+describe('機能: 現在地ミニマップ', () => {
+  const wardFeature: WardFeature = {
+    type: 'Feature',
+    properties: { name: '千代田区' },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [139.74, 35.7],
+          [139.77, 35.7],
+          [139.77, 35.68],
+          [139.74, 35.68],
+          [139.74, 35.7],
+        ],
+      ],
+    },
+  }
+
+  const stubFetchWithWards = () =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) =>
+        String(input).includes('wards.geojson') ? Response.json({ type: 'FeatureCollection', features: [wardFeature] }) : Response.json(trees),
+      ),
+    )
+
+  it('Given 区境界データを取得済み / Then ミニマップが表示される', async () => {
+    stubFetchWithWards()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(await screen.findByTestId('locator-map')).toBeInTheDocument()
+  })
+
+  it('Given ミニマップを表示中 / Then 表示範囲が届く前は現在地の枠が無い', async () => {
+    stubFetchWithWards()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    await screen.findByTestId('locator-map')
+    expect(screen.queryByTestId('locator-bounds')).not.toBeInTheDocument()
+  })
+
+  it('Given ミニマップを表示中 / When 地図の表示範囲が変わる / Then 現在地の枠が現れる', async () => {
+    stubFetchWithWards()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    await screen.findByTestId('locator-map')
+    mapViewProps.onViewportChange?.({ west: 139.745, south: 35.685, east: 139.755, north: 35.695 })
+    expect(await screen.findByTestId('locator-bounds')).toBeInTheDocument()
+  })
+
+  it('Given 区境界データの取得に失敗 / Then ミニマップは表示せず、アプリ全体は壊れない', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => (String(input).includes('wards.geojson') ? new Response('', { status: 500 }) : Response.json(trees))),
+    )
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(screen.queryByTestId('locator-map')).not.toBeInTheDocument()
   })
 })

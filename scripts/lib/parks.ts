@@ -1,5 +1,5 @@
 // Overpass API（out geom）の応答 → 公園ポリゴンのGeoJSON
-import { polygonAreaM2, type Position } from '../../src/lib/geo'
+import { polygonAreaM2, type Geometry, type Position } from '../../src/lib/geo'
 
 type LatLon = { lat: number; lon: number }
 
@@ -22,7 +22,7 @@ export type ParkProperties = {
 
 export type ParkFeature = {
   type: 'Feature'
-  geometry: { type: 'Polygon'; coordinates: Position[][] } | { type: 'MultiPolygon'; coordinates: Position[][][] }
+  geometry: Geometry
   properties: ParkProperties
 }
 
@@ -82,7 +82,8 @@ export function inferManager(tags: Record<string, string>, ward: string): Pick<P
   return { manager: '不明', managerEstimated: false }
 }
 
-function toGeometry(el: OverpassElement): ParkFeature['geometry'] | null {
+/** wayまたはrelation（行政界にも公園にも同じ形の要素）からGeoJSON風のジオメトリを作る */
+export function geometryFromElement(el: OverpassElement): Geometry | null {
   if (el.type === 'way' && el.geometry) {
     const ring = toPositions(el.geometry)
     return isClosed(ring) ? { type: 'Polygon', coordinates: [ring] } : null
@@ -102,13 +103,12 @@ function toGeometry(el: OverpassElement): ParkFeature['geometry'] | null {
   return null
 }
 
-const areaOf = (g: ParkFeature['geometry']) =>
-  g.type === 'Polygon' ? polygonAreaM2(g.coordinates) : g.coordinates.reduce((sum, p) => sum + polygonAreaM2(p), 0)
+const areaOf = (g: Geometry) => (g.type === 'Polygon' ? polygonAreaM2(g.coordinates) : g.coordinates.reduce((sum, p) => sum + polygonAreaM2(p), 0))
 
 export function overpassToParks(elements: OverpassElement[], ward: string): ParkCollection {
   const features: ParkFeature[] = []
   for (const el of elements) {
-    const geometry = toGeometry(el)
+    const geometry = geometryFromElement(el)
     if (!geometry) continue
     const tags = el.tags ?? {}
     features.push({

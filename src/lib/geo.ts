@@ -3,6 +3,8 @@
 export type Position = [number, number] | number[]
 /** 1つ目が外周、2つ目以降が穴 */
 export type PolygonRings = Position[][]
+/** GeoJSON風のポリゴン形状（座標はPolygonRings/PolygonRings[]と同じ形） */
+export type Geometry = { type: 'Polygon'; coordinates: PolygonRings } | { type: 'MultiPolygon'; coordinates: PolygonRings[] }
 
 const EARTH_RADIUS_M = 6371008.8
 const toRad = (deg: number) => (deg * Math.PI) / 180
@@ -58,4 +60,43 @@ export function scaleRing(ring: Position[], factor: number, z?: number): Positio
     return z === undefined ? q : [...q, z]
   })
   return closed ? [...scaled, scaled[0]] : scaled
+}
+
+// 点から線分（両端が同じ点なら1点）までの垂直距離。単位は入力座標と同じ（度）
+function perpendicularDistance(point: Position, lineStart: Position, lineEnd: Position): number {
+  const [x, y] = point
+  const [x1, y1] = lineStart
+  const [x2, y2] = lineEnd
+  const dx = x2 - x1
+  const dy = y2 - y1
+  if (dx === 0 && dy === 0) return Math.hypot(x - x1, y - y1)
+  const t = ((x - x1) * dx + (y - y1) * dy) / (dx * dx + dy * dy)
+  const cx = x1 + t * dx
+  const cy = y1 + t * dy
+  return Math.hypot(x - cx, y - cy)
+}
+
+/**
+ * リング（折れ線）をRamer-Douglas-Peuckerで単純化する。tolerance は入力座標と同じ単位（度）。
+ * 閉じたリング（始点=終点）にもそのまま使える。ミニマップ表示など、精密さより頂点数の削減を優先する用途向け
+ */
+export function simplifyRing(points: Position[], tolerance: number): Position[] {
+  if (points.length <= 2) return points
+  const start = points[0]
+  const end = points[points.length - 1]
+  let maxDist = 0
+  let index = 0
+  for (let i = 1; i < points.length - 1; i++) {
+    const dist = perpendicularDistance(points[i], start, end)
+    if (dist > maxDist) {
+      maxDist = dist
+      index = i
+    }
+  }
+  if (maxDist > tolerance) {
+    const left = simplifyRing(points.slice(0, index + 1), tolerance)
+    const right = simplifyRing(points.slice(index), tolerance)
+    return [...left.slice(0, -1), ...right]
+  }
+  return [start, end]
 }
