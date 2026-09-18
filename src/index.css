@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Noto Sans JP', 'Hiragino Sans', system-ui, sans-serif;
+}
+
+html {
+  /* ネイティブのスクロールバー・フォーム部品を暗い配色にする */
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #020617;
+}
+
+/* MapLibreのナビゲーションを暗いテーマに合わせる */
+.maplibregl-ctrl-group {
+  background: rgb(2 6 23 / 0.8) !important;
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+.maplibregl-ctrl-group button + button {
+  border-top-color: rgb(255 255 255 / 0.1) !important;
+}
+.maplibregl-ctrl-icon {
+  filter: invert(1);
+}
