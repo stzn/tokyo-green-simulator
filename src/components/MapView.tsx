@@ -19,6 +19,22 @@ const boundsOf = (map: MapLibreMap): Extent => {
   return { west: b.getWest(), south: b.getSouth(), east: b.getEast(), north: b.getNorth() }
 }
 
+/**
+ * OpenFreeMapのdarkスタイルは地名ラベルがほぼ全レイヤーで薄いグレー（rgb(101,101,101)相当）＋黒フチになっており、
+ * このアプリの真っ黒に近い背景や緑のポリゴンの上では読みにくい。アプリの配色（bg-slate-950 / text-slate-200相当）に
+ * 合わせて明るくする。BASEMAP_STYLEを別のスタイルに変える場合はこの処理も見直すこと
+ */
+function brightenBasemapLabels(map: MapLibreMap): void {
+  for (const layer of map.getStyle().layers) {
+    if (layer.type === 'symbol' && layer.layout && 'text-field' in layer.layout) {
+      map.setPaintProperty(layer.id, 'text-color', '#e2e8f0')
+      map.setPaintProperty(layer.id, 'text-halo-color', 'rgba(2,6,23,0.9)')
+      map.setPaintProperty(layer.id, 'text-halo-width', 1.4)
+      map.setPaintProperty(layer.id, 'text-halo-blur', 0)
+    }
+  }
+}
+
 type Props = {
   layers: Layer[]
   onPick: (info: PickingInfo) => void
@@ -35,7 +51,10 @@ export function MapView({ layers, onPick, onViewportChange }: Props) {
       minZoom={10}
       attributionControl={false}
       style={{ position: 'absolute', inset: 0 }}
-      onLoad={(evt) => onViewportChange?.(boundsOf(evt.target))}
+      onLoad={(evt) => {
+        brightenBasemapLabels(evt.target)
+        onViewportChange?.(boundsOf(evt.target))
+      }}
       onMove={(evt) => onViewportChange?.(boundsOf(evt.target))}
     >
       <DeckOverlay
