@@ -4,7 +4,7 @@
 
 東京23区の3D建物（PLATEAU）、都道の街路樹14.4万本、公園を重ね合わせ、都市の緑の「現状」と、屋上・壁面緑化による「将来価値」をブラウザ上で試算するWebGISです。研究室訪問やPoC提案のデモとして使うことを想定しています。
 
-**公開URL**：<https://stzn.github.io/tokyo-green-simulaton/>（`main`へのpushでGitHub Actionsが自動デプロイ）
+**公開URL**：<https://stzn.github.io/tokyo-green-simulator/>（`main`へのpushでGitHub Actionsが自動デプロイ）
 
 ## できること
 
