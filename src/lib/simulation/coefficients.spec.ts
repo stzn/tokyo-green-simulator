@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   ALL_COEFFICIENTS,
+  EXCLUDED_EFFECTS,
   GIRTH_REGRESSIONS,
+  ROOF_COOLING_RANGE_BY_INSULATION,
   roofCoolingSavingKWhPerM2,
   streetTreeCo2KgPerYear,
 } from './coefficients'
@@ -24,6 +26,28 @@ describe('機能: 係数の出典管理', () => {
   it('Given 高木1本あたり 0.0108 t-C/年 / When CO2に換算する / Then 約39.6 kg-CO2/年', () => {
     expect(streetTreeCo2KgPerYear()).toBeCloseTo(0.0108 * (44 / 12) * 1000, 6)
     expect(streetTreeCo2KgPerYear()).toBeCloseTo(39.6, 1)
+  })
+
+  it('Given 試算の幅を示す参考値 / Then 計算には使わないが、出典と出典URLを持つ', () => {
+    const r = ROOF_COOLING_RANGE_BY_INSULATION
+    expect(r.url).toMatch(/^https:\/\//)
+    expect(r.source.length).toBeGreaterThan(0)
+    // 環境省ガイドライン 図3.32（東京・LESCOMシミュレーション）の断熱厚別の通年空調負荷削減率
+    expect(r.tokyo).toEqual({ none: 12.4, mm25: 7.1, mm50: 5.0 })
+  })
+
+  it('Given 計算に含めていない効果 / Then どれも「調べた資料」と「含めない理由」を持つ', () => {
+    expect(EXCLUDED_EFFECTS.length).toBeGreaterThan(0)
+    for (const e of EXCLUDED_EFFECTS) {
+      expect(e.label.length, e.label).toBeGreaterThan(0)
+      expect(e.checked.length, e.label).toBeGreaterThan(0)
+      expect(e.reason.length, e.label).toBeGreaterThan(0)
+    }
+  })
+
+  it('Given 雨水貯留 / Then 調べた資料に東京都の技術指針が含まれる（屋上緑化の原単位が無いことを確認した資料）', () => {
+    const rain = EXCLUDED_EFFECTS.find((e) => e.label.includes('雨水'))!
+    expect(rain.checked).toContain('東京都雨水貯留・浸透施設技術指針')
   })
 
   it('Given 国総研の17樹種の回帰式 / Then 主要樹種（イチョウ）の式が報告書の表-12と一致する', () => {

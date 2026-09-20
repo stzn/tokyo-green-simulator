@@ -212,11 +212,25 @@ describe('機能: 計算方法と出典のモーダル', () => {
     expect(links.some((a) => a.getAttribute('href')?.startsWith('https://www.env.go.jp/'))).toBe(true)
   })
 
-  it('Given 開いている / Then 「計算に含めていないもの」の節で除外した効果を説明する', async () => {
+  it('Given 開いている / Then 「計算に含めていないもの」の節で、効果ごとに調べた資料と含めない理由を示す', async () => {
     render(<MethodologyModal />)
     await userEvent.click(screen.getByRole('button', { name: '計算方法と出典' }))
     expect(screen.getByRole('heading', { name: '計算に含めていないもの' })).toBeInTheDocument()
-    expect(screen.getByRole('dialog')).toHaveTextContent('雨水')
+    const dialog = screen.getByRole('dialog')
+    // 「根拠が見つからない」ではなく、当たった資料が分かること
+    expect(dialog).toHaveTextContent('東京都雨水貯留・浸透施設技術指針')
+    expect(dialog).toHaveTextContent('日本国温室効果ガスインベントリ報告書2025年')
+    expect(dialog).toHaveTextContent('蒸散量が少なく、対策効果が限定的')
+  })
+
+  it('Given 開いている / Then 屋上緑化の削減量が建物の断熱性能で変わることを、出典つきで示す', async () => {
+    render(<MethodologyModal />)
+    await userEvent.click(screen.getByRole('button', { name: '計算方法と出典' }))
+    const dialog = screen.getByRole('dialog')
+    expect(screen.getByRole('heading', { name: '試算の幅' })).toBeInTheDocument()
+    expect(dialog).toHaveTextContent('12.4')
+    expect(dialog).toHaveTextContent('5.0')
+    expect(dialog).toHaveTextContent('図3.32')
   })
 
   it('Given 開いている / When 閉じるを押す / Then ダイアログが消える', async () => {
