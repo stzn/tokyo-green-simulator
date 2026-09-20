@@ -1,4 +1,6 @@
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
+// deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { _TerrainExtension as TerrainExtension } from '@deck.gl/extensions'
 import { ColumnLayer } from '@deck.gl/layers'
 import { describe, expect, it } from 'vitest'
 import { buildTreeMask, toTreeData } from '../data/trees'
@@ -19,7 +21,7 @@ const data = toTreeData({
 
 describe('機能: 街路樹レイヤーを作る', () => {
   it('Given 3Dピラー表示 / When 作る / Then ColumnLayerで高さ=樹高、GPUフィルタ付きで描く', () => {
-    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'columns', visible: true })
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'columns', visible: true, terrain: false })
     expect(layer).toBeInstanceOf(ColumnLayer)
     expect(layer.props.pickable).toBe(true)
     expect((layer.props as { extruded?: boolean }).extruded).toBe(true)
@@ -30,19 +32,19 @@ describe('機能: 街路樹レイヤーを作る', () => {
   })
 
   it('Given イチョウで絞り込み / When 3Dピラーを作る / Then マスクがフィルタ値として渡る', () => {
-    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, ['イチョウ'], null), mode: 'columns', visible: true })
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, ['イチョウ'], null), mode: 'columns', visible: true, terrain: false })
     const attrs = (layer.props.data as { attributes: Record<string, { value: ArrayLike<number> }> }).attributes
     expect(Array.from(attrs.getFilterValue.value)).toEqual([1, 0, 1])
   })
 
   it('Given ヒートマップ表示 / When 作る / Then HeatmapLayerで、絞り込み後の本数だけを集計する', () => {
-    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, ['イチョウ'], null), mode: 'heatmap', visible: true })
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, ['イチョウ'], null), mode: 'heatmap', visible: true, terrain: false })
     expect(layer).toBeInstanceOf(HeatmapLayer)
     expect((layer.props.data as ArrayLike<number>).length).toBe(2)
   })
 
   it('Given 非表示 / When 作る / Then visible=false', () => {
-    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'columns', visible: false })
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'columns', visible: false, terrain: false })
     expect(layer.props.visible).toBe(false)
   })
 })
@@ -62,5 +64,23 @@ describe('機能: 樹種ごとの色', () => {
     const [r, g, b] = speciesColor('モッコク')
     expect(g).toBeGreaterThan(r)
     expect(g).toBeGreaterThan(b)
+  })
+})
+
+describe('機能: 街路樹を地形に乗せる', () => {
+  it('Given 3Dピラー表示 / When レイヤーを作る / Then 標高ぶん持ち上げる拡張が付く', () => {
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'columns', visible: true, terrain: true })
+    expect(layer.props.extensions.some((e) => e instanceof TerrainExtension)).toBe(true)
+    expect((layer.props as { terrainDrawMode?: string }).terrainDrawMode).toBe('offset')
+  })
+
+  it('Given 地形なし / When 3Dピラーを作る / Then 拡張を付けない', () => {
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'columns', visible: true, terrain: false })
+    expect(layer.props.extensions.some((e) => e instanceof TerrainExtension)).toBe(false)
+  })
+
+  it('Given ヒートマップ表示 / When レイヤーを作る / Then 画面上の集計なので地形には乗せない', () => {
+    const [layer] = createTreeLayers({ data, mask: buildTreeMask(data, [], null), mode: 'heatmap', visible: true, terrain: false })
+    expect((layer.props.extensions ?? []).some((e) => e instanceof TerrainExtension)).toBe(false)
   })
 })

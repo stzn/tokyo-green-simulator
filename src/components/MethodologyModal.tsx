@@ -74,7 +74,7 @@ export function MethodologyModal() {
               <CloseButton onClick={() => setOpen(false)} />
             </div>
             <p className="mb-4 rounded-lg bg-emerald-400/10 p-3 text-xs leading-relaxed text-emerald-100">
-              公的資料で出典を確認できた効果だけを計算しています（2026年9月確認）。いずれも既存資料の代表値による概算で、個別建物の設計判断には現地条件を踏まえた詳細検討が必要です。
+              公的資料で出典を確認できた効果だけを計算しています（2026年9月確認）。いずれも既存資料の代表値による概算で、個別建物の設計判断には現地条件を踏まえた詳細検討が必要です。地形（標高）は表示のためだけに使っており、ここでの試算には影響しません。
             </p>
 
             <h3 className="mt-4 mb-1 text-sm font-semibold text-emerald-300">建物緑化</h3>

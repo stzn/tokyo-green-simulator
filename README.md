@@ -16,6 +16,7 @@
 | 絞り込み | 樹種（407種、検索つき）と行政区。GPUフィルタのため14万本でも再アップロードしない |
 | 緑化シミュレーション | 建物を選び、屋上・壁面緑化率を指定して、表面温度低下・冷房等の電力削減・CO2削減を試算。「緑化する」で屋上と壁面に緑が伸びる演出が入り、エリア合計に加算される |
 | 計算根拠の公開 | 「計算方法と出典」から、式・係数・出典リンク、計算に含めていない効果を確認できる |
+| 地形 | 地理院の標高データ（DEM10B）で23区の起伏を再現し、建物・街路樹・公園・緑化演出をその標高に乗せる。鉛直方向の誇張はなし（1:1） |
 | 現在地ミニマップ | 東京23区全体の小さな地図を常時表示し、今の表示範囲をエメラルド色の矩形で重ねて示す。パン・ズーム・回転に追従する |
 
 ## セットアップ
@@ -35,9 +36,10 @@ npm run dev        # http://localhost:5173
 npm run data:trees   # 東京都オープンデータ → public/data/trees.json（約1分）
 npm run data:parks   # Overpass API → public/data/parks.geojson（混雑状況によって10〜30分）
 npm run data:wards   # Overpass API → public/data/wards.geojson（行政界。数分〜十数分）
+npm run data:dem     # 地理院標高タイル → public/data/dem/（約1分）
 ```
 
-`data:parks`／`data:wards` は区ごとのOverpass応答をそれぞれ `scripts/.cache/parks-raw/`／`scripts/.cache/wards-raw/` に保存します。途中で失敗しても再実行すると続きから取得し、変換ルールを変えたときも再取得せずに作り直せます。
+`data:dem` は取得した地理院標高タイルを `scripts/.cache/dem-raw/` に保存し、再実行時はそこから読み直します。`data:parks`／`data:wards` は区ごとのOverpass応答をそれぞれ `scripts/.cache/parks-raw/`／`scripts/.cache/wards-raw/` に保存します。途中で失敗しても再実行すると続きから取得し、変換ルールを変えたときも再取得せずに作り直せます。
 
 ## 開発
 
@@ -57,8 +59,9 @@ npm run build
 
 ```
 scripts/            データ取得（fetch-*.ts）と変換ロジック（lib/）
-public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson）
+public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / dem/）
 src/
+  lib/dem.ts                  標高タイルのエンコーディング（取得スクリプトと共用）
   lib/geo.ts                  面積・外周長・リング単純化など（球面近似）
   lib/projection.ts           現在地ミニマップ用の緯度経度→SVG座標の投影
   lib/simulation/             緑化・樹木の推定ロジックと係数（coefficients.ts）
@@ -77,6 +80,7 @@ src/
 | 街路樹 | 東京都建設局「[都道の街路樹](https://catalog.data.metro.tokyo.lg.jp/dataset/t000014d2000000029)」 | CC BY 4.0 |
 | 公園 | © OpenStreetMap contributors | ODbL |
 | 行政界（ミニマップ表示用） | © OpenStreetMap contributors | ODbL |
+| 地形（標高） | 国土地理院「[地理院タイル（標高タイル DEM10B）](https://maps.gsi.go.jp/development/ichiran.html)」を加工して使用 | 出典明記で利用可 |
 | ベースマップ | [OpenFreeMap](https://openfreemap.org) © OpenMapTiles | — |
 
 ## 数値の扱いと既知の制約
@@ -97,9 +101,12 @@ src/
 - **推定値**：樹齢は回帰式のある17樹種だけを推定します（CSVの「サクラ」はソメイヨシノ、「スズカケノキ」はプラタナスの式を適用）。それ以外は「推定式なし」と表示します。CO2吸収量は国の算定に合わせて高木のみを対象とし、中木は「対象外」です。
 - **公園の管理者**：OSMの `operator`／`owner` タグを使います。タグが無い場合は、名称に「都立」「区立」とあるときだけ推定し、それ以外は「不明」と表示します（現状、約9割が不明）。区の公園一覧のオープンデータは区によって有無・形式がまちまちで、突き合わせには使えませんでした。
 - **公園の範囲**：Overpassの区域検索は区境をまたぐポリゴンも返すため、区外の公園（例: 戸田公園）が一部含まれます。
+- **地形データ**：地理院標高タイル（dem_png）は、無効値が `(128,0,0)`、負の標高が2の補数でラップする形式です。deck.glの `elevationDecoder` もMapLibreのraster-demも線形変換しか持てず、そのままでは海域が+83,886mの壁、低地（江東区・江戸川区は画素の6〜7割が負の標高）が+650mの柱になります。そのため取得時に標高へ戻し、線形に復号できる形式（`h = (R*256 + G) * 0.1 - 1000`、無効値は0m）へ詰め替えたタイルを `public/data/dem/` に同梱しています（z=10〜13、最も細かいz=13で約19m/px、合計約4MB）。
+- **地形の見せ方**：ベースマップ（MapLibre）自体は平らなままで、deck.glの地形メッシュを半透明で重ねています。MapLibreの `setTerrain` でベースマップも起伏させると、ベースマップもdeck.glのレイヤーも描画されなくなるためです（deck.gl 9.4 + MapLibre 5 で確認）。
+- **ヒートマップと地形**：街路樹をヒートマップ表示にすると地形は自動で切れます。ヒートマップは画面上の集計で地形に追従できないうえ、地形の仕組み（TerrainExtension）が有効だとヒートマップ自体が描画されないためです。このときは描画方式もオーバーレイに切り替えています。
 - **行政界（ミニマップ）**：現在地ミニマップの表示専用に大きく単純化（Ramer-Douglas-Peucker、許容誤差0.0015度）しており、正確な区境ではありません。
 - **建物形状**：タイル境界をまたぐ建物は、ピックしたタイル内の形状で外周長を計算します（屋根面積はPLATEAUの属性値を使うため影響しません）。
-- **描画方式**：deck.gl 9.4 と MapLibre 5 の interleaved モードではピッキングが効かなかったため、deck.glのcanvasを地図の上に重ねる方式にしています。MapLibre 6 は deck.gl 9.4 が未対応のため 5 系に固定しています。
+- **描画方式**：deck.glのレイヤーをMapLibreのレンダリングに挿し込む interleaved モードで描いています。地形（TerrainExtension）はcanvasを重ねるだけのオーバーレイ方式では効かないためです。以前はこの組み合わせでピッキングが効かず見送っていましたが、現行版では建物・公園・街路樹とも選択できることを確認しています（2026-09 再確認）。MapLibre 6 は deck.gl 9.4 が未対応のため 5 系に固定しています。
 - **依存の脆弱性警告**：`npm audit` で、deck.gl geo-layers が間接的に依存する3D Tiles／glTF／画像パーサのDoS系の警告が出ます。本アプリは信頼できるPLATEAUのMVTしか読み込まず、修正版の提示がメジャーダウングレードのため、現時点では受け入れています。
 
 ## ロードマップ
@@ -107,4 +114,3 @@ src/
 - 除外した効果（雨水貯留・植栽タイプ別の差）の根拠となる学術文献の調査
 - 動的API（Hono on Cloud Run）：エリア単位の集計、シナリオの保存・共有
 - 区道の街路樹（区のオープンデータ）の追加
-- 地形（地理院DEM）への対応

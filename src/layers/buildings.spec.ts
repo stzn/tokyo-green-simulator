@@ -1,3 +1,5 @@
+// deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { _TerrainExtension as TerrainExtension } from '@deck.gl/extensions'
 import { MVTLayer } from '@deck.gl/geo-layers'
 import { describe, expect, it } from 'vitest'
 import { BUILDING_COLORS, buildingFromFeature, createBuildingsLayer, type BuildingFeature } from './buildings'
@@ -58,7 +60,7 @@ describe('機能: PLATEAUの建物地物から建物情報を作る', () => {
 
 describe('機能: 建物レイヤーを作る', () => {
   it('Given 表示ON / When 作る / Then PLATEAUのMVTを押し出し表示し、クリックで選択できる', () => {
-    const layer = createBuildingsLayer({ visible: true, selectedId: null, greenedIds: new Set() })
+    const layer = createBuildingsLayer({ visible: true, selectedId: null, greenedIds: new Set(), terrain: false })
     expect(layer).toBeInstanceOf(MVTLayer)
     expect(layer.props.visible).toBe(true)
     expect(layer.props.extruded).toBe(true)
@@ -66,7 +68,7 @@ describe('機能: 建物レイヤーを作る', () => {
   })
 
   it('Given 選択中・緑化済みの建物 / When 色を決める / Then 選択色・緑化色・通常色で塗り分ける', () => {
-    const layer = createBuildingsLayer({ visible: true, selectedId: 'a', greenedIds: new Set(['b']) })
+    const layer = createBuildingsLayer({ visible: true, selectedId: 'a', greenedIds: new Set(['b']), terrain: false })
     const getColor = layer.props.getFillColor as unknown as (f: BuildingFeature) => number[]
     const withId = (id: string) => ({ ...feature, properties: { ...feature.properties, 建物ID: id } })
     expect(getColor(withId('a'))).toEqual(BUILDING_COLORS.selected)
@@ -75,13 +77,26 @@ describe('機能: 建物レイヤーを作る', () => {
   })
 
   it('Given 選択中かつ緑化済みの建物 / When 色を決める / Then 緑化の結果が見えるよう緑化色を優先する', () => {
-    const layer = createBuildingsLayer({ visible: true, selectedId: 'a', greenedIds: new Set(['a']) })
+    const layer = createBuildingsLayer({ visible: true, selectedId: 'a', greenedIds: new Set(['a']), terrain: false })
     const getColor = layer.props.getFillColor as unknown as (f: BuildingFeature) => number[]
     expect(getColor({ ...feature, properties: { ...feature.properties, 建物ID: 'a' } })).toEqual(BUILDING_COLORS.greened)
   })
 
   it('Given 高さ属性 / When 押し出し高さを決める / Then measuredHeightを使う', () => {
-    const layer = createBuildingsLayer({ visible: true, selectedId: null, greenedIds: new Set() })
+    const layer = createBuildingsLayer({ visible: true, selectedId: null, greenedIds: new Set(), terrain: false })
     expect((layer.props.getElevation as unknown as (f: BuildingFeature) => number)(feature)).toBe(8.2)
+  })
+})
+
+describe('機能: 建物を地形に乗せる', () => {
+  it('Given 地形あり / When レイヤーを作る / Then 標高ぶん持ち上げる拡張が付く', () => {
+    const layer = createBuildingsLayer({ visible: true, selectedId: null, greenedIds: new Set(), terrain: true })
+    expect(layer.props.extensions.some((e) => e instanceof TerrainExtension)).toBe(true)
+    expect(layer.props.terrainDrawMode).toBe('offset')
+  })
+
+  it('Given 地形なし / When レイヤーを作る / Then 拡張を付けない（付けたままだとヒートマップが描画されない）', () => {
+    const layer = createBuildingsLayer({ visible: true, selectedId: null, greenedIds: new Set(), terrain: false })
+    expect(layer.props.extensions.some((e) => e instanceof TerrainExtension)).toBe(false)
   })
 })

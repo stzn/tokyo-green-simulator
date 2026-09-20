@@ -1,5 +1,7 @@
-// MapLibreのベースマップの上にdeck.glのcanvasを重ねる。
-// interleavedモードは deck.gl 9.4 + MapLibre 5 の組み合わせでピッキングが効かなかったため使わない（2026-09 確認）
+// deck.glのレイヤーをMapLibreのレンダリングに挿し込む（interleaved）。
+// 地形（TerrainExtension）はdeck.glのcanvasを重ねるだけのオーバーレイ方式では効かず、
+// 建物や街路樹が地形に乗らないため、interleavedにしている。
+// 以前はこの組み合わせでピッキングが効かず見送っていたが、deck.gl 9.4 + MapLibre 5 の現行版では動く（2026-09 再確認）
 import type { Layer, PickingInfo } from '@deck.gl/core'
 import { MapboxOverlay, type MapboxOverlayProps } from '@deck.gl/mapbox'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -35,14 +37,25 @@ function brightenBasemapLabels(map: MapLibreMap): void {
   }
 }
 
+/**
+ * 地形はdeck.gl側（layers/terrain.ts + TerrainExtension）だけで扱う。
+ * MapLibreのsetTerrainでベースマップ自体も起伏させようとすると、ベースマップもdeck.glのレイヤーも
+ * 描画されなくなる（deck.gl 9.4 + MapLibre 5 で確認）。地面の起伏はdeck.glの地形メッシュで見せる
+ */
+
 type Props = {
   layers: Layer[]
+  /**
+   * deck.glのレイヤーをMapLibreのレンダリングに挿し込むか（挿し込まないときは地図の上にcanvasを重ねる）。
+   * 地形に乗せるにはinterleavedが要るが、画面上で集計するヒートマップはinterleavedでは描けないため切り替える
+   */
+  interleaved: boolean
   onPick: (info: PickingInfo) => void
   /** 現在の表示範囲が変わるたびに呼ばれる（現在地ミニマップ用） */
   onViewportChange?: (bounds: Extent) => void
 }
 
-export function MapView({ layers, onPick, onViewportChange }: Props) {
+export function MapView({ layers, interleaved, onPick, onViewportChange }: Props) {
   return (
     <Map
       initialViewState={INITIAL_VIEW_STATE}
@@ -58,7 +71,9 @@ export function MapView({ layers, onPick, onViewportChange }: Props) {
       onMove={(evt) => onViewportChange?.(boundsOf(evt.target))}
     >
       <DeckOverlay
-        interleaved={false}
+        // 方式を変えるにはオーバーレイを作り直す必要がある
+        key={interleaved ? 'interleaved' : 'overlay'}
+        interleaved={interleaved}
         layers={layers}
         onClick={onPick}
         getCursor={({ isHovering, isDragging }) => (isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab')}

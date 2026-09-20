@@ -1,6 +1,7 @@
 // 街路樹レイヤー（3Dピラー / ヒートマップ）
 import { HeatmapLayer } from '@deck.gl/aggregation-layers'
-import { DataFilterExtension } from '@deck.gl/extensions'
+// TerrainExtensionはdeck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { DataFilterExtension, _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
 import { ColumnLayer } from '@deck.gl/layers'
 import type { TreeMode } from '../store/appStore'
 import type { TreeData } from '../data/trees'
@@ -36,10 +37,14 @@ function colorsOf(data: TreeData): Uint8Array {
 }
 
 const filterExtension = new DataFilterExtension({ filterSize: 1 })
+// 地形の標高ぶんピラーを持ち上げる（ヒートマップは画面上の集計なので乗せない）
+const terrainExtension = new TerrainExtension()
+// ColumnLayerには型付き配列をそのまま渡していて型引数を足せないため、拡張のpropsはスプレッドで渡す
+const terrainProps: TerrainExtensionProps = { terrainDrawMode: 'offset' }
 
-type Options = { data: TreeData; mask: Float32Array; mode: TreeMode; visible: boolean }
+type Options = { data: TreeData; mask: Float32Array; mode: TreeMode; visible: boolean; terrain: boolean }
 
-export function createTreeLayers({ data, mask, mode, visible }: Options) {
+export function createTreeLayers({ data, mask, mode, visible, terrain }: Options) {
   if (mode === 'heatmap') {
     // HeatmapLayerはGPUフィルタに対応しないため、絞り込み後のインデックスを渡す
     const indices: number[] = []
@@ -87,7 +92,8 @@ export function createTreeLayers({ data, mask, mode, visible }: Options) {
       diskResolution: 8,
       radius: 2.5,
       elevationScale: 1,
-      extensions: [filterExtension],
+      extensions: terrain ? [filterExtension, terrainExtension] : [filterExtension],
+      ...terrainProps,
       filterRange: [1, 1],
     }),
   ]

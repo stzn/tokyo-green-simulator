@@ -1,4 +1,6 @@
 // 公園ポリゴンのレイヤー（OSM由来。public/data/parks.geojson）
+// deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
 import { GeoJsonLayer } from '@deck.gl/layers'
 import type { ParkInfo } from '../store/appStore'
 
@@ -8,10 +10,13 @@ type ParkFeatureLike = { properties: ParkInfo }
 
 export const parkFromFeature = (f: ParkFeatureLike): ParkInfo => ({ ...f.properties })
 
-type Options = { visible: boolean; selectedId: string | null }
+// 地形の標高ぶん持ち上げる（drapeではなくoffset。公園は小さめのポリゴンで、地面に貼るより浮かせたほうが見やすい）
+const terrainExtension = new TerrainExtension()
 
-export function createParksLayer({ visible, selectedId }: Options) {
-  return new GeoJsonLayer({
+type Options = { visible: boolean; selectedId: string | null; terrain: boolean }
+
+export function createParksLayer({ visible, selectedId, terrain }: Options) {
+  return new GeoJsonLayer<ParkInfo, TerrainExtensionProps>({
     id: 'parks',
     data: PARKS_URL,
     visible,
@@ -23,6 +28,8 @@ export function createParksLayer({ visible, selectedId }: Options) {
     getFillColor: (f: ParkFeatureLike) => (f.properties.id === selectedId ? [52, 211, 153, 190] : [16, 185, 129, 95]),
     getLineColor: [110, 231, 183, 200],
     lineWidthMinPixels: 1,
+    extensions: terrain ? [terrainExtension] : [],
+    terrainDrawMode: 'offset',
     updateTriggers: { getFillColor: [selectedId] },
   })
 }

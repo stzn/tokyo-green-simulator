@@ -8,9 +8,15 @@ import { LayerPanel } from './LayerPanel'
 beforeEach(() => useAppStore.setState(useAppStore.getInitialState(), true))
 
 describe('機能: レイヤーパネル', () => {
-  it('Given 初期状態 / Then 3D建物・公園・街路樹のチェックがすべてON', () => {
+  it('Given 初期状態 / Then 地形・3D建物・公園・街路樹のチェックがすべてON', () => {
     render(<LayerPanel />)
-    for (const name of ['3D建物', '公園', '街路樹']) expect(screen.getByRole('checkbox', { name })).toBeChecked()
+    for (const name of ['地形', '3D建物', '公園', '街路樹']) expect(screen.getByRole('checkbox', { name })).toBeChecked()
+  })
+
+  it('Given 地形がON / When 地形のチェックを外す / Then 地形レイヤーが非表示になる', async () => {
+    render(<LayerPanel />)
+    await userEvent.click(screen.getByRole('checkbox', { name: '地形' }))
+    expect(useAppStore.getState().layers.terrain).toBe(false)
   })
 
   it('Given 公園がON / When 公園のチェックを外す / Then 公園レイヤーが非表示になる', async () => {
