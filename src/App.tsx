@@ -9,10 +9,12 @@ import { LayerPanel } from './components/LayerPanel'
 import { LocatorMiniMap } from './components/LocatorMiniMap'
 import { MapView } from './components/MapView'
 import { StatsBar } from './components/StatsBar'
+import { filterCityTrees, loadCityTrees, toCityTreePaths, type CityTreeFeature, type CityTreePath } from './data/cityTrees'
 import { buildTreeMask, countBySpecies, loadTrees, type TreeData } from './data/trees'
 import { loadWards, type WardFeature } from './data/wards'
 import { buildingFromFeature, createBuildingsLayer, type BuildingFeature } from './layers/buildings'
 import { createGreeningLayers } from './layers/greening'
+import { createCityTreesLayer } from './layers/cityTrees'
 import { createParksLayer, parkFromFeature } from './layers/parks'
 import { createTerrainLayer } from './layers/terrain'
 import { createTreeLayers } from './layers/trees'
@@ -36,6 +38,19 @@ function useTreeData(): LoadState {
   return state
 }
 
+// 区道の街路樹（路線単位）。失敗してもこのレイヤーを出さないだけでアプリは止めない
+function useCityTrees(): CityTreeFeature[] {
+  const [features, setFeatures] = useState<CityTreeFeature[]>([])
+  useEffect(() => {
+    const controller = new AbortController()
+    loadCityTrees(controller.signal)
+      .then(setFeatures)
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
+  return features
+}
+
 // 区境界データ（現在地ミニマップ用）。失敗してもミニマップを出さないだけでアプリは止めない
 function useWards(): WardFeature[] | null {
   const [wards, setWards] = useState<WardFeature[] | null>(null)
@@ -53,6 +68,7 @@ export default function App() {
   const load = useTreeData()
   const treeData = load.status === 'ready' ? load.data : null
   const wards = useWards()
+  const cityTrees = useCityTrees()
   const [viewBounds, setViewBounds] = useState<Extent | null>(null)
 
   const { layers, treeMode, speciesFilter, wardFilter, selection, greened } = useAppStore(
@@ -73,8 +89,14 @@ export default function App() {
   const visibleCount = useMemo(() => (mask ? mask.reduce((n, v) => n + v, 0) : 0), [mask])
   const speciesCounts = useMemo(() => (treeData ? countBySpecies(treeData) : []), [treeData])
 
+  const cityTreePaths = useMemo(
+    () => toCityTreePaths(filterCityTrees(cityTrees, speciesFilter, wardFilter)),
+    [cityTrees, speciesFilter, wardFilter],
+  )
+
   const greenedList = useMemo(() => Object.values(greened), [greened])
   const selectedBuildingId = selection?.kind === 'building' ? selection.building.id : null
+  const selectedCityRoute = selection?.kind === 'cityTree' ? selection.route.route : null
   const selectedParkId = selection?.kind === 'park' ? selection.park.id : null
 
   // 地形はヒートマップ表示のときは使わない。ヒートマップは画面上の集計で地形に追従できないうえ、
@@ -88,11 +110,15 @@ export default function App() {
       // ヒートマップは画面上の集計で地形に追従できず、地形の下に隠れてしまうため、そのときも外す
       ...(onTerrain ? [createTerrainLayer()] : []),
       createParksLayer({ visible: layers.parks, selectedId: selectedParkId, terrain: onTerrain }),
+      // データが無いうちはレイヤーを作らない（空のまま地形の仕組みに乗せると、初回描画でdeck.glがエラーを出す）
+      ...(cityTreePaths.length > 0
+        ? [createCityTreesLayer({ paths: cityTreePaths, visible: layers.cityTrees, selectedRoute: selectedCityRoute, terrain: onTerrain })]
+        : []),
       createBuildingsLayer({ visible: layers.buildings, selectedId: selectedBuildingId, greenedIds: new Set(Object.keys(greened)), terrain: onTerrain }),
       ...(treeData && mask ? createTreeLayers({ data: treeData, mask, mode: treeMode, visible: layers.trees, terrain: onTerrain }) : []),
       ...createGreeningLayers(greenedList, onTerrain),
     ],
-    [onTerrain, layers, selectedParkId, selectedBuildingId, greened, greenedList, treeData, mask, treeMode],
+    [onTerrain, layers, selectedParkId, selectedBuildingId, selectedCityRoute, cityTreePaths, greened, greenedList, treeData, mask, treeMode],
   )
 
   const handlePick = (info: PickingInfo) => {
@@ -100,6 +126,7 @@ export default function App() {
     // MVTLayerはサブレイヤーのidが "buildings-..." になるため前方一致で判定する
     const layerId = info.layer.id
     if (layerId.startsWith('trees-columns') && info.index >= 0) select({ kind: 'tree', index: info.index })
+    else if (layerId.startsWith('city-trees') && info.object) select({ kind: 'cityTree', route: (info.object as CityTreePath).route })
     else if (layerId.startsWith('parks') && info.object) select({ kind: 'park', park: parkFromFeature(info.object) })
     else if (layerId.startsWith('buildings') && info.object) {
       const building = buildingFromFeature(info.object as BuildingFeature)

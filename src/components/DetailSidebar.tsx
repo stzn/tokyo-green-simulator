@@ -1,3 +1,4 @@
+import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { getTreeRecord, type TreeData } from '../data/trees'
 import { formatArea, formatInt, formatNum } from '../lib/format'
 import { speciesColor } from '../layers/trees'
@@ -5,12 +6,25 @@ import { useAppStore, type ParkInfo } from '../store/appStore'
 import { SimulationPanel } from './SimulationPanel'
 import { CloseButton, EstimatedBadge, Panel, Row } from './ui'
 
-function Header({ kicker, title, onClose, swatch }: { kicker: string; title: string; onClose: () => void; swatch?: string }) {
+function Header({
+  kicker,
+  title,
+  onClose,
+  swatch,
+  wrapTitle,
+}: {
+  kicker: string
+  title: string
+  onClose: () => void
+  swatch?: string
+  /** 路線名のように長い名前は省略せず折り返す */
+  wrapTitle?: boolean
+}) {
   return (
     <div className="mb-3 flex items-start justify-between gap-2">
       <div className="min-w-0">
         <p className="text-[11px] font-semibold tracking-[0.2em] text-emerald-300/80 uppercase">{kicker}</p>
-        <h2 className="mt-0.5 flex items-center gap-2 truncate text-xl font-bold text-white">
+        <h2 className={`mt-0.5 flex items-center gap-2 text-xl font-bold text-white ${wrapTitle ? 'break-words' : 'truncate'}`}>
           {swatch && <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: swatch }} aria-hidden="true" />}
           {title}
         </h2>
@@ -65,6 +79,26 @@ function TreeDetail({ data, index, onClose }: { data: TreeData; index: number; o
   )
 }
 
+function CityTreeDetail({ route, onClose }: { route: CityTreeRoute; onClose: () => void }) {
+  const [r, g, b] = speciesColor(route.species[0])
+  return (
+    <>
+      <Header kicker="Street tree · 区市町村道" title={route.route} onClose={onClose} swatch={`rgb(${r},${g},${b})`} wrapTitle />
+      <dl>
+        {route.alias && <Row label="通称">{route.alias}</Row>}
+        <Row label="行政区">{route.ward}</Row>
+        <Row label="樹種">{route.species.join('、')}</Row>
+        <Row label="本数">{route.count === null ? '不明' : `${formatInt(route.count)} 本`}</Row>
+        <Row label="所管">{route.manager}</Row>
+      </dl>
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+        区市町村道の街路樹は路線単位で公開されており、1本ごとの位置や樹高は公開されていません。そのため樹齢とCO2吸収量は算定していません。データ:
+        東京都都市整備局「緑のオープンデータ（GISデータ）」
+      </p>
+    </>
+  )
+}
+
 function ParkDetail({ park, onClose }: { park: ParkInfo; onClose: () => void }) {
   return (
     <>
@@ -92,7 +126,7 @@ export function DetailSidebar({ treeData }: { treeData: TreeData | null }) {
     return (
       <Panel>
         <p className="text-sm leading-relaxed text-slate-300">
-          マップ上の<span className="text-green-300">街路樹</span>・<span className="text-emerald-400">公園</span>・
+          マップ上の<span className="text-green-300">街路樹</span>（都道は1本ずつ、区市町村道は路線）・<span className="text-emerald-400">公園</span>・
           <span className="text-sky-300">建物</span>をクリックすると、詳細が表示されます。
         </p>
         <p className="mt-2 text-xs leading-relaxed text-slate-500">建物を選ぶと、屋上・壁面緑化の効果をその場でシミュレーションできます。</p>
@@ -103,6 +137,7 @@ export function DetailSidebar({ treeData }: { treeData: TreeData | null }) {
   return (
     <Panel>
       {selection.kind === 'tree' && treeData && <TreeDetail data={treeData} index={selection.index} onClose={clearSelection} />}
+      {selection.kind === 'cityTree' && <CityTreeDetail route={selection.route} onClose={clearSelection} />}
       {selection.kind === 'park' && <ParkDetail park={selection.park} onClose={clearSelection} />}
       {selection.kind === 'building' && (
         <>

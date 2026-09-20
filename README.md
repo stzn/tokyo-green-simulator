@@ -12,6 +12,7 @@
 | --- | --- |
 | 3Dベースマップ | PLATEAUの建物を高さ（measuredHeight）で押し出して表示。回転・傾き・ズーム |
 | 緑地・樹木レイヤー | 公園ポリゴン、街路樹の3Dピラー（高さ＝樹高、色＝樹種）とヒートマップ。レイヤーごとに表示を切り替えられる |
+| 区市町村道の街路樹 | 区道など23区管理の街路樹を路線単位で表示（色＝代表樹種、太さ＝本数）。3,530路線・本数の分かる分で115,096本。クリックで路線名・樹種・本数・所管を確認できる |
 | 属性表示 | 樹木（樹種・樹高・幹周・推定樹齢・年間CO2吸収量・路線）、公園（面積・管理者）、建物をクリックで表示 |
 | 絞り込み | 樹種（407種、検索つき）と行政区。GPUフィルタのため14万本でも再アップロードしない |
 | 緑化シミュレーション | 建物を選び、屋上・壁面緑化率を指定して、表面温度低下・冷房等の電力削減・CO2削減を試算。「緑化する」で屋上と壁面に緑が伸びる演出が入り、エリア合計に加算される |
@@ -37,9 +38,10 @@ npm run data:trees   # 東京都オープンデータ → public/data/trees.json
 npm run data:parks   # Overpass API → public/data/parks.geojson（混雑状況によって10〜30分）
 npm run data:wards   # Overpass API → public/data/wards.geojson（行政界。数分〜十数分）
 npm run data:dem     # 地理院標高タイル → public/data/dem/（約1分）
+npm run data:city-trees  # 東京都「緑のオープンデータ」 → public/data/city-trees.geojson（約1分）
 ```
 
-`data:dem` は取得した地理院標高タイルを `scripts/.cache/dem-raw/` に保存し、再実行時はそこから読み直します。`data:parks`／`data:wards` は区ごとのOverpass応答をそれぞれ `scripts/.cache/parks-raw/`／`scripts/.cache/wards-raw/` に保存します。途中で失敗しても再実行すると続きから取得し、変換ルールを変えたときも再取得せずに作り直せます。
+`data:dem` は取得した地理院標高タイルを `scripts/.cache/dem-raw/` に、`data:city-trees` は配布ZIPを `scripts/.cache/city-trees/` に保存し、再実行時はそこから読み直します。`data:parks`／`data:wards` は区ごとのOverpass応答をそれぞれ `scripts/.cache/parks-raw/`／`scripts/.cache/wards-raw/` に保存します。途中で失敗しても再実行すると続きから取得し、変換ルールを変えたときも再取得せずに作り直せます。
 
 ## 開発
 
@@ -59,8 +61,9 @@ npm run build
 
 ```
 scripts/            データ取得（fetch-*.ts）と変換ロジック（lib/）
-public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / dem/）
+public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/）
 src/
+  data/cityTrees.ts           区道の街路樹（路線）の読み込み・絞り込み・線への展開
   lib/dem.ts                  標高タイルのエンコーディング（取得スクリプトと共用）
   lib/geo.ts                  面積・外周長・リング単純化など（球面近似）
   lib/projection.ts           現在地ミニマップ用の緯度経度→SVG座標の投影
@@ -77,7 +80,8 @@ src/
 | データ | 出典 | ライセンス |
 | --- | --- | --- |
 | 3D建物 | 3D都市モデル（Project PLATEAU）東京都23区（国土交通省）／MVT変換: [indigo-lab](https://github.com/indigo-lab/plateau-tokyo23ku-building-mvt-2020) | CC BY 4.0 |
-| 街路樹 | 東京都建設局「[都道の街路樹](https://catalog.data.metro.tokyo.lg.jp/dataset/t000014d2000000029)」 | CC BY 4.0 |
+| 街路樹（都道・単木） | 東京都建設局「[都道の街路樹](https://catalog.data.metro.tokyo.lg.jp/dataset/t000014d2000000029)」 | CC BY 4.0 |
+| 街路樹（区市町村道・路線） | 東京都都市整備局「[緑のオープンデータ（GISデータ）](https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d2000000024)」 | CC BY 4.0 |
 | 公園 | © OpenStreetMap contributors | ODbL |
 | 行政界（ミニマップ表示用） | © OpenStreetMap contributors | ODbL |
 | 地形（標高） | 国土地理院「[地理院タイル（標高タイル DEM10B）](https://maps.gsi.go.jp/development/ichiran.html)」を加工して使用 | 出典明記で利用可 |
@@ -98,6 +102,8 @@ src/
   | 樹齢推定 | 樹種別の回帰式（17樹種） | 国総研「公園樹木管理の高度化に関する研究」H22 表-12 |
 
 - **計算に含めていないもの**：屋上・壁面の植物によるCO2固定、雨水貯留、植栽タイプ別の差、周辺気温の低下。公的な根拠が見つからない、または国の算定でも計上しないためです。壁面緑化の冷房削減は、査読付き論文（山崎ほか2009『熱的薄い壁体建物の屋上・壁面緑化による冷房負荷低減効果』日本建築学会技術報告集）はあるものの、断熱のほぼ無い実験棟が対象で一般建築物に当てはめると過大評価になるため見送りました。
+- **区市町村道の街路樹**：単木の位置は公開されておらず、路線の線に樹種と本数が付いたデータです。そのため本数から点を並べて1本ずつのように見せることはせず、線のまま表示しています。樹高・幹周が無いので、樹齢とCO2吸収量もこの区分では算定していません。3,530路線のうち**1,059路線は本数が公開されていません**（画面では「不明」と表示し、線は最小の太さで描きます）。なお区ごとの個別公開は杉並区のみで、その配布ページ（`www2.wagmap.jp/suginami/OpenDataDetail?lid=50`）は2026年9月現在404です。
+- **区道の線と地形**：区道の線にも地形の仕組み（TerrainExtension）を付けているため、起動直後の数フレームだけ deck.gl が `shaderInputs` のエラーをコンソールに出します。その後は発生せず、描画・クリックには影響しません（deck.gl 9.4 + MapLibre 5 で確認）。線を地形に貼り付ける drape モードも試しましたが、半透明の地形メッシュに隠れて線が見えなくなるため採っていません。
 - **推定値**：樹齢は回帰式のある17樹種だけを推定します（CSVの「サクラ」はソメイヨシノ、「スズカケノキ」はプラタナスの式を適用）。それ以外は「推定式なし」と表示します。CO2吸収量は国の算定に合わせて高木のみを対象とし、中木は「対象外」です。
 - **公園の管理者**：OSMの `operator`／`owner` タグを使います。タグが無い場合は、名称に「都立」「区立」とあるときだけ推定し、それ以外は「不明」と表示します（現状、約9割が不明）。区の公園一覧のオープンデータは区によって有無・形式がまちまちで、突き合わせには使えませんでした。
 - **公園の範囲**：Overpassの区域検索は区境をまたぐポリゴンも返すため、区外の公園（例: 戸田公園）が一部含まれます。
@@ -113,4 +119,3 @@ src/
 
 - 除外した効果（雨水貯留・植栽タイプ別の差）の根拠となる学術文献の調査
 - 動的API（Hono on Cloud Run）：エリア単位の集計、シナリオの保存・共有
-- 区道の街路樹（区のオープンデータ）の追加

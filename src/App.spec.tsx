@@ -35,6 +35,20 @@ const trees: TreesColumnar = {
   dict: { species: ['イチョウ', 'サクラ'], wards: ['千代田区'], routes: ['内堀通り'] },
 }
 
+const cityTrees = {
+  features: [
+    {
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [[139.75, 35.68], [139.76, 35.69]] },
+      properties: { ward: '千代田区', species: ['イチョウ'], count: 20, route: '特別区道千第1号', alias: '', manager: '千代田区' },
+    },
+  ],
+}
+
+/** 街路樹（都道）と区道で返すデータを分ける */
+const stubFetch = (city: unknown = cityTrees) =>
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(String(url).includes('city-trees') ? city : trees)))
+
 beforeEach(() => useAppStore.setState(useAppStore.getInitialState(), true))
 afterEach(() => vi.unstubAllGlobals())
 
@@ -52,16 +66,24 @@ describe('機能: アプリの起動', () => {
   })
 
   it('Given 読み込み完了 / Then タイトル・レイヤー・絞り込み・合計バーが揃い、地図に全レイヤーが渡る', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     expect(await screen.findByTestId('visible-count')).toHaveTextContent('2')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Urban Green Twin Tokyo')
     expect(screen.getByTestId('stats-buildings')).toBeInTheDocument()
-    expect(mapViewProps.layerIds).toEqual(['terrain', 'parks', 'buildings', 'trees-columns', 'greening-roof', 'greening-wall'])
+    expect(mapViewProps.layerIds).toEqual(['terrain', 'parks', 'city-trees', 'buildings', 'trees-columns', 'greening-roof', 'greening-wall'])
+  })
+
+  it('Given 区道の街路樹データが読めない / Then そのレイヤーは作らず、他のレイヤーは従来どおり出す', async () => {
+    stubFetch({ features: null })
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(mapViewProps.layerIds).not.toContain('city-trees')
+    expect(mapViewProps.layerIds).toContain('trees-columns')
   })
 
   it('Given 地形を表示中 / When ヒートマップに切り替える / Then 地形レイヤーを外す（画面上の集計なので地形に追従できず、地形に埋もれてしまう）', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     await userEvent.click(screen.getByRole('radio', { name: 'ヒートマップ' }))
@@ -70,14 +92,14 @@ describe('機能: アプリの起動', () => {
   })
 
   it('Given 3Dピラー表示 / Then 地形に乗せるためinterleavedで描く', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     expect(mapViewProps.interleaved).toBe(true)
   })
 
   it('Given ヒートマップ表示 / Then ヒートマップはinterleavedでは描けないので、地図に重ねる方式に切り替える', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     await userEvent.click(screen.getByRole('radio', { name: 'ヒートマップ' }))
@@ -85,7 +107,7 @@ describe('機能: アプリの起動', () => {
   })
 
   it('Given 読み込み完了 / When 地形を非表示にする / Then 地形レイヤーごと外す（非表示にするだけでは他レイヤーが地形に乗ったままになる）', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     await userEvent.click(screen.getByRole('checkbox', { name: '地形' }))
@@ -93,7 +115,7 @@ describe('機能: アプリの起動', () => {
   })
 
   it('Given 読み込み完了 / When サクラで絞り込む / Then 表示本数が1になる', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     useAppStore.getState().toggleSpecies('サクラ')
@@ -103,14 +125,14 @@ describe('機能: アプリの起動', () => {
 
 describe('機能: スマホ向けのパネル開閉', () => {
   it('Given 初期状態 / Then 「レイヤー・絞り込み」パネルは閉じている', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     expect(screen.getByRole('button', { name: 'レイヤー・絞り込み' })).toHaveAttribute('aria-expanded', 'false')
   })
 
   it('Given 閉じている / When ボタンを押す / Then 開き、もう一度押すと閉じる', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    stubFetch()
     render(<App />)
     await screen.findByTestId('visible-count')
     const toggle = screen.getByRole('button', { name: 'レイヤー・絞り込み' })
