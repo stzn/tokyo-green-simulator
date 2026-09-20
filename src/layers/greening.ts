@@ -1,4 +1,6 @@
 // 緑化した建物に「緑が付着する」演出レイヤー（屋上スラブ＋壁面スキン）
+// deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
 import { PolygonLayer } from '@deck.gl/layers'
 import { scaleRing, type Position } from '../lib/geo'
 import type { GreenedBuilding } from '../store/appStore'
@@ -23,13 +25,16 @@ export function toGreeningShapes(greened: GreenedBuilding[]): GreeningShape[] {
   })
 }
 
+// 緑化演出は建物と同じだけ地形に乗せる（ずれると壁面の緑が浮く）
+const terrainExtension = new TerrainExtension()
+
 // 追加された建物は高さ0から伸びる
 const growTransition = { duration: 1400, enter: () => [0] }
 
-export function createGreeningLayers(greened: GreenedBuilding[]) {
+export function createGreeningLayers(greened: GreenedBuilding[], terrain: boolean) {
   const shapes = toGreeningShapes(greened)
   return [
-    new PolygonLayer<GreeningShape>({
+    new PolygonLayer<GreeningShape, TerrainExtensionProps>({
       id: 'greening-roof',
       data: shapes.filter((s) => s.roof),
       getPolygon: (s) => s.roof!.polygon,
@@ -38,8 +43,10 @@ export function createGreeningLayers(greened: GreenedBuilding[]) {
       getFillColor: [134, 239, 172, 255],
       getLineColor: [187, 247, 208, 255],
       transitions: { getElevation: growTransition },
+      extensions: terrain ? [terrainExtension] : [],
+      terrainDrawMode: 'offset',
     }),
-    new PolygonLayer<GreeningShape>({
+    new PolygonLayer<GreeningShape, TerrainExtensionProps>({
       id: 'greening-wall',
       data: shapes.filter((s) => s.wall),
       getPolygon: (s) => s.wall!.polygon,
@@ -47,6 +54,8 @@ export function createGreeningLayers(greened: GreenedBuilding[]) {
       extruded: true,
       getFillColor: [74, 222, 128, 215],
       transitions: { getElevation: growTransition },
+      extensions: terrain ? [terrainExtension] : [],
+      terrainDrawMode: 'offset',
     }),
   ]
 }

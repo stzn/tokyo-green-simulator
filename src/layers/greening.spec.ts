@@ -1,3 +1,5 @@
+// deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { _TerrainExtension as TerrainExtension } from '@deck.gl/extensions'
 import { PolygonLayer } from '@deck.gl/layers'
 import { describe, expect, it } from 'vitest'
 import { polygonAreaM2 } from '../lib/geo'
@@ -45,12 +47,27 @@ describe('機能: 緑化の演出用の形状を作る', () => {
 
 describe('機能: 緑化演出レイヤーを作る', () => {
   it('Given 緑化済み建物 / When レイヤーを作る / Then 屋上と壁面のPolygonLayerを、高さが伸びるアニメーション付きで作る', () => {
-    const layers = createGreeningLayers([greened(0.5, 0.3)])
+    const layers = createGreeningLayers([greened(0.5, 0.3)], false)
     expect(layers.map((l) => l.id)).toEqual(['greening-roof', 'greening-wall'])
     for (const layer of layers) {
       expect(layer).toBeInstanceOf(PolygonLayer)
       expect(layer.props.extruded).toBe(true)
       expect(layer.props.transitions).toHaveProperty('getElevation')
+    }
+  })
+})
+
+describe('機能: 緑化演出を地形に乗せる', () => {
+  it('Given 緑化済み建物 / When レイヤーを作る / Then 屋上も壁面も建物と同じだけ標高ぶん持ち上げる', () => {
+    for (const layer of createGreeningLayers([greened(0.5, 0.3)], true)) {
+      expect(layer.props.extensions.some((e) => e instanceof TerrainExtension)).toBe(true)
+      expect(layer.props.terrainDrawMode).toBe('offset')
+    }
+  })
+
+  it('Given 地形なし / When レイヤーを作る / Then 拡張を付けない', () => {
+    for (const layer of createGreeningLayers([greened(0.5, 0.3)], false)) {
+      expect(layer.props.extensions.some((e) => e instanceof TerrainExtension)).toBe(false)
     }
   })
 })

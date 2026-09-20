@@ -14,6 +14,7 @@ import { loadWards, type WardFeature } from './data/wards'
 import { buildingFromFeature, createBuildingsLayer, type BuildingFeature } from './layers/buildings'
 import { createGreeningLayers } from './layers/greening'
 import { createParksLayer, parkFromFeature } from './layers/parks'
+import { createTerrainLayer } from './layers/terrain'
 import { createTreeLayers } from './layers/trees'
 import type { Extent } from './lib/projection'
 import { useAppStore } from './store/appStore'
@@ -76,14 +77,22 @@ export default function App() {
   const selectedBuildingId = selection?.kind === 'building' ? selection.building.id : null
   const selectedParkId = selection?.kind === 'park' ? selection.park.id : null
 
+  // 地形はヒートマップ表示のときは使わない。ヒートマップは画面上の集計で地形に追従できないうえ、
+  // 地形の仕組み（TerrainExtension）が有効だとヒートマップ自体が描画されないため
+  const onTerrain = layers.terrain && treeMode !== 'heatmap'
+
   const deckLayers = useMemo(
     () => [
-      createParksLayer({ visible: layers.parks, selectedId: selectedParkId }),
-      createBuildingsLayer({ visible: layers.buildings, selectedId: selectedBuildingId, greenedIds: new Set(Object.keys(greened)) }),
-      ...(treeData && mask ? createTreeLayers({ data: treeData, mask, mode: treeMode, visible: layers.trees }) : []),
-      ...createGreeningLayers(greenedList),
+      // 地形は他レイヤーの土台になるので最初に置く。
+      // 非表示のときはレイヤーごと外す（visibleをfalseにするだけでは、他のレイヤーが地形に乗ったままになる）。
+      // ヒートマップは画面上の集計で地形に追従できず、地形の下に隠れてしまうため、そのときも外す
+      ...(onTerrain ? [createTerrainLayer()] : []),
+      createParksLayer({ visible: layers.parks, selectedId: selectedParkId, terrain: onTerrain }),
+      createBuildingsLayer({ visible: layers.buildings, selectedId: selectedBuildingId, greenedIds: new Set(Object.keys(greened)), terrain: onTerrain }),
+      ...(treeData && mask ? createTreeLayers({ data: treeData, mask, mode: treeMode, visible: layers.trees, terrain: onTerrain }) : []),
+      ...createGreeningLayers(greenedList, onTerrain),
     ],
-    [layers, selectedParkId, selectedBuildingId, greened, greenedList, treeData, mask, treeMode],
+    [onTerrain, layers, selectedParkId, selectedBuildingId, greened, greenedList, treeData, mask, treeMode],
   )
 
   const handlePick = (info: PickingInfo) => {
@@ -100,7 +109,7 @@ export default function App() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-slate-950 font-sans text-slate-100">
-      <MapView layers={deckLayers} onPick={handlePick} onViewportChange={setViewBounds} />
+      <MapView layers={deckLayers} interleaved={treeMode !== 'heatmap'} onPick={handlePick} onViewportChange={setViewBounds} />
 
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-3 p-3 sm:p-4">
         <Header />

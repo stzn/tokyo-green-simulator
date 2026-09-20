@@ -4,7 +4,7 @@ import { createStore } from 'zustand/vanilla'
 import type { PolygonRings } from '../lib/geo'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
 
-export type LayerKey = 'buildings' | 'parks' | 'trees'
+export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees'
 export type TreeMode = 'columns' | 'heatmap'
 
 export type BuildingInfo = {
@@ -59,7 +59,7 @@ export type AppState = {
 }
 
 const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get: () => AppState): AppState => ({
-  layers: { buildings: true, parks: true, trees: true },
+  layers: { terrain: true, buildings: true, parks: true, trees: true },
   treeMode: 'columns',
   speciesFilter: [],
   wardFilter: null,

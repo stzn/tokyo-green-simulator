@@ -1,4 +1,6 @@
 // PLATEAU建物（MVT）の3D押し出しレイヤー
+// deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
+import { _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
 import { MVTLayer } from '@deck.gl/geo-layers'
 import { PLATEAU_BUILDINGS_TILES } from '../config/sources'
 import { polygonAreaM2, polygonPerimeterM, type PolygonRings } from '../lib/geo'
@@ -17,6 +19,10 @@ export const BUILDING_COLORS: Record<'default' | 'selected' | 'greened', RGBA> =
   // 本体は控えめな色にして、屋上・壁面の緑化演出（greening.ts）を際立たせる
   greened: [104, 132, 118, 255],
 }
+
+// 地形（terrain.ts）の標高ぶん建物を持ち上げる。
+// 地形を出していないときは付けない（付けたままだと街路樹のヒートマップが描画されない）
+const terrainExtension = new TerrainExtension()
 
 /** measuredHeight が未設定（0）の建物に使う高さ（平屋相当） */
 const FALLBACK_HEIGHT_M = 3
@@ -48,10 +54,10 @@ export function buildingFromFeature(feature: BuildingFeature): BuildingInfo | nu
   }
 }
 
-type Options = { visible: boolean; selectedId: string | null; greenedIds: Set<string> }
+type Options = { visible: boolean; selectedId: string | null; greenedIds: Set<string>; terrain: boolean }
 
-export function createBuildingsLayer({ visible, selectedId, greenedIds }: Options) {
-  return new MVTLayer<BuildingFeature['properties']>({
+export function createBuildingsLayer({ visible, selectedId, greenedIds, terrain }: Options) {
+  return new MVTLayer<BuildingFeature['properties'], TerrainExtensionProps>({
     id: 'buildings',
     data: PLATEAU_BUILDINGS_TILES,
     minZoom: 10,
@@ -71,6 +77,8 @@ export function createBuildingsLayer({ visible, selectedId, greenedIds }: Option
       if (id && id === selectedId) return BUILDING_COLORS.selected
       return BUILDING_COLORS.default
     },
+    extensions: terrain ? [terrainExtension] : [],
+    terrainDrawMode: 'offset',
     material: { ambient: 0.35, diffuse: 0.6, shininess: 32, specularColor: [60, 64, 70] },
     updateTriggers: { getFillColor: [selectedId, [...greenedIds].join(',')] },
   })

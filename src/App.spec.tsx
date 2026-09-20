@@ -8,10 +8,15 @@ import type { Extent } from './lib/projection'
 import { useAppStore } from './store/appStore'
 
 // WebGL（MapLibre / deck.gl）はjsdomで動かないため、地図はモックにして受け取ったレイヤーだけを記録する
-const mapViewProps = vi.hoisted(() => ({ layerIds: [] as string[], onViewportChange: null as ((bounds: Extent) => void) | null }))
+const mapViewProps = vi.hoisted(() => ({
+  layerIds: [] as string[],
+  interleaved: null as boolean | null,
+  onViewportChange: null as ((bounds: Extent) => void) | null,
+}))
 vi.mock('./components/MapView', () => ({
-  MapView: ({ layers, onViewportChange }: { layers: { id: string }[]; onViewportChange?: (bounds: Extent) => void }) => {
+  MapView: ({ layers, interleaved, onViewportChange }: { layers: { id: string }[]; interleaved: boolean; onViewportChange?: (bounds: Extent) => void }) => {
     mapViewProps.layerIds = layers.map((l) => l.id)
+    mapViewProps.interleaved = interleaved
     mapViewProps.onViewportChange = onViewportChange ?? null
     return <div data-testid="map" />
   },
@@ -52,7 +57,39 @@ describe('機能: アプリの起動', () => {
     expect(await screen.findByTestId('visible-count')).toHaveTextContent('2')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Urban Green Twin Tokyo')
     expect(screen.getByTestId('stats-buildings')).toBeInTheDocument()
-    expect(mapViewProps.layerIds).toEqual(['parks', 'buildings', 'trees-columns', 'greening-roof', 'greening-wall'])
+    expect(mapViewProps.layerIds).toEqual(['terrain', 'parks', 'buildings', 'trees-columns', 'greening-roof', 'greening-wall'])
+  })
+
+  it('Given 地形を表示中 / When ヒートマップに切り替える / Then 地形レイヤーを外す（画面上の集計なので地形に追従できず、地形に埋もれてしまう）', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    await userEvent.click(screen.getByRole('radio', { name: 'ヒートマップ' }))
+    expect(mapViewProps.layerIds).not.toContain('terrain')
+    expect(mapViewProps.layerIds).toContain('trees-heatmap')
+  })
+
+  it('Given 3Dピラー表示 / Then 地形に乗せるためinterleavedで描く', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(mapViewProps.interleaved).toBe(true)
+  })
+
+  it('Given ヒートマップ表示 / Then ヒートマップはinterleavedでは描けないので、地図に重ねる方式に切り替える', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    await userEvent.click(screen.getByRole('radio', { name: 'ヒートマップ' }))
+    expect(mapViewProps.interleaved).toBe(false)
+  })
+
+  it('Given 読み込み完了 / When 地形を非表示にする / Then 地形レイヤーごと外す（非表示にするだけでは他レイヤーが地形に乗ったままになる）', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json(trees)))
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    await userEvent.click(screen.getByRole('checkbox', { name: '地形' }))
+    expect(mapViewProps.layerIds).not.toContain('terrain')
   })
 
   it('Given 読み込み完了 / When サクラで絞り込む / Then 表示本数が1になる', async () => {

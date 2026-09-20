@@ -20,9 +20,9 @@ beforeEach(() => {
 })
 
 describe('機能: レイヤーの表示切替', () => {
-  it('Given 初期状態 / Then 建物・公園・街路樹はすべて表示、街路樹は3Dピラー表示', () => {
+  it('Given 初期状態 / Then 地形・建物・公園・街路樹はすべて表示、街路樹は3Dピラー表示', () => {
     const s = store.getState()
-    expect(s.layers).toEqual({ buildings: true, parks: true, trees: true })
+    expect(s.layers).toEqual({ terrain: true, buildings: true, parks: true, trees: true })
     expect(s.treeMode).toBe('columns')
   })
 
@@ -31,6 +31,13 @@ describe('機能: レイヤーの表示切替', () => {
     expect(store.getState().layers.parks).toBe(false)
     store.getState().toggleLayer('parks')
     expect(store.getState().layers.parks).toBe(true)
+  })
+
+  it('Given 地形が表示中 / When 地形レイヤーを切り替える / Then 平面表示に戻り、もう一度で地形に戻る', () => {
+    store.getState().toggleLayer('terrain')
+    expect(store.getState().layers.terrain).toBe(false)
+    store.getState().toggleLayer('terrain')
+    expect(store.getState().layers.terrain).toBe(true)
   })
 
   it('Given 3Dピラー表示 / When ヒートマップを選ぶ / Then 街路樹の表示モードが変わる', () => {

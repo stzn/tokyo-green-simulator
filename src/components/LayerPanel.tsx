@@ -2,6 +2,7 @@ import { useAppStore, type LayerKey, type TreeMode } from '../store/appStore'
 import { Panel } from './ui'
 
 const LAYERS: { key: LayerKey; label: string; swatch: string }[] = [
+  { key: 'terrain', label: '地形', swatch: 'bg-stone-500' },
   { key: 'buildings', label: '3D建物', swatch: 'bg-slate-400' },
   { key: 'parks', label: '公園', swatch: 'bg-emerald-700' },
   { key: 'trees', label: '街路樹', swatch: 'bg-green-400' },
