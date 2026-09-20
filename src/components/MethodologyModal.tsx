@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import {
   ALL_COEFFICIENTS,
+  EXCLUDED_EFFECTS,
   GIRTH_REGRESSION_ALIASES,
   GIRTH_REGRESSIONS,
+  ROOF_COOLING_RANGE_BY_INSULATION,
   roofCoolingSavingKWhPerM2,
   streetTreeCo2KgPerYear,
   type Coefficient,
@@ -100,16 +102,30 @@ export function MethodologyModal() {
             <h3 className="mt-5 mb-1 text-sm font-semibold text-emerald-300">係数と出典</h3>
             <CoefficientTable rows={ALL_COEFFICIENTS} />
 
+            <h3 className="mt-5 mb-1 text-sm font-semibold text-emerald-300">試算の幅</h3>
+            <p className="text-xs leading-relaxed text-slate-300">
+              屋上緑化の電力削減は、建物1棟ごとの断熱性能を区別せず、資料の代表値（
+              {formatNum(roofCoolingSavingKWhPerM2())} kWh/m²・年）で計算しています。実際は断熱性能で大きく変わり、東京の業務建物では通年の空調負荷削減率が
+              断熱なし {ROOF_COOLING_RANGE_BY_INSULATION.tokyo.none}％、断熱25mm {ROOF_COOLING_RANGE_BY_INSULATION.tokyo.mm25}％、断熱50mm{' '}
+              {ROOF_COOLING_RANGE_BY_INSULATION.tokyo.mm50.toFixed(1)}％と報告されています（
+              <a href={ROOF_COOLING_RANGE_BY_INSULATION.url} target="_blank" rel="noreferrer" className="text-emerald-300 underline">
+                環境省ガイドライン 図3.32
+              </a>
+              ）。断熱の薄い古い建物ほど効果が大きく出ます。
+            </p>
+
             <h3 className="mt-5 mb-1 text-sm font-semibold text-emerald-300">計算に含めていないもの</h3>
-            <ul className="list-disc space-y-0.5 pl-5 text-xs text-slate-300">
-              <li>屋上・壁面の植物によるCO2固定（国のインベントリでも高木以外は計上しない）</li>
-              <li>雨水の一時貯留（植栽基盤ごとの公的な原単位が見つからないため）</li>
-              <li>
-                壁面緑化による冷房負荷の削減（査読付き論文はあるが、断熱のほぼ無い実験棟が対象で一般建築物への適用は過大評価になるため見送り。山崎ほか
-                (2009)『熱的薄い壁体建物の屋上・壁面緑化による冷房負荷低減効果』日本建築学会技術報告集）
-              </li>
-              <li>植栽タイプ（セダム・芝・低中木）による差（タイプ別の公的な数値がないため。環境省ガイドラインはセダム系の効果を「限定的」としている）</li>
-              <li>周辺気温の低下（建物単位では推計手法が確立していないため）</li>
+            <p className="mb-1 text-xs text-slate-400">それぞれ原典に当たって確認し、含めない理由を書いています（2026年9月調査）。</p>
+            <ul className="space-y-1.5 text-xs text-slate-300">
+              {EXCLUDED_EFFECTS.map((e) => (
+                <li key={e.label}>
+                  <span className="font-semibold text-slate-200">{e.label}</span>
+                  <br />
+                  {e.reason}
+                  <br />
+                  <span className="text-slate-500">確認した資料: {e.checked}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
