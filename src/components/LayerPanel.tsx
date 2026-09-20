@@ -5,7 +5,8 @@ const LAYERS: { key: LayerKey; label: string; swatch: string }[] = [
   { key: 'terrain', label: '地形', swatch: 'bg-stone-500' },
   { key: 'buildings', label: '3D建物', swatch: 'bg-slate-400' },
   { key: 'parks', label: '公園', swatch: 'bg-emerald-700' },
-  { key: 'trees', label: '街路樹', swatch: 'bg-green-400' },
+  { key: 'trees', label: '街路樹（都道）', swatch: 'bg-green-400' },
+  { key: 'cityTrees', label: '街路樹（区市町村道）', swatch: 'bg-lime-300' },
 ]
 
 const TREE_MODES: { mode: TreeMode; label: string }[] = [
@@ -33,7 +34,7 @@ export function LayerPanel() {
         ))}
       </ul>
       <fieldset className="mt-3 flex rounded-lg bg-white/5 p-1" disabled={!layers.trees}>
-        <legend className="sr-only">街路樹の表示方法</legend>
+        <legend className="sr-only">街路樹（都道）の表示方法</legend>
         {TREE_MODES.map(({ mode, label }) => (
           <label
             key={mode}

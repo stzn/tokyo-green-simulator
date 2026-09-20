@@ -1,10 +1,11 @@
 // アプリ全体の状態（レイヤー表示・絞り込み・選択・緑化計画と緑化済み建物）
 import { create } from 'zustand'
+import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { createStore } from 'zustand/vanilla'
 import type { PolygonRings } from '../lib/geo'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
 
-export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees'
+export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees'
 export type TreeMode = 'columns' | 'heatmap'
 
 export type BuildingInfo = {
@@ -27,6 +28,7 @@ export type ParkInfo = {
 
 export type Selection =
   | { kind: 'tree'; index: number }
+  | { kind: 'cityTree'; route: CityTreeRoute }
   | { kind: 'park'; park: ParkInfo }
   | { kind: 'building'; building: BuildingInfo }
 
@@ -59,7 +61,7 @@ export type AppState = {
 }
 
 const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get: () => AppState): AppState => ({
-  layers: { terrain: true, buildings: true, parks: true, trees: true },
+  layers: { terrain: true, buildings: true, parks: true, trees: true, cityTrees: true },
   treeMode: 'columns',
   speciesFilter: [],
   wardFilter: null,

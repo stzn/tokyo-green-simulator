@@ -74,6 +74,8 @@ export function MapView({ layers, interleaved, onPick, onViewportChange }: Props
         // 方式を変えるにはオーバーレイを作り直す必要がある
         key={interleaved ? 'interleaved' : 'overlay'}
         interleaved={interleaved}
+        // 区道の街路樹は細い線なので、クリック位置から数px内を拾えるようにする
+        pickingRadius={6}
         layers={layers}
         onClick={onPick}
         getCursor={({ isHovering, isDragging }) => (isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab')}

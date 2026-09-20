@@ -98,6 +98,41 @@ describe('機能: 詳細サイドバー', () => {
     })
   })
 
+  describe('シナリオ: 区道の街路樹（路線）を選択する', () => {
+    const route = { ward: '世田谷区', species: ['イチョウ', 'サクラ'], count: 120, route: '特別区道世1号', alias: '区役所通り', manager: '世田谷区' }
+
+    it('Given 本数の分かる路線を選択 / Then 路線名・通称・区・樹種・本数・所管を表示する', () => {
+      useAppStore.setState({ selection: { kind: 'cityTree', route } })
+      render(<DetailSidebar treeData={treeData} />)
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent('特別区道世1号')
+      expect(screen.getByText('区役所通り')).toBeInTheDocument()
+      // 行政区と所管の両方に区名が入る
+      expect(screen.getAllByText('世田谷区')).toHaveLength(2)
+      expect(screen.getByText('イチョウ、サクラ')).toBeInTheDocument()
+      expect(screen.getByText('120 本')).toBeInTheDocument()
+    })
+
+    it('Given 本数が公開されていない路線を選択 / Then 本数は「不明」と表示する', () => {
+      useAppStore.setState({ selection: { kind: 'cityTree', route: { ...route, count: null } } })
+      render(<DetailSidebar treeData={treeData} />)
+      expect(screen.getByText('不明')).toBeInTheDocument()
+    })
+
+    it('Given 路線を選択 / Then 単木の情報が無いことを断り、樹高や樹齢・CO2は出さない', () => {
+      useAppStore.setState({ selection: { kind: 'cityTree', route } })
+      render(<DetailSidebar treeData={treeData} />)
+      expect(screen.queryByText('樹高')).not.toBeInTheDocument()
+      expect(screen.queryByText('推定樹齢')).not.toBeInTheDocument()
+      expect(screen.getByText(/1本ごとの位置や樹高は公開されていません/)).toBeInTheDocument()
+    })
+
+    it('Given 通称名の無い路線を選択 / Then 通称の行を出さない', () => {
+      useAppStore.setState({ selection: { kind: 'cityTree', route: { ...route, alias: '' } } })
+      render(<DetailSidebar treeData={treeData} />)
+      expect(screen.queryByText('通称')).not.toBeInTheDocument()
+    })
+  })
+
   describe('シナリオ: 建物を選択して緑化をシミュレーションする', () => {
     beforeEach(() => useAppStore.getState().select({ kind: 'building', building }))
 

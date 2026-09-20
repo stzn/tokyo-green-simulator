@@ -24,6 +24,7 @@ export const INITIAL_VIEW_STATE = {
 export const ATTRIBUTIONS = [
   { label: '3D都市モデル（Project PLATEAU）東京都23区', detail: '国土交通省／MVT変換: indigo-lab（CC BY 4.0）', url: 'https://github.com/indigo-lab/plateau-tokyo23ku-building-mvt-2020' },
   { label: '都道の街路樹（23区）', detail: '東京都建設局（CC BY 4.0）', url: 'https://catalog.data.metro.tokyo.lg.jp/dataset/t000014d2000000029' },
+  { label: '区市町村道の街路樹', detail: '東京都都市整備局「緑のオープンデータ（GISデータ）」（CC BY 4.0）', url: 'https://catalog.data.metro.tokyo.lg.jp/dataset/t000008d2000000024' },
   { label: '公園・行政界', detail: '© OpenStreetMap contributors（ODbL）', url: 'https://www.openstreetmap.org/copyright' },
   { label: '地形（標高タイル）', detail: '国土地理院「地理院タイル（標高タイルDEM10B）」を加工して使用', url: 'https://maps.gsi.go.jp/development/ichiran.html' },
   { label: 'ベースマップ', detail: 'OpenFreeMap © OpenMapTiles', url: 'https://openfreemap.org' },
