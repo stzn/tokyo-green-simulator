@@ -1,5 +1,7 @@
 // 街路樹データ（public/data/trees.json）をブラウザで扱う型付き配列に変換し、絞り込み・詳細取得を行う
 import type { TreesColumnar } from '../../scripts/lib/parseTrees'
+import { containsPoint } from '../lib/geo'
+import type { Extent } from '../lib/projection'
 import { estimateAnnualCo2Kg, estimateTreeAge, type AgeEstimate } from '../lib/simulation/trees'
 
 export type TreeData = {
@@ -73,6 +75,22 @@ export function buildTreeMask(data: TreeData, speciesFilter: string[], wardFilte
     mask[i] = speciesOk && wardOk ? 1 : 0
   }
   return mask
+}
+
+/**
+ * 表示範囲内の街路樹の本数。絞り込み（mask）に合うものだけを数えるので、
+ * 「表示中の街路樹」と同じ基準になる。tall は高木の本数（CO2の算定対象）
+ */
+export function countTreesInExtent(data: TreeData, mask: Float32Array, extent: Extent): { total: number; tall: number } {
+  let total = 0
+  let tall = 0
+  for (let i = 0; i < data.count; i++) {
+    if (mask[i] !== 1) continue
+    if (!containsPoint(extent, data.positions[i * 2], data.positions[i * 2 + 1])) continue
+    total++
+    if (data.isTall[i] === 1) tall++
+  }
+  return { total, tall }
 }
 
 const orNull = (v: number) => (v >= 0 ? v : null)
