@@ -58,6 +58,8 @@ export type AppState = {
   /** 選択中の建物に現在の計画で緑化を適用する（同じ建物は上書き） */
   greenSelected: () => void
   removeGreening: (buildingId: string) => void
+  /** 保存・共有されたシナリオの緑化済み建物に置き換える */
+  restoreGreened: (greened: Record<string, GreenedBuilding>) => void
 }
 
 const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get: () => AppState): AppState => ({
@@ -91,6 +93,7 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
       const { [buildingId]: _removed, ...rest } = s.greened
       return { greened: rest }
     }),
+  restoreGreened: (greened) => set(() => ({ greened })),
 })
 
 /** テストや複数インスタンス用のファクトリ */

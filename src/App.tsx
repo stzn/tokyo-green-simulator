@@ -1,6 +1,7 @@
 import type { PickingInfo } from '@deck.gl/core'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { AreaStatsPanel, type AreaStats } from './components/AreaStatsPanel'
 import { Attribution } from './components/Attribution'
 import { DetailSidebar } from './components/DetailSidebar'
 import { FilterPanel } from './components/FilterPanel'
@@ -8,9 +9,19 @@ import { Header } from './components/Header'
 import { LayerPanel } from './components/LayerPanel'
 import { LocatorMiniMap } from './components/LocatorMiniMap'
 import { MapView } from './components/MapView'
+import { ScenarioPanel } from './components/ScenarioPanel'
 import { StatsBar } from './components/StatsBar'
-import { filterCityTrees, loadCityTrees, toCityTreePaths, type CityTreeFeature, type CityTreePath } from './data/cityTrees'
-import { buildTreeMask, countBySpecies, loadTrees, type TreeData } from './data/trees'
+import { INITIAL_VIEW_STATE } from './config/sources'
+import {
+  filterCityTrees,
+  loadCityTrees,
+  summarizeCityTreesInExtent,
+  toCityTreePaths,
+  type CityTreeFeature,
+  type CityTreePath,
+} from './data/cityTrees'
+import { loadParks, summarizeParksInExtent, type ParkFeature } from './data/parks'
+import { buildTreeMask, countBySpecies, countTreesInExtent, loadTrees, type TreeData } from './data/trees'
 import { loadWards, type WardFeature } from './data/wards'
 import { buildingFromFeature, createBuildingsLayer, type BuildingFeature } from './layers/buildings'
 import { createGreeningLayers } from './layers/greening'
@@ -19,6 +30,8 @@ import { createParksLayer, parkFromFeature } from './layers/parks'
 import { createTerrainLayer } from './layers/terrain'
 import { createTreeLayers } from './layers/trees'
 import type { Extent } from './lib/projection'
+import { fromScenario, readScenarioFromHash, type ScenarioView } from './lib/scenario'
+import { useDebouncedValue } from './lib/useDebouncedValue'
 import { useAppStore } from './store/appStore'
 
 type LoadState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: TreeData }
@@ -51,6 +64,19 @@ function useCityTrees(): CityTreeFeature[] {
   return features
 }
 
+// 公園ポリゴン。描画と集計で同じデータを使う。失敗してもこのレイヤーを出さないだけでアプリは止めない
+function useParks(): ParkFeature[] {
+  const [features, setFeatures] = useState<ParkFeature[]>([])
+  useEffect(() => {
+    const controller = new AbortController()
+    loadParks(controller.signal)
+      .then(setFeatures)
+      .catch(() => {})
+    return () => controller.abort()
+  }, [])
+  return features
+}
+
 // 区境界データ（現在地ミニマップ用）。失敗してもミニマップを出さないだけでアプリは止めない
 function useWards(): WardFeature[] | null {
   const [wards, setWards] = useState<WardFeature[] | null>(null)
@@ -64,11 +90,31 @@ function useWards(): WardFeature[] | null {
   return wards
 }
 
+/** localStorageが使えない環境（プライベートブラウズなど）では null */
+function safeLocalStorage(): Storage | null {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+
 export default function App() {
+  // 共有リンク（#s=...）で開いたときは、そのシナリオ（緑化した建物と視点）で始める。読めなければ通常どおり起動する
+  const [startup] = useState(() => fromScenario(readScenarioFromHash(window.location.hash)))
+  const restoreGreened = useAppStore((s) => s.restoreGreened)
+  useEffect(() => {
+    if (startup) restoreGreened(startup.greened)
+  }, [startup, restoreGreened])
+  // 保存・共有の時点の視点。地図を動かすたびに更新するが、画面の再描画は要らないのでrefに持つ
+  const viewRef = useRef<ScenarioView>(startup?.view ?? INITIAL_VIEW_STATE)
+  const [focus, setFocus] = useState<{ view: ScenarioView } | null>(null)
+
   const load = useTreeData()
   const treeData = load.status === 'ready' ? load.data : null
   const wards = useWards()
   const cityTrees = useCityTrees()
+  const parks = useParks()
   const [viewBounds, setViewBounds] = useState<Extent | null>(null)
 
   const { layers, treeMode, speciesFilter, wardFilter, selection, greened } = useAppStore(
@@ -89,9 +135,21 @@ export default function App() {
   const visibleCount = useMemo(() => (mask ? mask.reduce((n, v) => n + v, 0) : 0), [mask])
   const speciesCounts = useMemo(() => (treeData ? countBySpecies(treeData) : []), [treeData])
 
+  // 地図をパン・ズーム中に毎フレーム集計しないよう、動きが止まってから数える
+  const settledBounds = useDebouncedValue(viewBounds, 200)
+  const filteredCityTrees = useMemo(() => filterCityTrees(cityTrees, speciesFilter, wardFilter), [cityTrees, speciesFilter, wardFilter])
+  const areaStats = useMemo<AreaStats | null>(() => {
+    if (!settledBounds) return null
+    return {
+      trees: treeData && mask ? countTreesInExtent(treeData, mask, settledBounds) : { total: 0, tall: 0 },
+      cityTrees: summarizeCityTreesInExtent(filteredCityTrees, settledBounds),
+      parks: summarizeParksInExtent(parks, settledBounds),
+    }
+  }, [settledBounds, treeData, mask, filteredCityTrees, parks])
+
   const cityTreePaths = useMemo(
-    () => toCityTreePaths(filterCityTrees(cityTrees, speciesFilter, wardFilter)),
-    [cityTrees, speciesFilter, wardFilter],
+    () => toCityTreePaths(filteredCityTrees),
+    [filteredCityTrees],
   )
 
   const greenedList = useMemo(() => Object.values(greened), [greened])
@@ -109,7 +167,8 @@ export default function App() {
       // 非表示のときはレイヤーごと外す（visibleをfalseにするだけでは、他のレイヤーが地形に乗ったままになる）。
       // ヒートマップは画面上の集計で地形に追従できず、地形の下に隠れてしまうため、そのときも外す
       ...(onTerrain ? [createTerrainLayer()] : []),
-      createParksLayer({ visible: layers.parks, selectedId: selectedParkId, terrain: onTerrain }),
+      // データが無いうちはレイヤーを作らない（区道と同じ扱い）
+      ...(parks.length > 0 ? [createParksLayer({ features: parks, visible: layers.parks, selectedId: selectedParkId, terrain: onTerrain })] : []),
       // データが無いうちはレイヤーを作らない（空のまま地形の仕組みに乗せると、初回描画でdeck.glがエラーを出す）
       ...(cityTreePaths.length > 0
         ? [createCityTreesLayer({ paths: cityTreePaths, visible: layers.cityTrees, selectedRoute: selectedCityRoute, terrain: onTerrain })]
@@ -118,7 +177,7 @@ export default function App() {
       ...(treeData && mask ? createTreeLayers({ data: treeData, mask, mode: treeMode, visible: layers.trees, terrain: onTerrain }) : []),
       ...createGreeningLayers(greenedList, onTerrain),
     ],
-    [onTerrain, layers, selectedParkId, selectedBuildingId, selectedCityRoute, cityTreePaths, greened, greenedList, treeData, mask, treeMode],
+    [onTerrain, parks, layers, selectedParkId, selectedBuildingId, selectedCityRoute, cityTreePaths, greened, greenedList, treeData, mask, treeMode],
   )
 
   const handlePick = (info: PickingInfo) => {
@@ -136,7 +195,17 @@ export default function App() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-slate-950 font-sans text-slate-100">
-      <MapView layers={deckLayers} interleaved={treeMode !== 'heatmap'} onPick={handlePick} onViewportChange={setViewBounds} />
+      <MapView
+        layers={deckLayers}
+        interleaved={treeMode !== 'heatmap'}
+        initialView={startup?.view ?? INITIAL_VIEW_STATE}
+        focus={focus}
+        onPick={handlePick}
+        onViewportChange={setViewBounds}
+        onViewStateChange={(view) => {
+          viewRef.current = view
+        }}
+      />
 
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-3 p-3 sm:p-4">
         <Header />
@@ -165,6 +234,14 @@ export default function App() {
                   街路樹データの読み込みに失敗しました。{load.message}
                 </p>
               )}
+              <AreaStatsPanel stats={areaStats} />
+              <ScenarioPanel
+                getView={() => viewRef.current}
+                onRestoreView={(view) => setFocus({ view })}
+                storage={safeLocalStorage()}
+                pageUrl={window.location.href}
+                copyText={(text) => navigator.clipboard.writeText(text)}
+              />
               {treeData && <FilterPanel species={speciesCounts} wards={treeData.dict.wards} visibleCount={visibleCount} />}
             </aside>
           </div>

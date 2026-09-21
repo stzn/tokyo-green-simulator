@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { polygonAreaM2, polygonPerimeterM, scaleRing, simplifyRing, type Position } from './geo'
+import { containsPoint, pathIntersectsExtent, polygonAreaM2, polygonPerimeterM, ringIntersectsExtent, scaleRing, simplifyRing, type Position } from './geo'
 
 // 経度方向・緯度方向とも約100mの正方形（北緯35.68度付近）
 const ring: Position[] = [
@@ -130,5 +130,45 @@ describe('機能: リングを単純化する（Ramer-Douglas-Peucker）', () =>
       [0, 4],
       [0, 0],
     ])
+  })
+})
+
+describe('機能: 表示範囲との重なりを判定する', () => {
+  const extent = { west: 139.7, south: 35.6, east: 139.8, north: 35.7 }
+
+  it('Given 範囲内の点 / When 判定する / Then 含まれる', () => {
+    expect(containsPoint(extent, 139.75, 35.65)).toBe(true)
+  })
+
+  it('Given 範囲の外の点 / When 判定する / Then 含まれない', () => {
+    expect(containsPoint(extent, 139.9, 35.65)).toBe(false)
+    expect(containsPoint(extent, 139.75, 35.8)).toBe(false)
+  })
+
+  it('Given 範囲の縁ちょうどの点 / When 判定する / Then 含まれる', () => {
+    expect(containsPoint(extent, 139.7, 35.6)).toBe(true)
+    expect(containsPoint(extent, 139.8, 35.7)).toBe(true)
+  })
+
+  it('Given 頂点のどれかが範囲内の線 / When 判定する / Then 重なる', () => {
+    expect(pathIntersectsExtent(extent, [[139.5, 35.65], [139.75, 35.65], [139.9, 35.65]])).toBe(true)
+  })
+
+  it('Given 頂点がすべて範囲の外の線 / When 判定する / Then 重ならない', () => {
+    expect(pathIntersectsExtent(extent, [[139.5, 35.5], [139.6, 35.55]])).toBe(false)
+  })
+
+  it('Given 範囲を横切るが頂点は範囲の外にある長い線 / When 判定する / Then 重なる（頂点だけで判定すると見落とす）', () => {
+    expect(pathIntersectsExtent(extent, [[139.6, 35.65], [139.9, 35.65]])).toBe(true)
+  })
+
+  it('Given 範囲を囲む大きなポリゴン / When 判定する / Then 重なる（範囲が公園の内側にある場合）', () => {
+    const ring = [[139.0, 35.0], [140.5, 35.0], [140.5, 36.5], [139.0, 36.5], [139.0, 35.0]]
+    expect(ringIntersectsExtent(extent, ring)).toBe(true)
+  })
+
+  it('Given 範囲と離れたポリゴン / When 判定する / Then 重ならない', () => {
+    const ring = [[139.0, 35.0], [139.1, 35.0], [139.1, 35.1], [139.0, 35.0]]
+    expect(ringIntersectsExtent(extent, ring)).toBe(false)
   })
 })

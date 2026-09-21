@@ -6,8 +6,10 @@ import type { Layer, PickingInfo } from '@deck.gl/core'
 import { MapboxOverlay, type MapboxOverlayProps } from '@deck.gl/mapbox'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { Map as MapLibreMap } from 'maplibre-gl'
-import { Map, NavigationControl, useControl } from 'react-map-gl/maplibre'
-import { BASEMAP_STYLE, INITIAL_VIEW_STATE } from '../config/sources'
+import { useEffect, useRef } from 'react'
+import { Map, NavigationControl, useControl, type MapRef } from 'react-map-gl/maplibre'
+import { BASEMAP_STYLE } from '../config/sources'
+import type { ScenarioView } from '../lib/scenario'
 import type { Extent } from '../lib/projection'
 
 function DeckOverlay(props: MapboxOverlayProps) {
@@ -45,6 +47,12 @@ function brightenBasemapLabels(map: MapLibreMap): void {
 
 type Props = {
   layers: Layer[]
+  /** 起動時の視点（共有リンクから開いたときはその視点） */
+  initialView: ScenarioView
+  /** 保存したシナリオを開いたときなど、地図をこの視点へ動かす。同じ視点でも新しいオブジェクトを渡せばもう一度動く */
+  focus: { view: ScenarioView } | null
+  /** 視点が変わるたびに呼ばれる（保存・共有のとき現在の視点を残すため） */
+  onViewStateChange?: (view: ScenarioView) => void
   /**
    * deck.glのレイヤーをMapLibreのレンダリングに挿し込むか（挿し込まないときは地図の上にcanvasを重ねる）。
    * 地形に乗せるにはinterleavedが要るが、画面上で集計するヒートマップはinterleavedでは描けないため切り替える
@@ -55,10 +63,17 @@ type Props = {
   onViewportChange?: (bounds: Extent) => void
 }
 
-export function MapView({ layers, interleaved, onPick, onViewportChange }: Props) {
+export function MapView({ layers, initialView, focus, interleaved, onPick, onViewportChange, onViewStateChange }: Props) {
+  const mapRef = useRef<MapRef>(null)
+
+  useEffect(() => {
+    if (focus) mapRef.current?.getMap().flyTo({ center: [focus.view.longitude, focus.view.latitude], ...focus.view, duration: 1200 })
+  }, [focus])
+
   return (
     <Map
-      initialViewState={INITIAL_VIEW_STATE}
+      ref={mapRef}
+      initialViewState={initialView}
       mapStyle={BASEMAP_STYLE}
       maxPitch={75}
       minZoom={10}
@@ -68,7 +83,11 @@ export function MapView({ layers, interleaved, onPick, onViewportChange }: Props
         brightenBasemapLabels(evt.target)
         onViewportChange?.(boundsOf(evt.target))
       }}
-      onMove={(evt) => onViewportChange?.(boundsOf(evt.target))}
+      onMove={(evt) => {
+        onViewportChange?.(boundsOf(evt.target))
+        const { longitude, latitude, zoom, pitch, bearing } = evt.viewState
+        onViewStateChange?.({ longitude, latitude, zoom, pitch, bearing })
+      }}
     >
       <DeckOverlay
         // 方式を変えるにはオーバーレイを作り直す必要がある

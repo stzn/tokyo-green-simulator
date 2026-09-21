@@ -3,21 +3,44 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { TreesColumnar } from '../scripts/lib/parseTrees'
 import App from './App'
+import { buildShareUrl } from './lib/scenario'
+import { simulateGreening } from './lib/simulation/greening'
 import type { WardFeature } from './data/wards'
 import type { Extent } from './lib/projection'
 import { useAppStore } from './store/appStore'
 
 // WebGL（MapLibre / deck.gl）はjsdomで動かないため、地図はモックにして受け取ったレイヤーだけを記録する
+type View = { longitude: number; latitude: number; zoom: number; pitch: number; bearing: number }
 const mapViewProps = vi.hoisted(() => ({
   layerIds: [] as string[],
   interleaved: null as boolean | null,
+  initialView: null as View | null,
+  focus: null as { view: View } | null,
   onViewportChange: null as ((bounds: Extent) => void) | null,
+  onViewStateChange: null as ((view: View) => void) | null,
 }))
 vi.mock('./components/MapView', () => ({
-  MapView: ({ layers, interleaved, onViewportChange }: { layers: { id: string }[]; interleaved: boolean; onViewportChange?: (bounds: Extent) => void }) => {
+  MapView: ({
+    layers,
+    interleaved,
+    initialView,
+    focus,
+    onViewportChange,
+    onViewStateChange,
+  }: {
+    layers: { id: string }[]
+    interleaved: boolean
+    initialView: View
+    focus: { view: View } | null
+    onViewportChange?: (bounds: Extent) => void
+    onViewStateChange?: (view: View) => void
+  }) => {
     mapViewProps.layerIds = layers.map((l) => l.id)
     mapViewProps.interleaved = interleaved
+    mapViewProps.initialView = initialView
+    mapViewProps.focus = focus
     mapViewProps.onViewportChange = onViewportChange ?? null
+    mapViewProps.onViewStateChange = onViewStateChange ?? null
     return <div data-testid="map" />
   },
 }))
@@ -45,12 +68,31 @@ const cityTrees = {
   ],
 }
 
-/** 街路樹（都道）と区道で返すデータを分ける */
+const parks = {
+  features: [
+    {
+      type: 'Feature',
+      geometry: { type: 'Polygon', coordinates: [[[139.75, 35.67], [139.76, 35.67], [139.76, 35.68], [139.75, 35.67]]] },
+      properties: { id: 'way/1', name: '日比谷公園', ward: '千代田区', areaM2: 161600, manager: '東京都', managerEstimated: true },
+    },
+  ],
+}
+
+/** 街路樹（都道）・区道・公園で返すデータを分ける */
 const stubFetch = (city: unknown = cityTrees) =>
-  vi.stubGlobal('fetch', vi.fn(async (url: string) => Response.json(String(url).includes('city-trees') ? city : trees)))
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      const u = String(url)
+      return Response.json(u.includes('city-trees') ? city : u.includes('parks') ? parks : trees)
+    }),
+  )
 
 beforeEach(() => useAppStore.setState(useAppStore.getInitialState(), true))
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  window.location.hash = ''
+})
 
 describe('機能: アプリの起動', () => {
   it('Given 街路樹データを読み込み中 / Then 読み込み中の表示が出る', () => {
@@ -201,5 +243,117 @@ describe('機能: 現在地ミニマップ', () => {
     render(<App />)
     await screen.findByTestId('visible-count')
     expect(screen.queryByTestId('locator-map')).not.toBeInTheDocument()
+  })
+})
+
+describe('機能: 表示範囲の緑の集計', () => {
+  // trees の2本は (139.75,35.68) と (139.76,35.69)。区道の路線と公園も同じあたりにある
+  const around = { west: 139.745, south: 35.675, east: 139.765, north: 35.695 }
+  const faraway = { west: 138, south: 34, east: 138.1, north: 34.1 }
+
+  it('Given 地図の表示範囲がまだ届いていない / Then 集計は出さない', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(screen.queryByTestId('area-trees')).not.toBeInTheDocument()
+  })
+
+  it('Given 緑のある範囲 / When 地図の表示範囲が届く / Then 街路樹・区道・公園を集計して表示する', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    mapViewProps.onViewportChange?.(around)
+    expect(await screen.findByTestId('area-trees')).toHaveTextContent('2')
+    expect(screen.getByTestId('area-city-trees')).toHaveTextContent('20')
+    expect(screen.getByTestId('area-parks')).toHaveTextContent('1')
+  })
+
+  it('Given 緑の無い範囲 / When 地図の表示範囲が届く / Then 「この範囲に緑のデータはありません」と表示する', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    mapViewProps.onViewportChange?.(faraway)
+    expect(await screen.findByText('この範囲に緑のデータはありません')).toBeInTheDocument()
+  })
+
+  it('Given 集計を表示中 / When サクラで絞り込む / Then 街路樹（都道）の集計も絞り込み後の本数になる', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    mapViewProps.onViewportChange?.(around)
+    expect(await screen.findByTestId('area-trees')).toHaveTextContent('2')
+    await userEvent.type(screen.getByRole('searchbox'), 'サクラ')
+    await userEvent.click(screen.getByRole('button', { name: /サクラ/ }))
+    expect(await screen.findByTestId('visible-count')).toHaveTextContent('1')
+    expect(await screen.findByTestId('area-trees')).toHaveTextContent('1')
+  })
+
+  it('Given 集計を表示中 / When 地図を動かし続ける / Then 動きが止まってから集計を更新する（毎フレームは走らせない）', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    mapViewProps.onViewportChange?.(around)
+    await screen.findByTestId('area-trees')
+    mapViewProps.onViewportChange?.(faraway)
+    // 直後はまだ前の集計のまま
+    expect(screen.getByTestId('area-trees')).toHaveTextContent('2')
+    expect(await screen.findByText('この範囲に緑のデータはありません')).toBeInTheDocument()
+  })
+})
+
+
+describe('機能: 共有リンクからの復元', () => {
+  const sharedView = { longitude: 139.7, latitude: 35.7, zoom: 14, pitch: 45, bearing: 10 }
+  const shared = () => {
+    const b = {
+      id: '13101-bldg-1',
+      heightM: 40,
+      roofAreaM2: 1000,
+      perimeterM: 130,
+      polygon: [[[139.76, 35.68], [139.7611, 35.68], [139.7611, 35.6809], [139.76, 35.6809], [139.76, 35.68]]],
+    }
+    const plan = { roofRatio: 0.5, wallRatio: 0.1 }
+    const r = buildShareUrl({ [b.id]: { building: b, plan, result: simulateGreening(b, plan) } }, sharedView, 'https://example.test/')
+    if (!r.ok) throw new Error(r.reason)
+    return new URL(r.url).hash
+  }
+
+  it('Given 共有リンクを開いた / When 起動する / Then 緑化した建物を復元し、地図をその視点で開く', async () => {
+    window.location.hash = shared()
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(screen.getByTestId('stats-buildings')).toHaveTextContent('1')
+    expect(mapViewProps.initialView).toEqual(sharedView)
+  })
+
+  it('Given 壊れたリンク（#s=xxx） / When 起動する / Then 復元せず、いつもの視点で普通に起動する', async () => {
+    window.location.hash = '#s=xxx'
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(screen.getByTestId('stats-buildings')).toHaveTextContent('0')
+    expect(mapViewProps.initialView).toMatchObject({ longitude: 139.7645, latitude: 35.6795 })
+  })
+
+  it('Given 共有リンクではない起動 / Then 保存と共有のボタンがある', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(screen.getByRole('button', { name: 'この端末に保存' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '共有リンクをコピー' })).toBeInTheDocument()
+  })
+
+  it('Given 地図を動かした / When 保存する / Then 動かした後の視点で保存される', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    const b = { id: 'x', heightM: 10, roofAreaM2: 100, perimeterM: 40, polygon: [[[139.7, 35.6], [139.71, 35.6], [139.71, 35.61], [139.7, 35.6]]] }
+    const plan = { roofRatio: 0.5, wallRatio: 0 }
+    useAppStore.setState({ greened: { x: { building: b, plan, result: simulateGreening(b, plan) } } })
+    mapViewProps.onViewStateChange?.({ longitude: 139.8, latitude: 35.75, zoom: 12, pitch: 30, bearing: 5 })
+    await userEvent.click(await screen.findByRole('button', { name: 'この端末に保存' }))
+    const saved = JSON.parse(window.localStorage.getItem('urban-green-twin:scenario') ?? '{}')
+    expect(saved.view).toMatchObject({ longitude: 139.8, latitude: 35.75, zoom: 12 })
   })
 })

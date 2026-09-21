@@ -2,9 +2,8 @@
 // deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
 import { _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
 import { GeoJsonLayer } from '@deck.gl/layers'
+import type { ParkFeature } from '../data/parks'
 import type { ParkInfo } from '../store/appStore'
-
-export const PARKS_URL = `${import.meta.env.BASE_URL}data/parks.geojson`
 
 type ParkFeatureLike = { properties: ParkInfo }
 
@@ -13,12 +12,12 @@ export const parkFromFeature = (f: ParkFeatureLike): ParkInfo => ({ ...f.propert
 // 地形の標高ぶん持ち上げる（drapeではなくoffset。公園は小さめのポリゴンで、地面に貼るより浮かせたほうが見やすい）
 const terrainExtension = new TerrainExtension()
 
-type Options = { visible: boolean; selectedId: string | null; terrain: boolean }
+type Options = { features: ParkFeature[]; visible: boolean; selectedId: string | null; terrain: boolean }
 
-export function createParksLayer({ visible, selectedId, terrain }: Options) {
+export function createParksLayer({ features, visible, selectedId, terrain }: Options) {
   return new GeoJsonLayer<ParkInfo, TerrainExtensionProps>({
     id: 'parks',
-    data: PARKS_URL,
+    data: features,
     visible,
     filled: true,
     stroked: true,

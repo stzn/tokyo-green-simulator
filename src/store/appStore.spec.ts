@@ -151,3 +151,28 @@ describe('機能: 建物の緑化', () => {
     expect(store.getState().plan).toEqual({ roofRatio: 0.5, wallRatio: 0.3 })
   })
 })
+
+describe('機能: 保存したシナリオの復元', () => {
+  const plan = { roofRatio: 0.5, wallRatio: 0.1 }
+  const greenedOf = (...buildings: BuildingInfo[]) =>
+    Object.fromEntries(buildings.map((b) => [b.id, { building: b, plan, result: simulateGreening(b, plan) }]))
+
+  it('Given 何も緑化していない / When シナリオを復元する / Then 復元した建物が緑化済みになり、合計に反映される', () => {
+    store.getState().restoreGreened(greenedOf(buildingA, buildingB))
+    expect(Object.keys(store.getState().greened)).toEqual([buildingA.id, buildingB.id])
+    expect(selectTotals(store.getState()).buildingCount).toBe(2)
+  })
+
+  it('Given すでに緑化した建物がある / When シナリオを復元する / Then 復元した内容に置き換わる（足し合わせない）', () => {
+    store.getState().select({ kind: 'building', building: buildingA })
+    store.getState().greenSelected()
+    store.getState().restoreGreened(greenedOf(buildingB))
+    expect(Object.keys(store.getState().greened)).toEqual([buildingB.id])
+  })
+
+  it('Given 空のシナリオ / When 復元する / Then 緑化済みの建物が無くなる', () => {
+    store.getState().restoreGreened(greenedOf(buildingA))
+    store.getState().restoreGreened({})
+    expect(selectTotals(store.getState()).buildingCount).toBe(0)
+  })
+})

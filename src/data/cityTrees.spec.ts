@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterCityTrees, toCityTreePaths, totalCityTreeCount, type CityTreeFeature } from './cityTrees'
+import { filterCityTrees, summarizeCityTreesInExtent, toCityTreePaths, totalCityTreeCount, type CityTreeFeature } from './cityTrees'
 
 const feature = (ward: string, species: string[], count: number | null, route: string): CityTreeFeature => ({
   type: 'Feature',
@@ -71,5 +71,34 @@ describe('機能: 路線を線（パス）に展開する', () => {
       properties: { ward: '港区', species: ['サクラ'], count: 5, route: '区道C', alias: '', manager: '港区' },
     }
     expect(toCityTreePaths([broken])).toHaveLength(0)
+  })
+})
+
+describe('機能: 表示範囲内の区道の街路樹を集計する', () => {
+  // feature() は (139.75,35.68)→(139.76,35.69) の線
+  const inside = { west: 139.7, south: 35.6, east: 139.8, north: 35.7 }
+  const outside = { west: 138, south: 34, east: 138.1, north: 34.1 }
+
+  it('Given 範囲を通る路線 / When 集計する / Then 路線数と本数を返す', () => {
+    const features = [feature('千代田区', ['イチョウ'], 31, 'a'), feature('世田谷区', ['サクラ'], 12, 'b')]
+    expect(summarizeCityTreesInExtent(features, inside)).toEqual({ routes: 2, count: 43, unknownRoutes: 0 })
+  })
+
+  it('Given 範囲の外の路線 / When 集計する / Then 数えない', () => {
+    expect(summarizeCityTreesInExtent([feature('千代田区', ['イチョウ'], 31, 'a')], outside)).toEqual({ routes: 0, count: 0, unknownRoutes: 0 })
+  })
+
+  it('Given 本数が公開されていない路線 / When 集計する / Then 本数には足さず、不明な路線数として別に返す', () => {
+    const features = [feature('千代田区', ['イチョウ'], 31, 'a'), feature('千代田区', ['イチョウ'], null, 'b')]
+    expect(summarizeCityTreesInExtent(features, inside)).toEqual({ routes: 2, count: 31, unknownRoutes: 1 })
+  })
+
+  it('Given MultiLineStringの路線 / When 集計する / Then どのパートが範囲に入っても1路線として数える', () => {
+    const multi: CityTreeFeature = {
+      type: 'Feature',
+      geometry: { type: 'MultiLineString', coordinates: [[[138.0, 34.0], [138.05, 34.05]], [[139.75, 35.68], [139.76, 35.69]]] },
+      properties: { ward: '港区', species: ['サクラ'], count: 5, route: 'm', alias: '', manager: '港区' },
+    }
+    expect(summarizeCityTreesInExtent([multi], inside)).toEqual({ routes: 1, count: 5, unknownRoutes: 0 })
   })
 })

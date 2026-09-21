@@ -1,7 +1,8 @@
 // 区道の街路樹（public/data/city-trees.geojson）の読み込みと絞り込み。
 // 区市町村道は単木の位置が公開されていないため、路線の線に樹種と本数が付いたデータになっている
 import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
-import type { Position } from '../lib/geo'
+import { pathIntersectsExtent, type Position } from '../lib/geo'
+import type { Extent } from '../lib/projection'
 
 export type CityTreeGeometry = { type: 'LineString'; coordinates: Position[] } | { type: 'MultiLineString'; coordinates: Position[][] }
 
@@ -39,6 +40,27 @@ export function totalCityTreeCount(features: CityTreeFeature[]): { count: number
       properties.count === null ? { ...acc, unknownRoutes: acc.unknownRoutes + 1 } : { ...acc, count: acc.count + properties.count },
     { count: 0, unknownRoutes: 0 },
   )
+}
+
+/**
+ * 表示範囲を通る路線の集計。本数が公開されていない路線は本数に足さず、路線数として別に返す。
+ * 路線は線なので、範囲に入っている長さではなく路線全体の本数を数える（範囲をまたぐ路線は全体を数える）
+ */
+export function summarizeCityTreesInExtent(
+  features: CityTreeFeature[],
+  extent: Extent,
+): { routes: number; count: number; unknownRoutes: number } {
+  let routes = 0
+  let count = 0
+  let unknownRoutes = 0
+  for (const { geometry, properties } of features) {
+    const parts = geometry.type === 'LineString' ? [geometry.coordinates] : geometry.coordinates
+    if (!parts.some((path) => pathIntersectsExtent(extent, path))) continue
+    routes++
+    if (properties.count === null) unknownRoutes++
+    else count += properties.count
+  }
+  return { routes, count, unknownRoutes }
 }
 
 /** deck.glのPathLayerに渡す1本の線 */

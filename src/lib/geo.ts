@@ -100,3 +100,61 @@ export function simplifyRing(points: Position[], tolerance: number): Position[] 
   }
   return [start, end]
 }
+
+// --- 表示範囲（Extent）との重なり判定（エリア集計用） ---
+
+type Bounds = { west: number; south: number; east: number; north: number }
+
+export function containsPoint(extent: Bounds, lon: number, lat: number): boolean {
+  return lon >= extent.west && lon <= extent.east && lat >= extent.south && lat <= extent.north
+}
+
+/** Liang-Barsky法で、線分が矩形と交わるかを判定する */
+function segmentIntersectsExtent(extent: Bounds, a: Position, b: Position): boolean {
+  const dx = b[0] - a[0]
+  const dy = b[1] - a[1]
+  let t0 = 0
+  let t1 = 1
+  const clip = (p: number, q: number) => {
+    if (p === 0) return q >= 0
+    const r = q / p
+    if (p < 0) {
+      if (r > t1) return false
+      if (r > t0) t0 = r
+    } else {
+      if (r < t0) return false
+      if (r < t1) t1 = r
+    }
+    return true
+  }
+  return (
+    clip(-dx, a[0] - extent.west) &&
+    clip(dx, extent.east - a[0]) &&
+    clip(-dy, a[1] - extent.south) &&
+    clip(dy, extent.north - a[1])
+  )
+}
+
+/** 折れ線が範囲と重なるか。頂点が範囲の外でも、線分が範囲を横切れば重なる */
+export function pathIntersectsExtent(extent: Bounds, path: Position[]): boolean {
+  if (path.length === 1) return containsPoint(extent, path[0][0], path[0][1])
+  for (let i = 0; i < path.length - 1; i++) {
+    if (segmentIntersectsExtent(extent, path[i], path[i + 1])) return true
+  }
+  return false
+}
+
+/** リング（ポリゴンの外周）が範囲と重なるか。範囲がポリゴンの内側に収まっている場合も重なりとする */
+export function ringIntersectsExtent(extent: Bounds, ring: Position[]): boolean {
+  if (pathIntersectsExtent(extent, ring)) return true
+  // 辺が交わらなくても、範囲の中心がポリゴンの内側にあれば重なる（偶奇規則）
+  const cx = (extent.west + extent.east) / 2
+  const cy = (extent.south + extent.north) / 2
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+    if (yi > cy !== yj > cy && cx < ((xj - xi) * (cy - yi)) / (yj - yi) + xi) inside = !inside
+  }
+  return inside
+}
