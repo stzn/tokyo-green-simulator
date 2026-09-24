@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { toTreeData } from '../data/trees'
+import { parseMeasurementLog, type GreenContext } from '../lib/measurementLog'
 import { selectTotals, useAppStore, type BuildingInfo } from '../store/appStore'
 import { DetailSidebar } from './DetailSidebar'
 import { MethodologyModal } from './MethodologyModal'
@@ -212,6 +213,16 @@ describe('機能: 計算方法と出典のモーダル', () => {
     expect(links.some((a) => a.getAttribute('href')?.startsWith('https://www.env.go.jp/'))).toBe(true)
   })
 
+  it('Given 開いている / Then 「計測地点まわりの緑」の節で、数え方（半径・全件・重なる公園は全体）を示す', async () => {
+    render(<MethodologyModal />)
+    await userEvent.click(screen.getByRole('button', { name: '計算方法と出典' }))
+    expect(screen.getByRole('heading', { name: '計測地点まわりの緑' })).toBeInTheDocument()
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveTextContent('絞り込みに関係なく全件')
+    expect(dialog).toHaveTextContent('公園全体の面積')
+    expect(dialog).toHaveTextContent('重なる部分の面積は求めていません')
+  })
+
   it('Given 開いている / Then 「計算に含めていないもの」の節で、効果ごとに調べた資料と含めない理由を示す', async () => {
     render(<MethodologyModal />)
     await userEvent.click(screen.getByRole('button', { name: '計算方法と出典' }))
@@ -238,5 +249,63 @@ describe('機能: 計算方法と出典のモーダル', () => {
     await userEvent.click(screen.getByRole('button', { name: '計算方法と出典' }))
     await userEvent.click(screen.getByRole('button', { name: '閉じる' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('機能: 計測地点の詳細', () => {
+  const { records } = parseMeasurementLog(
+    'timestamp,location,lat,lon,environment,hrv_sdnn,heart_rate,notes\n2026-09-24 12:30,紀尾井町緑地,35.679,139.737,Green,58,68,ベンチ着席\n2026-09-24 12:40,ビル街,35.68,139.74,Urban,,,',
+  )
+  const context: GreenContext = {
+    trees: { total: 12, tall: 9 },
+    cityTrees: { routes: 2, count: 30 },
+    parks: { count: 1, areaM2: 5000 },
+    nearestParkM: 0,
+    inPark: true,
+  }
+  const open = (index: number, contexts: (GreenContext | null)[]) => {
+    useAppStore.setState({ measurements: records, measurementRadiusM: 100, selection: { kind: 'measurement', index } })
+    render(<DetailSidebar treeData={treeData} measurementContexts={contexts} />)
+  }
+
+  it('Given 計測地点を選択 / Then 場所・日時・環境・HRV・心拍・メモを表示する', () => {
+    open(0, [context, null])
+    expect(screen.getByRole('heading', { name: '紀尾井町緑地' })).toBeInTheDocument()
+    expect(screen.getByText('2026-09-24 12:30')).toBeInTheDocument()
+    expect(screen.getByText('Green')).toBeInTheDocument()
+    expect(screen.getByText('58 ms')).toBeInTheDocument()
+    expect(screen.getByText('68 bpm')).toBeInTheDocument()
+    expect(screen.getByText('ベンチ着席')).toBeInTheDocument()
+  })
+
+  it('Given HRVと心拍が無い計測 / Then 「未記録」と表示する', () => {
+    open(1, [context, context])
+    expect(screen.getAllByText('未記録')).toHaveLength(2)
+  })
+
+  it('Given 緑の文脈が計算済み / Then 半径を見出しに、街路樹・区道・公園の値を表示する', () => {
+    open(0, [context, null])
+    expect(screen.getByText(/半径100 m/)).toBeInTheDocument()
+    expect(screen.getByTestId('ctx-trees')).toHaveTextContent('12 本')
+    expect(screen.getByTestId('ctx-trees-tall')).toHaveTextContent('9 本')
+    expect(screen.getByTestId('ctx-city-trees')).toHaveTextContent('2 路線・30 本')
+    expect(screen.getByTestId('ctx-parks')).toHaveTextContent('1 か所')
+    expect(screen.getByTestId('ctx-nearest-park')).toHaveTextContent('公園の中')
+  })
+
+  it('Given 公園の外の地点 / Then 最寄りの公園までの距離を表示する', () => {
+    open(0, [{ ...context, inPark: false, nearestParkM: 166.8, parks: { count: 0, areaM2: 0 } }, null])
+    expect(screen.getByTestId('ctx-nearest-park')).toHaveTextContent('167 m')
+  })
+
+  it('Given 地図データが読み込み中 / Then 読み込み中と表示する', () => {
+    open(0, [null, null])
+    expect(screen.getByText(/読み込み中/)).toBeInTheDocument()
+  })
+
+  it('Given 計測地点の詳細 / When 閉じるを押す / Then 選択が外れる', async () => {
+    open(0, [context, null])
+    await userEvent.click(screen.getByRole('button', { name: '閉じる' }))
+    expect(useAppStore.getState().selection).toBeNull()
   })
 })

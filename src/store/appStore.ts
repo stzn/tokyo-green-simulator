@@ -3,9 +3,10 @@ import { create } from 'zustand'
 import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { createStore } from 'zustand/vanilla'
 import type { PolygonRings } from '../lib/geo'
+import type { Measurement } from '../lib/measurementLog'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
 
-export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees'
+export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees' | 'measurements'
 export type TreeMode = 'columns' | 'heatmap'
 
 export type BuildingInfo = {
@@ -26,11 +27,14 @@ export type ParkInfo = {
   managerEstimated: boolean
 }
 
+export type MeasurementRadiusM = 50 | 100 | 200
+
 export type Selection =
   | { kind: 'tree'; index: number }
   | { kind: 'cityTree'; route: CityTreeRoute }
   | { kind: 'park'; park: ParkInfo }
   | { kind: 'building'; building: BuildingInfo }
+  | { kind: 'measurement'; index: number }
 
 export type GreenedBuilding = {
   building: BuildingInfo
@@ -46,6 +50,9 @@ export type AppState = {
   selection: Selection | null
   plan: GreeningPlan
   greened: Record<string, GreenedBuilding>
+  /** 読み込んだ計測ログ。健康データを含むため、メモリにだけ置き、保存・共有リンクには入れない */
+  measurements: Measurement[]
+  measurementRadiusM: MeasurementRadiusM
 
   toggleLayer: (key: LayerKey) => void
   setTreeMode: (mode: TreeMode) => void
@@ -60,16 +67,22 @@ export type AppState = {
   removeGreening: (buildingId: string) => void
   /** 保存・共有されたシナリオの緑化済み建物に置き換える */
   restoreGreened: (greened: Record<string, GreenedBuilding>) => void
+  /** 計測ログを置き換える。番号で指していた計測地点の選択は外す */
+  setMeasurements: (measurements: Measurement[]) => void
+  clearMeasurements: () => void
+  setMeasurementRadius: (radiusM: MeasurementRadiusM) => void
 }
 
 const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get: () => AppState): AppState => ({
-  layers: { terrain: true, buildings: true, parks: true, trees: true, cityTrees: true },
+  layers: { terrain: true, buildings: true, parks: true, trees: true, cityTrees: true, measurements: true },
   treeMode: 'columns',
   speciesFilter: [],
   wardFilter: null,
   selection: null,
   plan: { roofRatio: 0.5, wallRatio: 0.1 },
   greened: {},
+  measurements: [],
+  measurementRadiusM: 100,
 
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
   setTreeMode: (treeMode) => set(() => ({ treeMode })),
@@ -94,6 +107,9 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
       return { greened: rest }
     }),
   restoreGreened: (greened) => set(() => ({ greened })),
+  setMeasurements: (measurements) => set((s) => ({ measurements, selection: s.selection?.kind === 'measurement' ? null : s.selection })),
+  clearMeasurements: () => set((s) => ({ measurements: [], selection: s.selection?.kind === 'measurement' ? null : s.selection })),
+  setMeasurementRadius: (measurementRadiusM) => set(() => ({ measurementRadiusM })),
 })
 
 /** テストや複数インスタンス用のファクトリ */

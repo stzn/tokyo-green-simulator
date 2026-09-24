@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { containsPoint, pathIntersectsExtent, polygonAreaM2, polygonPerimeterM, ringIntersectsExtent, scaleRing, simplifyRing, type Position } from './geo'
+import { containsPoint, distanceM, distanceToPathM, pathIntersectsExtent, pointInRing, polygonAreaM2, polygonPerimeterM, ringIntersectsExtent, scaleRing, simplifyRing, type Position } from './geo'
 
 // 経度方向・緯度方向とも約100mの正方形（北緯35.68度付近）
 const ring: Position[] = [
@@ -170,5 +170,41 @@ describe('機能: 表示範囲との重なりを判定する', () => {
   it('Given 範囲と離れたポリゴン / When 判定する / Then 重ならない', () => {
     const ring = [[139.0, 35.0], [139.1, 35.0], [139.1, 35.1], [139.0, 35.0]]
     expect(ringIntersectsExtent(extent, ring)).toBe(false)
+  })
+})
+
+describe('機能: 地点まわりの距離を測る（計測地点の緑の文脈用）', () => {
+  it('Given 緯度が0.001度違う2点 / When 距離を測る / Then 約111m', () => {
+    within1pct(distanceM([139.7, 35.68], [139.7, 35.681]), 111.2)
+  })
+
+  it('Given 東西に延びる線分の真北約100mの点 / When 線までの距離を測る / Then 約100m', () => {
+    const path: Position[] = [
+      [139.7, 35.68],
+      [139.702, 35.68],
+    ]
+    within1pct(distanceToPathM([139.701, 35.6809], path), 100.1)
+  })
+
+  it('Given 線分の端より外側の点 / When 線までの距離を測る / Then 近い方の端までの距離', () => {
+    const path: Position[] = [
+      [139.7, 35.68],
+      [139.701, 35.68],
+    ]
+    within1pct(distanceToPathM([139.7, 35.681], path), 111.2)
+  })
+
+  it('Given 1点だけの線 / When 距離を測る / Then その点までの距離', () => {
+    within1pct(distanceToPathM([139.7, 35.681], [[139.7, 35.68]]), 111.2)
+  })
+})
+
+describe('機能: 点がリングの内側にあるかを判定する', () => {
+  it('Given 正方形の中心 / When 判定する / Then 内側', () => {
+    expect(pointInRing(ring, 139.70055, 35.68045)).toBe(true)
+  })
+
+  it('Given 正方形の外の点 / When 判定する / Then 外側', () => {
+    expect(pointInRing(ring, 139.702, 35.68045)).toBe(false)
   })
 })

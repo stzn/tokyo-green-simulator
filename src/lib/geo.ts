@@ -23,7 +23,8 @@ function ringAreaM2(ring: Position[]): number {
   return Math.abs((total * EARTH_RADIUS_M * EARTH_RADIUS_M) / 2)
 }
 
-function haversineM(a: Position, b: Position): number {
+/** 2点間の距離[m]（球面近似） */
+export function distanceM(a: Position, b: Position): number {
   const dLat = toRad(b[1] - a[1])
   const dLon = toRad(b[0] - a[0])
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * Math.sin(dLon / 2) ** 2
@@ -42,7 +43,7 @@ export function polygonPerimeterM(rings: PolygonRings): number {
   const outer = rings[0]
   if (!outer || outer.length < 2) return 0
   let length = 0
-  for (let i = 0; i < outer.length - 1; i++) length += haversineM(outer[i], outer[i + 1])
+  for (let i = 0; i < outer.length - 1; i++) length += distanceM(outer[i], outer[i + 1])
   return length
 }
 
@@ -144,17 +145,45 @@ export function pathIntersectsExtent(extent: Bounds, path: Position[]): boolean 
   return false
 }
 
-/** リング（ポリゴンの外周）が範囲と重なるか。範囲がポリゴンの内側に収まっている場合も重なりとする */
-export function ringIntersectsExtent(extent: Bounds, ring: Position[]): boolean {
-  if (pathIntersectsExtent(extent, ring)) return true
-  // 辺が交わらなくても、範囲の中心がポリゴンの内側にあれば重なる（偶奇規則）
-  const cx = (extent.west + extent.east) / 2
-  const cy = (extent.south + extent.north) / 2
+/** 点がリングの内側にあるか（偶奇規則） */
+export function pointInRing(ring: Position[], lon: number, lat: number): boolean {
   let inside = false
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i]
     const [xj, yj] = ring[j]
-    if (yi > cy !== yj > cy && cx < ((xj - xi) * (cy - yi)) / (yj - yi) + xi) inside = !inside
+    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside
   }
   return inside
+}
+
+/** リング（ポリゴンの外周）が範囲と重なるか。範囲がポリゴンの内側に収まっている場合も重なりとする */
+export function ringIntersectsExtent(extent: Bounds, ring: Position[]): boolean {
+  if (pathIntersectsExtent(extent, ring)) return true
+  // 辺が交わらなくても、範囲の中心がポリゴンの内側にあれば重なる
+  return pointInRing(ring, (extent.west + extent.east) / 2, (extent.south + extent.north) / 2)
+}
+
+/**
+ * 点から折れ線までの最短距離[m]。点のまわり数百m程度を想定し、緯度で補正した平面近似で測る
+ * （経度1度の長さは cos(緯度) 倍）。1点だけの線はその点までの距離
+ */
+export function distanceToPathM(point: Position, path: Position[]): number {
+  if (path.length === 0) return Infinity
+  if (path.length === 1) return distanceM(point, path[0])
+  const mPerDegLat = (Math.PI / 180) * EARTH_RADIUS_M
+  const mPerDegLon = mPerDegLat * Math.cos(toRad(point[1]))
+  let min = Infinity
+  for (let i = 0; i < path.length - 1; i++) {
+    const ax = (path[i][0] - point[0]) * mPerDegLon
+    const ay = (path[i][1] - point[1]) * mPerDegLat
+    const bx = (path[i + 1][0] - point[0]) * mPerDegLon
+    const by = (path[i + 1][1] - point[1]) * mPerDegLat
+    const dx = bx - ax
+    const dy = by - ay
+    const len2 = dx * dx + dy * dy
+    // 点は原点。線分上の最近点のパラメータ t を [0,1] に収める
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2))
+    min = Math.min(min, Math.hypot(ax + t * dx, ay + t * dy))
+  }
+  return min
 }

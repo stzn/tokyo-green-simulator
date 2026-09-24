@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { TreesColumnar } from '../scripts/lib/parseTrees'
 import App from './App'
+import { parseMeasurementLog } from './lib/measurementLog'
 import { buildShareUrl } from './lib/scenario'
 import { simulateGreening } from './lib/simulation/greening'
 import type { WardFeature } from './data/wards'
@@ -355,5 +356,77 @@ describe('機能: 共有リンクからの復元', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'この端末に保存' }))
     const saved = JSON.parse(window.localStorage.getItem('urban-green-twin:scenario') ?? '{}')
     expect(saved.view).toMatchObject({ longitude: 139.8, latitude: 35.75, zoom: 12 })
+  })
+})
+
+describe('機能: 計測ログの重ね合わせ', () => {
+  // 街路樹（139.75, 35.68）と区道の路線の端点に一致する地点
+  const { records } = parseMeasurementLog('timestamp,location,lat,lon,environment,hrv_sdnn\n2026-09-24 12:30,テスト地点,35.68,139.75,Green,58')
+
+  it('Given 計測を読み込んでいない / Then 計測地点のレイヤーは作らない', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    expect(mapViewProps.layerIds).not.toContain('measurements')
+  })
+
+  it('Given 計測を読み込み済み / Then 計測地点のレイヤーを他のレイヤーの上に渡す', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    act(() => useAppStore.getState().setMeasurements(records))
+    expect(mapViewProps.layerIds.at(-1)).toBe('measurements')
+  })
+
+  it('Given 計測を読み込み済み / When 「計測地点」を非表示にする / Then レイヤーは作られたまま非表示になる', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    act(() => useAppStore.getState().setMeasurements(records))
+    await userEvent.click(screen.getByRole('checkbox', { name: '計測地点' }))
+    expect(useAppStore.getState().layers.measurements).toBe(false)
+  })
+
+  it('Given 計測地点を選択 / Then 半径内の街路樹・区道を数えた緑の文脈を詳細に表示する', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    act(() => {
+      useAppStore.getState().setMeasurements(records)
+      useAppStore.getState().select({ kind: 'measurement', index: 0 })
+    })
+    expect(await screen.findByTestId('ctx-trees')).toHaveTextContent('1 本')
+    expect(screen.getByTestId('ctx-city-trees')).toHaveTextContent('1 路線・20 本')
+  })
+
+  it('Given 樹種で絞り込んでいる / Then 緑の文脈は絞り込みに関係なく全件で数える（画面の状態で研究用の数値が変わらない）', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    act(() => {
+      useAppStore.getState().toggleSpecies('サクラ')
+      useAppStore.getState().setMeasurements(records)
+      useAppStore.getState().select({ kind: 'measurement', index: 0 })
+    })
+    // 地点の街路樹はイチョウ。サクラだけに絞っても数える
+    expect(await screen.findByTestId('ctx-trees')).toHaveTextContent('1 本')
+  })
+
+  it('Given 計測を読み込み済み / When 一覧の地点を押す / Then 地図をその地点へ動かす', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    act(() => useAppStore.getState().setMeasurements(records))
+    await userEvent.click(screen.getByRole('button', { name: /テスト地点/ }))
+    expect(mapViewProps.focus?.view).toMatchObject({ longitude: 139.75, latitude: 35.68 })
+  })
+
+  it('Given 計測を読み込み済み / Then 共有リンクにも保存にも計測は含まれない', async () => {
+    stubFetch()
+    render(<App />)
+    await screen.findByTestId('visible-count')
+    act(() => useAppStore.getState().setMeasurements(records))
+    expect(window.location.hash).toBe('')
+    expect(JSON.stringify({ ...window.localStorage })).not.toContain('テスト地点')
   })
 })

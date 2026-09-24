@@ -7,6 +7,7 @@ const LAYERS: { key: LayerKey; label: string; swatch: string }[] = [
   { key: 'parks', label: '公園', swatch: 'bg-emerald-700' },
   { key: 'trees', label: '街路樹（都道）', swatch: 'bg-green-400' },
   { key: 'cityTrees', label: '街路樹（区市町村道）', swatch: 'bg-lime-300' },
+  { key: 'measurements', label: '計測地点', swatch: 'bg-amber-400' },
 ]
 
 const TREE_MODES: { mode: TreeMode; label: string }[] = [
