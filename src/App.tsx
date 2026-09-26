@@ -9,6 +9,7 @@ import { Header } from './components/Header'
 import { LayerPanel } from './components/LayerPanel'
 import { LocatorMiniMap } from './components/LocatorMiniMap'
 import { MapView } from './components/MapView'
+import { MeasurementPanel } from './components/MeasurementPanel'
 import { ScenarioPanel } from './components/ScenarioPanel'
 import { StatsBar } from './components/StatsBar'
 import { INITIAL_VIEW_STATE } from './config/sources'
@@ -26,12 +27,14 @@ import { loadWards, type WardFeature } from './data/wards'
 import { buildingFromFeature, createBuildingsLayer, type BuildingFeature } from './layers/buildings'
 import { createGreeningLayers } from './layers/greening'
 import { createCityTreesLayer } from './layers/cityTrees'
+import { createMeasurementLayers } from './layers/measurements'
 import { createParksLayer, parkFromFeature } from './layers/parks'
 import { createTerrainLayer } from './layers/terrain'
 import { createTreeLayers } from './layers/trees'
 import type { Extent } from './lib/projection'
 import { fromScenario, readScenarioFromHash, type ScenarioView } from './lib/scenario'
 import { useDebouncedValue } from './lib/useDebouncedValue'
+import { computeGreenContext } from './data/greenContext'
 import { useAppStore } from './store/appStore'
 
 type LoadState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: TreeData }
@@ -90,6 +93,16 @@ function useWards(): WardFeature[] | null {
   return wards
 }
 
+/** CSVを端末に保存する。サーバーには送らず、ブラウザのダウンロードとして書き出す */
+function downloadText(filename: string, text: string) {
+  const url = URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' }))
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 /** localStorageが使えない環境（プライベートブラウズなど）では null */
 function safeLocalStorage(): Storage | null {
   try {
@@ -117,7 +130,7 @@ export default function App() {
   const parks = useParks()
   const [viewBounds, setViewBounds] = useState<Extent | null>(null)
 
-  const { layers, treeMode, speciesFilter, wardFilter, selection, greened } = useAppStore(
+  const { layers, treeMode, speciesFilter, wardFilter, selection, greened, measurements, measurementRadiusM } = useAppStore(
     useShallow((s) => ({
       layers: s.layers,
       treeMode: s.treeMode,
@@ -125,6 +138,8 @@ export default function App() {
       wardFilter: s.wardFilter,
       selection: s.selection,
       greened: s.greened,
+      measurements: s.measurements,
+      measurementRadiusM: s.measurementRadiusM,
     })),
   )
   const select = useAppStore((s) => s.select)
@@ -147,6 +162,20 @@ export default function App() {
     }
   }, [settledBounds, treeData, mask, filteredCityTrees, parks])
 
+  // 計測地点まわりの緑。絞り込みに関係なく全件で数える（filteredCityTrees・maskは使わない）。
+  // 区道・公園は読み込み前・失敗時とも空配列なので、空のあいだは「読み込み中」（null）として扱う
+  const measurementContexts = useMemo(
+    () =>
+      measurements.map((m) =>
+        computeGreenContext({ lat: m.lat, lon: m.lon }, measurementRadiusM, {
+          trees: treeData,
+          cityTrees: cityTrees.length > 0 ? cityTrees : null,
+          parks: parks.length > 0 ? parks : null,
+        }),
+      ),
+    [measurements, measurementRadiusM, treeData, cityTrees, parks],
+  )
+
   const cityTreePaths = useMemo(
     () => toCityTreePaths(filteredCityTrees),
     [filteredCityTrees],
@@ -156,6 +185,7 @@ export default function App() {
   const selectedBuildingId = selection?.kind === 'building' ? selection.building.id : null
   const selectedCityRoute = selection?.kind === 'cityTree' ? selection.route.route : null
   const selectedParkId = selection?.kind === 'park' ? selection.park.id : null
+  const selectedMeasurementIndex = selection?.kind === 'measurement' ? selection.index : null
 
   // 地形はヒートマップ表示のときは使わない。ヒートマップは画面上の集計で地形に追従できないうえ、
   // 地形の仕組み（TerrainExtension）が有効だとヒートマップ自体が描画されないため
@@ -176,8 +206,32 @@ export default function App() {
       createBuildingsLayer({ visible: layers.buildings, selectedId: selectedBuildingId, greenedIds: new Set(Object.keys(greened)), terrain: onTerrain }),
       ...(treeData && mask ? createTreeLayers({ data: treeData, mask, mode: treeMode, visible: layers.trees, terrain: onTerrain }) : []),
       ...createGreeningLayers(greenedList, onTerrain),
+      // 計測地点は最前面に置く（他のレイヤーに埋もれないように）
+      ...createMeasurementLayers({
+        measurements,
+        visible: layers.measurements,
+        selectedIndex: selectedMeasurementIndex,
+        radiusM: measurementRadiusM,
+        terrain: onTerrain,
+      }),
     ],
-    [onTerrain, parks, layers, selectedParkId, selectedBuildingId, selectedCityRoute, cityTreePaths, greened, greenedList, treeData, mask, treeMode],
+    [
+      onTerrain,
+      parks,
+      layers,
+      selectedParkId,
+      selectedBuildingId,
+      selectedCityRoute,
+      selectedMeasurementIndex,
+      measurements,
+      measurementRadiusM,
+      cityTreePaths,
+      greened,
+      greenedList,
+      treeData,
+      mask,
+      treeMode,
+    ],
   )
 
   const handlePick = (info: PickingInfo) => {
@@ -186,6 +240,7 @@ export default function App() {
     const layerId = info.layer.id
     if (layerId.startsWith('trees-columns') && info.index >= 0) select({ kind: 'tree', index: info.index })
     else if (layerId.startsWith('city-trees') && info.object) select({ kind: 'cityTree', route: (info.object as CityTreePath).route })
+    else if (layerId.startsWith('measurements') && info.index >= 0) select({ kind: 'measurement', index: info.index })
     else if (layerId.startsWith('parks') && info.object) select({ kind: 'park', park: parkFromFeature(info.object) })
     else if (layerId.startsWith('buildings') && info.object) {
       const building = buildingFromFeature(info.object as BuildingFeature)
@@ -235,6 +290,7 @@ export default function App() {
                 </p>
               )}
               <AreaStatsPanel stats={areaStats} />
+              <MeasurementPanel contexts={measurementContexts} onFocusPoint={(view) => setFocus({ view })} downloadText={downloadText} />
               <ScenarioPanel
                 getView={() => viewRef.current}
                 onRestoreView={(view) => setFocus({ view })}
@@ -251,7 +307,7 @@ export default function App() {
               selection ? 'mt-auto md:mt-0' : 'hidden'
             }`}
           >
-            <DetailSidebar treeData={treeData} />
+            <DetailSidebar treeData={treeData} measurementContexts={measurementContexts} />
           </aside>
         </div>
 

@@ -1,6 +1,8 @@
 import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { getTreeRecord, type TreeData } from '../data/trees'
 import { formatArea, formatInt, formatNum } from '../lib/format'
+import type { GreenContext } from '../lib/measurementLog'
+import { environmentColor } from '../layers/measurements'
 import { speciesColor } from '../layers/trees'
 import { useAppStore, type ParkInfo } from '../store/appStore'
 import { SimulationPanel } from './SimulationPanel'
@@ -118,7 +120,57 @@ function ParkDetail({ park, onClose }: { park: ParkInfo; onClose: () => void }) 
   )
 }
 
-export function DetailSidebar({ treeData }: { treeData: TreeData | null }) {
+function MeasurementDetail({ index, context, onClose }: { index: number; context: GreenContext | null; onClose: () => void }) {
+  const measurement = useAppStore((s) => s.measurements[index])
+  const radiusM = useAppStore((s) => s.measurementRadiusM)
+  if (!measurement) return null
+  const [r, g, b] = environmentColor(measurement.environment)
+  return (
+    <>
+      <Header kicker="Measurement" title={measurement.location || '（場所名なし）'} onClose={onClose} swatch={`rgb(${r},${g},${b})`} wrapTitle />
+      <dl>
+        <Row label="日時">{measurement.timestamp}</Row>
+        <Row label="環境">{measurement.environment || '未指定'}</Row>
+        <Row label="HRV（SDNN）">{measurement.hrvSdnn === null ? '未記録' : `${formatNum(measurement.hrvSdnn)} ms`}</Row>
+        <Row label="心拍数">{measurement.heartRate === null ? '未記録' : `${formatNum(measurement.heartRate)} bpm`}</Row>
+        {measurement.notes && <Row label="メモ">{measurement.notes}</Row>}
+      </dl>
+      <h3 className="mt-4 mb-1 text-[11px] font-semibold tracking-[0.2em] text-emerald-300/80 uppercase">半径{radiusM} m の緑</h3>
+      {context ? (
+        <dl>
+          <Row label="街路樹（都道）">
+            <span data-testid="ctx-trees">{formatInt(context.trees.total)} 本</span>
+          </Row>
+          <Row label="うち高木">
+            <span data-testid="ctx-trees-tall">{formatInt(context.trees.tall)} 本</span>
+          </Row>
+          <Row label="街路樹（区市町村道）">
+            <span data-testid="ctx-city-trees">
+              {formatInt(context.cityTrees.routes)} 路線・{formatInt(context.cityTrees.count)} 本
+            </span>
+          </Row>
+          <Row label="公園">
+            <span data-testid="ctx-parks">
+              {formatInt(context.parks.count)} か所{context.parks.count > 0 && `・${formatArea(context.parks.areaM2)}`}
+            </span>
+          </Row>
+          <Row label="最寄りの公園">
+            <span data-testid="ctx-nearest-park">
+              {context.inPark ? '公園の中' : context.nearestParkM === null ? 'なし' : `${formatInt(context.nearestParkM)} m`}
+            </span>
+          </Row>
+        </dl>
+      ) : (
+        <p className="text-xs text-slate-400">地図データを読み込み中です…</p>
+      )}
+      <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+        樹種・行政区の絞り込みにかかわらず全件で数えています。区道の路線と公園は、円に一部でも重なれば全体（本数・面積）を数えます。健康データはこの端末の中だけで扱っています。
+      </p>
+    </>
+  )
+}
+
+export function DetailSidebar({ treeData, measurementContexts = [] }: { treeData: TreeData | null; measurementContexts?: (GreenContext | null)[] }) {
   const selection = useAppStore((s) => s.selection)
   const clearSelection = useAppStore((s) => s.clearSelection)
 
@@ -139,6 +191,9 @@ export function DetailSidebar({ treeData }: { treeData: TreeData | null }) {
       {selection.kind === 'tree' && treeData && <TreeDetail data={treeData} index={selection.index} onClose={clearSelection} />}
       {selection.kind === 'cityTree' && <CityTreeDetail route={selection.route} onClose={clearSelection} />}
       {selection.kind === 'park' && <ParkDetail park={selection.park} onClose={clearSelection} />}
+      {selection.kind === 'measurement' && (
+        <MeasurementDetail index={selection.index} context={measurementContexts[selection.index] ?? null} onClose={clearSelection} />
+      )}
       {selection.kind === 'building' && (
         <>
           <Header kicker="Building · PLATEAU" title="緑化シミュレーション" onClose={clearSelection} />

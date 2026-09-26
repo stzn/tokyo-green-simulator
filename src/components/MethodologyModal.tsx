@@ -114,6 +114,18 @@ export function MethodologyModal() {
               ）。断熱の薄い古い建物ほど効果が大きく出ます。
             </p>
 
+            <h3 className="mt-5 mb-1 text-sm font-semibold text-emerald-300">計測地点まわりの緑</h3>
+            <ul className="mb-2 list-disc space-y-0.5 pl-5 text-xs text-slate-300">
+              <li>読み込んだ計測ログの各地点を中心に、選んだ半径（50・100・200 m）の円の中を数えます。緑化の試算とは別の集計です</li>
+              <li>樹種・行政区の絞り込みに関係なく全件で数えます。画面の状態で数値が変わらないようにするためです</li>
+              <li>街路樹（都道）は円の中にある単木の本数（うち高木）。区市町村道は円の中を通る路線の数と、本数が公開されている路線の本数の合計です</li>
+              <li>
+                公園は円に一部でも重なるものを数え、面積は公園全体の面積を足します。円と重なる部分の面積は求めていません。最寄りの公園までの距離は外周までの距離で、公園の中なら
+                0 m です
+              </li>
+              <li>区市町村道の路線と公園は全体を数えるため、円の端では実際より多めになります</li>
+            </ul>
+
             <h3 className="mt-5 mb-1 text-sm font-semibold text-emerald-300">計算に含めていないもの</h3>
             <p className="mb-1 text-xs text-slate-400">それぞれ原典に当たって確認し、含めない理由を書いています（2026年9月調査）。</p>
             <ul className="space-y-1.5 text-xs text-slate-300">

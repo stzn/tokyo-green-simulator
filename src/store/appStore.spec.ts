@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { parseMeasurementLog } from '../lib/measurementLog'
+import { toScenario } from '../lib/scenario'
 import { simulateGreening } from '../lib/simulation/greening'
 import { createAppStore, selectTotals, type AppStore, type BuildingInfo } from './appStore'
 
@@ -20,9 +22,9 @@ beforeEach(() => {
 })
 
 describe('機能: レイヤーの表示切替', () => {
-  it('Given 初期状態 / Then 地形・建物・公園・街路樹（都道・区道）はすべて表示、街路樹は3Dピラー表示', () => {
+  it('Given 初期状態 / Then 地形・建物・公園・街路樹（都道・区道）・計測地点はすべて表示、街路樹は3Dピラー表示', () => {
     const s = store.getState()
-    expect(s.layers).toEqual({ terrain: true, buildings: true, parks: true, trees: true, cityTrees: true })
+    expect(s.layers).toEqual({ terrain: true, buildings: true, parks: true, trees: true, cityTrees: true, measurements: true })
     expect(s.treeMode).toBe('columns')
   })
 
@@ -174,5 +176,54 @@ describe('機能: 保存したシナリオの復元', () => {
     store.getState().restoreGreened(greenedOf(buildingA))
     store.getState().restoreGreened({})
     expect(selectTotals(store.getState()).buildingCount).toBe(0)
+  })
+})
+
+describe('機能: 計測ログの保持', () => {
+  const { records } = parseMeasurementLog(
+    'timestamp,location,lat,lon,hrv_sdnn\n2026-09-24 12:30,紀尾井町緑地,35.679,139.737,58\n2026-09-24 12:40,ビル街,35.68,139.74,40',
+  )
+
+  it('Given 初期状態 / Then 計測は空で、半径は100m', () => {
+    expect(store.getState().measurements).toEqual([])
+    expect(store.getState().measurementRadiusM).toBe(100)
+  })
+
+  it('Given 読み込んだ計測 / When 保持する / Then 一覧で参照できる', () => {
+    store.getState().setMeasurements(records)
+    expect(store.getState().measurements).toHaveLength(2)
+  })
+
+  it('Given 計測地点を選択中 / When 別のログを読み込む / Then 古い選択は外れる（別のログの同じ番号を指さない）', () => {
+    store.getState().setMeasurements(records)
+    store.getState().select({ kind: 'measurement', index: 1 })
+    store.getState().setMeasurements(records.slice(0, 1))
+    expect(store.getState().selection).toBeNull()
+  })
+
+  it('Given 建物を選択中 / When 計測ログを読み込む / Then 建物の選択は保つ', () => {
+    store.getState().select({ kind: 'building', building: buildingA })
+    store.getState().setMeasurements(records)
+    expect(store.getState().selection?.kind).toBe('building')
+  })
+
+  it('Given 計測を読み込み済み / When 消去する / Then 空に戻り、計測地点の選択も外れる', () => {
+    store.getState().setMeasurements(records)
+    store.getState().select({ kind: 'measurement', index: 0 })
+    store.getState().clearMeasurements()
+    expect(store.getState().measurements).toEqual([])
+    expect(store.getState().selection).toBeNull()
+  })
+
+  it('Given 半径100m / When 200mに変える / Then 半径が変わる', () => {
+    store.getState().setMeasurementRadius(200)
+    expect(store.getState().measurementRadiusM).toBe(200)
+  })
+
+  it('Given 計測を読み込み済み / When シナリオを作る / Then 健康データ（計測）は含まれない', () => {
+    store.getState().setMeasurements(records)
+    const scenario = toScenario(store.getState().greened, { longitude: 139.75, latitude: 35.68, zoom: 14, pitch: 0, bearing: 0 })
+    expect(JSON.stringify(scenario)).not.toContain('紀尾井町緑地')
+    expect(Object.keys(scenario)).not.toContain('measurements')
   })
 })

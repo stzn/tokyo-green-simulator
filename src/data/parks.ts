@@ -21,7 +21,7 @@ export async function loadParks(signal?: AbortSignal): Promise<ParkFeature[]> {
 }
 
 /** 公園の外周リング（MultiPolygonは各パートの外周）。穴は範囲判定に影響しないので使わない */
-const outerRings = (f: ParkFeature): PolygonRings =>
+export const outerRings = (f: ParkFeature): PolygonRings =>
   f.geometry.type === 'Polygon' ? [f.geometry.coordinates[0]] : f.geometry.coordinates.map((rings) => rings[0])
 
 /** 表示範囲と重なる公園の数と面積の合計。範囲をまたぐ公園は面積全体を数える */
