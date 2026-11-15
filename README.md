@@ -99,6 +99,8 @@ src/
 
 ## データ出典・ライセンス
 
+ソースコードは [MIT License](LICENSE) です。`public/data/` の生成済みデータおよび表示するデータには、元データのライセンス（下表）が適用されます。
+
 | データ | 出典 | ライセンス |
 | --- | --- | --- |
 | 3D建物 | 3D都市モデル（Project PLATEAU）東京都23区（国土交通省）／MVT変換: [indigo-lab](https://github.com/indigo-lab/plateau-tokyo23ku-building-mvt-2020) | CC BY 4.0 |
