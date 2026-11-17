@@ -46,6 +46,7 @@
     "@types/shapefile": "^0.6.4",
     "@vitejs/plugin-react": "^6.1.1",
     "adm-zip": "^0.6.1",
+    "ajv": "^8.17.1",
     "jsdom": "^30.1.0",
     "oxlint": "^1.81.0",
     "pngjs": "^7.0.0",

@@ -1,0 +1,89 @@
+{
+  "schema_version": "1",
+  "stage_ref": {
+    "area_id": "otemachi",
+    "date": "2025-08-30"
+  },
+  "generator": "sample（手で作った契約確認用）",
+  "weather_scenario": "heatwave",
+  "pods": [
+    {
+      "id": "P1",
+      "timeline": [
+        {
+          "hour": 11,
+          "spot_id": "OTM-003",
+          "action": "stay",
+          "plant_health": 96.0
+        },
+        {
+          "hour": 12,
+          "spot_id": "OTM-001",
+          "action": "move",
+          "plant_health": 95.5
+        },
+        {
+          "hour": 13,
+          "spot_id": "OTM-001",
+          "action": "irrigate",
+          "plant_health": 95.0
+        },
+        {
+          "hour": 14,
+          "spot_id": "OTM-003",
+          "action": "move",
+          "plant_health": 94.8
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "timeline": [
+        {
+          "hour": 11,
+          "spot_id": "OTM-002",
+          "action": "stay",
+          "plant_health": 98.0
+        },
+        {
+          "hour": 12,
+          "spot_id": "OTM-002",
+          "action": "stay",
+          "plant_health": 97.6
+        },
+        {
+          "hour": 13,
+          "spot_id": "OTM-002",
+          "action": "irrigate",
+          "plant_health": 97.5
+        },
+        {
+          "hour": 14,
+          "spot_id": "OTM-002",
+          "action": "stay",
+          "plant_health": 97.2
+        }
+      ]
+    }
+  ],
+  "comfort": [
+    {
+      "spot_id": "OTM-001",
+      "hour": 12,
+      "pet_c": 38.5,
+      "pods_present": 1
+    },
+    {
+      "spot_id": "OTM-002",
+      "hour": 12,
+      "pet_c": 33.0,
+      "pods_present": 1
+    },
+    {
+      "spot_id": "OTM-003",
+      "hour": 12,
+      "pet_c": 31.2,
+      "pods_present": 0
+    }
+  ]
+}

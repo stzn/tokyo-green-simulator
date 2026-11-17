@@ -1,0 +1,164 @@
+{
+  "$defs": {
+    "Pod": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "timeline": {
+          "items": {
+            "$ref": "#/$defs/PodStep"
+          },
+          "minItems": 1,
+          "title": "Timeline",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "timeline"
+      ],
+      "title": "Pod",
+      "type": "object"
+    },
+    "PodStep": {
+      "additionalProperties": false,
+      "properties": {
+        "hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "spot_id": {
+          "title": "Spot Id",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "stay",
+            "move",
+            "irrigate"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "plant_health": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Plant Health",
+          "type": "number"
+        }
+      },
+      "required": [
+        "hour",
+        "spot_id",
+        "action",
+        "plant_health"
+      ],
+      "title": "PodStep",
+      "type": "object"
+    },
+    "SpotComfort": {
+      "additionalProperties": false,
+      "properties": {
+        "spot_id": {
+          "title": "Spot Id",
+          "type": "string"
+        },
+        "hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "pet_c": {
+          "description": "生理学的等価温度 PET [℃]",
+          "title": "Pet C",
+          "type": "number"
+        },
+        "pods_present": {
+          "minimum": 0,
+          "title": "Pods Present",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "spot_id",
+        "hour",
+        "pet_c",
+        "pods_present"
+      ],
+      "title": "SpotComfort",
+      "type": "object"
+    },
+    "StageRef": {
+      "additionalProperties": false,
+      "properties": {
+        "area_id": {
+          "title": "Area Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "area_id",
+        "date"
+      ],
+      "title": "StageRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage_ref": {
+      "$ref": "#/$defs/StageRef"
+    },
+    "generator": {
+      "description": "書き出した役者の版と配車方式（例: vmgs@abc1234 greedy）",
+      "title": "Generator",
+      "type": "string"
+    },
+    "weather_scenario": {
+      "description": "使った気象（例: heatwave）",
+      "title": "Weather Scenario",
+      "type": "string"
+    },
+    "pods": {
+      "items": {
+        "$ref": "#/$defs/Pod"
+      },
+      "minItems": 1,
+      "title": "Pods",
+      "type": "array"
+    },
+    "comfort": {
+      "items": {
+        "$ref": "#/$defs/SpotComfort"
+      },
+      "title": "Comfort",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_ref",
+    "generator",
+    "weather_scenario",
+    "pods"
+  ],
+  "title": "Dispatch",
+  "type": "object"
+}
