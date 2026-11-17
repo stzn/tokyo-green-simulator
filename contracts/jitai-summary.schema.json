@@ -1,0 +1,222 @@
+{
+  "$defs": {
+    "JitaiTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "decisions": {
+          "minimum": 0,
+          "title": "Decisions",
+          "type": "integer"
+        },
+        "interventions": {
+          "minimum": 0,
+          "title": "Interventions",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "decisions",
+        "interventions"
+      ],
+      "title": "JitaiTotals",
+      "type": "object"
+    },
+    "RecoveryInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "carryover_minutes": {
+          "minimum": 0,
+          "title": "Carryover Minutes",
+          "type": "number"
+        }
+      },
+      "required": [
+        "enabled",
+        "carryover_minutes"
+      ],
+      "title": "RecoveryInfo",
+      "type": "object"
+    },
+    "StageRef": {
+      "additionalProperties": false,
+      "properties": {
+        "area_id": {
+          "title": "Area Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "area_id",
+        "date"
+      ],
+      "title": "StageRef",
+      "type": "object"
+    },
+    "ZoneGrid": {
+      "additionalProperties": false,
+      "description": "区画の切り方。区域の南西の角を原点に、東西・南北に zone_m ごとの升目（番号は 0 から）。",
+      "properties": {
+        "origin_lon": {
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Origin Lon",
+          "type": "number"
+        },
+        "origin_lat": {
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Origin Lat",
+          "type": "number"
+        },
+        "zone_m": {
+          "description": "区画の一辺 [m]（徒歩圏に合わせる）",
+          "exclusiveMinimum": 0,
+          "title": "Zone M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "origin_lon",
+        "origin_lat",
+        "zone_m"
+      ],
+      "title": "ZoneGrid",
+      "type": "object"
+    },
+    "ZoneHour": {
+      "additionalProperties": false,
+      "properties": {
+        "zone": {
+          "description": "区画の番号 [東西, 南北]",
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "title": "Zone",
+          "type": "array"
+        },
+        "hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "decisions": {
+          "description": "判定の件数（過緊張を検知した判定点）",
+          "minimum": 1,
+          "title": "Decisions",
+          "type": "integer"
+        },
+        "interventions": {
+          "minimum": 0,
+          "title": "Interventions",
+          "type": "integer"
+        },
+        "skipped_calendar": {
+          "description": "予定の段階で見送った件数",
+          "minimum": 0,
+          "title": "Skipped Calendar",
+          "type": "integer"
+        },
+        "skipped_pods": {
+          "description": "ポッドの段階で見送った件数",
+          "minimum": 0,
+          "title": "Skipped Pods",
+          "type": "integer"
+        },
+        "skipped_pet": {
+          "description": "PET の段階で見送った件数",
+          "minimum": 0,
+          "title": "Skipped Pet",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "zone",
+        "hour",
+        "decisions",
+        "interventions",
+        "skipped_calendar",
+        "skipped_pods",
+        "skipped_pet"
+      ],
+      "title": "ZoneHour",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "JITAI の集計（役者 → 舞台）。min_workers 人未満の区画・時刻は入れない。個人の記録は持たない。",
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stage_ref": {
+      "$ref": "#/$defs/StageRef"
+    },
+    "generator": {
+      "title": "Generator",
+      "type": "string"
+    },
+    "weather_scenario": {
+      "title": "Weather Scenario",
+      "type": "string"
+    },
+    "workers": {
+      "description": "合成のワーカーの人数",
+      "minimum": 1,
+      "title": "Workers",
+      "type": "integer"
+    },
+    "min_workers": {
+      "minimum": 1,
+      "title": "Min Workers",
+      "type": "integer"
+    },
+    "grid": {
+      "$ref": "#/$defs/ZoneGrid"
+    },
+    "totals": {
+      "$ref": "#/$defs/JitaiTotals"
+    },
+    "recovery": {
+      "$ref": "#/$defs/RecoveryInfo"
+    },
+    "zones": {
+      "items": {
+        "$ref": "#/$defs/ZoneHour"
+      },
+      "title": "Zones",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_ref",
+    "generator",
+    "weather_scenario",
+    "workers",
+    "min_workers",
+    "grid",
+    "totals",
+    "recovery"
+  ],
+  "title": "JitaiSummary",
+  "type": "object"
+}

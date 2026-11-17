@@ -1,0 +1,15 @@
+{
+ "schema_version": "1",
+ "stage_ref": {"area_id": "otemachi", "date": "2025-08-30"},
+ "generator": "sample（手で作った契約確認用）",
+ "weather_scenario": "normal",
+ "workers": 30,
+ "min_workers": 3,
+ "grid": {"origin_lon": 139.758, "origin_lat": 35.676, "zone_m": 400.0},
+ "totals": {"decisions": 94, "interventions": 11},
+ "recovery": {"enabled": true, "carryover_minutes": 30.0},
+ "zones": [
+  {"zone": [1, 2], "hour": 11, "decisions": 5, "interventions": 2, "skipped_calendar": 1, "skipped_pods": 2, "skipped_pet": 0},
+  {"zone": [1, 3], "hour": 14, "decisions": 4, "interventions": 0, "skipped_calendar": 1, "skipped_pods": 3, "skipped_pet": 0}
+ ]
+}
