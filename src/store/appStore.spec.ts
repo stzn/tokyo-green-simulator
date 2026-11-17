@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parseDispatch, parseStage, type Dispatch, type Stage } from '../lib/dispatch'
 import { parseMeasurementLog } from '../lib/measurementLog'
 import { toScenario } from '../lib/scenario'
 import { simulateGreening } from '../lib/simulation/greening'
@@ -24,7 +27,7 @@ beforeEach(() => {
 describe('機能: レイヤーの表示切替', () => {
   it('Given 初期状態 / Then 地形・建物・公園・街路樹（都道・区道）・計測地点はすべて表示、街路樹は3Dピラー表示', () => {
     const s = store.getState()
-    expect(s.layers).toEqual({ terrain: true, buildings: true, parks: true, trees: true, cityTrees: true, measurements: true })
+    expect(s.layers).toEqual({ terrain: true, buildings: true, parks: true, trees: true, cityTrees: true, measurements: true, dispatch: true })
     expect(s.treeMode).toBe('columns')
   })
 
@@ -225,5 +228,53 @@ describe('機能: 計測ログの保持', () => {
     const scenario = toScenario(store.getState().greened, { longitude: 139.75, latitude: 35.68, zoom: 14, pitch: 0, bearing: 0 })
     expect(JSON.stringify(scenario)).not.toContain('紀尾井町緑地')
     expect(Object.keys(scenario)).not.toContain('measurements')
+  })
+})
+
+describe('機能: 配車（舞台と役者の結果）の保持', () => {
+  const read = (name: string): unknown => JSON.parse(readFileSync(join(process.cwd(), 'contracts', 'fixtures', name), 'utf-8'))
+  const stageResult = parseStage(read('stage.sample.json'))
+  if (!stageResult.ok) throw new Error(stageResult.errors.join())
+  const stage: Stage = stageResult.value
+  const dispatchResult = parseDispatch(read('dispatch.sample.json'), stage)
+  if (!dispatchResult.ok) throw new Error(dispatchResult.errors.join())
+  const dispatch: Dispatch = dispatchResult.value
+
+  it('Given 初期状態 / Then 舞台も配車も無く、時刻は 12 時', () => {
+    const s = store.getState()
+    expect(s.stage).toBeNull()
+    expect(s.dispatch).toBeNull()
+    expect(s.dispatchHour).toBe(12)
+  })
+
+  it('Given 舞台 / When 配車を置く / Then 保持し、時刻を配車の最初の時刻に合わせる', () => {
+    store.getState().setStage(stage)
+    store.getState().setDispatch(dispatch)
+    expect(store.getState().dispatch).toBe(dispatch)
+    expect(store.getState().dispatchHour).toBe(11)
+  })
+
+  it('Given 配車を表示中 / When 時刻を変える / Then 0〜23 時の範囲で持つ', () => {
+    store.getState().setDispatchHour(14)
+    expect(store.getState().dispatchHour).toBe(14)
+    store.getState().setDispatchHour(30)
+    expect(store.getState().dispatchHour).toBe(23)
+    store.getState().setDispatchHour(-1)
+    expect(store.getState().dispatchHour).toBe(0)
+  })
+
+  it('Given 配車を表示中 / When 舞台を置き換える / Then 古い舞台に合わせた配車は外す', () => {
+    store.getState().setStage(stage)
+    store.getState().setDispatch(dispatch)
+    store.getState().setStage({ ...stage })
+    expect(store.getState().dispatch).toBeNull()
+  })
+
+  it('Given 配車を表示中 / When 消去する / Then 舞台も配車も外す', () => {
+    store.getState().setStage(stage)
+    store.getState().setDispatch(dispatch)
+    store.getState().clearDispatch()
+    expect(store.getState().stage).toBeNull()
+    expect(store.getState().dispatch).toBeNull()
   })
 })

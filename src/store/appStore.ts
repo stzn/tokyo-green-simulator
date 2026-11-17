@@ -2,11 +2,12 @@
 import { create } from 'zustand'
 import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { createStore } from 'zustand/vanilla'
+import { dispatchHours, type Dispatch, type Stage } from '../lib/dispatch'
 import type { PolygonRings } from '../lib/geo'
 import type { Measurement } from '../lib/measurementLog'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
 
-export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees' | 'measurements'
+export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees' | 'measurements' | 'dispatch'
 export type TreeMode = 'columns' | 'heatmap'
 
 export type BuildingInfo = {
@@ -53,6 +54,12 @@ export type AppState = {
   /** 読み込んだ計測ログ。健康データを含むため、メモリにだけ置き、保存・共有リンクには入れない */
   measurements: Measurement[]
   measurementRadiusM: MeasurementRadiusM
+  /** 読み込んだ舞台（stage.json）。配車の地点の座標と容量をここから引く */
+  stage: Stage | null
+  /** 読み込んだ配車（dispatch.json）。stage と食い違わないことを確かめてから置く */
+  dispatch: Dispatch | null
+  /** 地図に重ねる時刻（0〜23 時、Asia/Tokyo） */
+  dispatchHour: number
 
   toggleLayer: (key: LayerKey) => void
   setTreeMode: (mode: TreeMode) => void
@@ -71,10 +78,18 @@ export type AppState = {
   setMeasurements: (measurements: Measurement[]) => void
   clearMeasurements: () => void
   setMeasurementRadius: (radiusM: MeasurementRadiusM) => void
+  /** 舞台を置き換える。古い舞台に合わせて確かめた配車は外す */
+  setStage: (stage: Stage) => void
+  /** 配車を置き換え、時刻をその配車の最初の時刻に合わせる */
+  setDispatch: (dispatch: Dispatch) => void
+  setDispatchHour: (hour: number) => void
+  clearDispatch: () => void
 }
 
+const DEFAULT_DISPATCH_HOUR = 12
+
 const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get: () => AppState): AppState => ({
-  layers: { terrain: true, buildings: true, parks: true, trees: true, cityTrees: true, measurements: true },
+  layers: { terrain: true, buildings: true, parks: true, trees: true, cityTrees: true, measurements: true, dispatch: true },
   treeMode: 'columns',
   speciesFilter: [],
   wardFilter: null,
@@ -83,6 +98,9 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   greened: {},
   measurements: [],
   measurementRadiusM: 100,
+  stage: null,
+  dispatch: null,
+  dispatchHour: DEFAULT_DISPATCH_HOUR,
 
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
   setTreeMode: (treeMode) => set(() => ({ treeMode })),
@@ -110,6 +128,10 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   setMeasurements: (measurements) => set((s) => ({ measurements, selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   clearMeasurements: () => set((s) => ({ measurements: [], selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   setMeasurementRadius: (measurementRadiusM) => set(() => ({ measurementRadiusM })),
+  setStage: (stage) => set(() => ({ stage, dispatch: null })),
+  setDispatch: (dispatch) => set(() => ({ dispatch, dispatchHour: dispatchHours(dispatch)[0] ?? DEFAULT_DISPATCH_HOUR })),
+  setDispatchHour: (hour) => set(() => ({ dispatchHour: Math.min(23, Math.max(0, Math.round(hour))) })),
+  clearDispatch: () => set(() => ({ stage: null, dispatch: null, dispatchHour: DEFAULT_DISPATCH_HOUR })),
 })
 
 /** テストや複数インスタンス用のファクトリ */
