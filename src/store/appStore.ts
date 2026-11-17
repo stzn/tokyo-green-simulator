@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { createStore } from 'zustand/vanilla'
 import { dispatchHours, type Dispatch, type Stage } from '../lib/dispatch'
+import type { JitaiSummary } from '../lib/jitai'
 import type { PolygonRings } from '../lib/geo'
 import type { Measurement } from '../lib/measurementLog'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
@@ -60,6 +61,8 @@ export type AppState = {
   dispatch: Dispatch | null
   /** 地図に重ねる時刻（0〜23 時、Asia/Tokyo） */
   dispatchHour: number
+  /** 読み込んだ JITAI の集計（jitai-summary.json）。区画×時刻の件数だけで、個人の記録は含まない */
+  jitaiSummary: JitaiSummary | null
 
   toggleLayer: (key: LayerKey) => void
   setTreeMode: (mode: TreeMode) => void
@@ -83,6 +86,8 @@ export type AppState = {
   /** 配車を置き換え、時刻をその配車の最初の時刻に合わせる */
   setDispatch: (dispatch: Dispatch) => void
   setDispatchHour: (hour: number) => void
+  /** JITAI の集計を置き換える（舞台と食い違わないことを確かめてから置く） */
+  setJitaiSummary: (summary: JitaiSummary) => void
   clearDispatch: () => void
 }
 
@@ -101,6 +106,7 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   stage: null,
   dispatch: null,
   dispatchHour: DEFAULT_DISPATCH_HOUR,
+  jitaiSummary: null,
 
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
   setTreeMode: (treeMode) => set(() => ({ treeMode })),
@@ -128,10 +134,11 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   setMeasurements: (measurements) => set((s) => ({ measurements, selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   clearMeasurements: () => set((s) => ({ measurements: [], selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   setMeasurementRadius: (measurementRadiusM) => set(() => ({ measurementRadiusM })),
-  setStage: (stage) => set(() => ({ stage, dispatch: null })),
+  setStage: (stage) => set(() => ({ stage, dispatch: null, jitaiSummary: null })),
   setDispatch: (dispatch) => set(() => ({ dispatch, dispatchHour: dispatchHours(dispatch)[0] ?? DEFAULT_DISPATCH_HOUR })),
   setDispatchHour: (hour) => set(() => ({ dispatchHour: Math.min(23, Math.max(0, Math.round(hour))) })),
-  clearDispatch: () => set(() => ({ stage: null, dispatch: null, dispatchHour: DEFAULT_DISPATCH_HOUR })),
+  setJitaiSummary: (jitaiSummary) => set(() => ({ jitaiSummary })),
+  clearDispatch: () => set(() => ({ stage: null, dispatch: null, jitaiSummary: null, dispatchHour: DEFAULT_DISPATCH_HOUR })),
 })
 
 /** テストや複数インスタンス用のファクトリ */

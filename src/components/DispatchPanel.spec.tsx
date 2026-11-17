@@ -98,3 +98,34 @@ describe('機能: 配車の読み込みと時刻の表示', () => {
     expect(screen.queryByRole('slider', { name: '時刻' })).not.toBeInTheDocument()
   })
 })
+
+describe('機能: JITAI の集計の表示', () => {
+  const uploadJitai = (text = fixture('jitai-summary.sample.json')) =>
+    userEvent.upload(screen.getByLabelText('JITAI の集計（jitai-summary.json）を選ぶ'), jsonFile(text, 'jitai-summary.json'))
+
+  it('Given サンプルを読み込んだ / Then JITAI の集計も読み込み、11 時の区画の判定・介入・見送りの内訳を出す', async () => {
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'サンプルを読み込む' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('大手町・丸の内')
+    expect(useAppStore.getState().jitaiSummary?.zones).toHaveLength(2)
+    const list = screen.getByRole('list', { name: 'この時刻の JITAI（区画ごと）' })
+    expect(within(list).getByText(/判定 5/)).toBeInTheDocument()
+    expect(within(list).getByText(/介入 2/)).toBeInTheDocument()
+  })
+
+  it('Given 舞台が未読み込み / When JITAI の集計を選ぶ / Then 先に舞台を読むよう伝える', async () => {
+    setup()
+    await uploadJitai()
+    expect(await screen.findByRole('alert')).toHaveTextContent('先に舞台')
+  })
+
+  it('Given 舞台 / When 区域の違う集計を選ぶ / Then 理由を出し、集計は置かない', async () => {
+    setup()
+    await uploadStage()
+    const bad = JSON.parse(fixture('jitai-summary.sample.json')) as { stage_ref: { area_id: string } }
+    bad.stage_ref.area_id = 'shibuya'
+    await uploadJitai(JSON.stringify(bad))
+    expect(await screen.findByRole('alert')).toHaveTextContent('shibuya')
+    expect(useAppStore.getState().jitaiSummary).toBeNull()
+  })
+})

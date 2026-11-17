@@ -138,7 +138,7 @@
           "type": "integer"
         },
         "shade_fraction": {
-          "description": "建物による日射遮蔽率（0=日向、1=完全な日影）",
+          "description": "建物と街路樹の樹冠による日射遮蔽率（0=日向、1=完全な日影）",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Shade Fraction",
