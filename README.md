@@ -79,6 +79,7 @@ npm run build
 
 ```
 scripts/            データ取得（fetch-*.ts）と変換ロジック（lib/）
+contracts/          役者（virtual-greening-sim）とのデータ契約 v1 の写し（スキーマとサンプル。直接編集しない）
 public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/）
 src/
   data/cityTrees.ts           区道の街路樹（路線）の読み込み・絞り込み・線への展開・範囲集計

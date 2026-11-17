@@ -1,0 +1,281 @@
+{
+  "$defs": {
+    "Area": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "区域の ID（例: otemachi）",
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "bbox": {
+          "description": "[西経度, 南緯度, 東経度, 北緯度]",
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "type": "number"
+            },
+            {
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "type": "number"
+            },
+            {
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "type": "number"
+            },
+            {
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "type": "number"
+            }
+          ],
+          "title": "Bbox",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "bbox"
+      ],
+      "title": "Area",
+      "type": "object"
+    },
+    "DemandHour": {
+      "additionalProperties": false,
+      "properties": {
+        "hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "weight": {
+          "description": "過緊張の需要の相対値（集計値のみ。個人の計測値は入れない）",
+          "minimum": 0,
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "hour",
+        "weight"
+      ],
+      "title": "DemandHour",
+      "type": "object"
+    },
+    "GreenContext": {
+      "additionalProperties": false,
+      "description": "地点まわりの緑（舞台の computeGreenContext と同じ数え方）。",
+      "properties": {
+        "radius_m": {
+          "exclusiveMinimum": 0,
+          "title": "Radius M",
+          "type": "number"
+        },
+        "trees_all": {
+          "minimum": 0,
+          "title": "Trees All",
+          "type": "integer"
+        },
+        "trees_tall": {
+          "minimum": 0,
+          "title": "Trees Tall",
+          "type": "integer"
+        },
+        "parks_count": {
+          "minimum": 0,
+          "title": "Parks Count",
+          "type": "integer"
+        },
+        "parks_area_m2": {
+          "minimum": 0,
+          "title": "Parks Area M2",
+          "type": "number"
+        },
+        "nearest_park_m": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "公園がなければ null",
+          "title": "Nearest Park M"
+        }
+      },
+      "required": [
+        "radius_m",
+        "trees_all",
+        "trees_tall",
+        "parks_count",
+        "parks_area_m2",
+        "nearest_park_m"
+      ],
+      "title": "GreenContext",
+      "type": "object"
+    },
+    "SpotHour": {
+      "additionalProperties": false,
+      "properties": {
+        "hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "shade_fraction": {
+          "description": "建物による日射遮蔽率（0=日向、1=完全な日影）",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Shade Fraction",
+          "type": "number"
+        }
+      },
+      "required": [
+        "hour",
+        "shade_fraction"
+      ],
+      "title": "SpotHour",
+      "type": "object"
+    },
+    "StageSpot": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "lat": {
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Lat",
+          "type": "number"
+        },
+        "lon": {
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Lon",
+          "type": "number"
+        },
+        "kind": {
+          "enum": [
+            "sidewalk",
+            "plaza",
+            "park_edge",
+            "rooftop"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "capacity_pods": {
+          "description": "同時に置けるポッドの数",
+          "minimum": 1,
+          "title": "Capacity Pods",
+          "type": "integer"
+        },
+        "sky_view_factor": {
+          "description": "天空率（平均放射温度の計算に使う）",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Sky View Factor",
+          "type": "number"
+        },
+        "green": {
+          "$ref": "#/$defs/GreenContext"
+        },
+        "hourly": {
+          "items": {
+            "$ref": "#/$defs/SpotHour"
+          },
+          "minItems": 1,
+          "title": "Hourly",
+          "type": "array"
+        },
+        "demand": {
+          "items": {
+            "$ref": "#/$defs/DemandHour"
+          },
+          "title": "Demand",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "lat",
+        "lon",
+        "kind",
+        "capacity_pods",
+        "sky_view_factor",
+        "green",
+        "hourly"
+      ],
+      "title": "StageSpot",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "area": {
+      "$ref": "#/$defs/Area"
+    },
+    "date": {
+      "description": "日影を計算した日（太陽位置の基準）",
+      "format": "date",
+      "title": "Date",
+      "type": "string"
+    },
+    "timezone": {
+      "const": "Asia/Tokyo",
+      "title": "Timezone",
+      "type": "string"
+    },
+    "generator": {
+      "description": "書き出した舞台の版など（例: tokyo-green-simulator@abc1234）",
+      "title": "Generator",
+      "type": "string"
+    },
+    "spots": {
+      "items": {
+        "$ref": "#/$defs/StageSpot"
+      },
+      "minItems": 1,
+      "title": "Spots",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "area",
+    "date",
+    "timezone",
+    "generator",
+    "spots"
+  ],
+  "title": "Stage",
+  "type": "object"
+}
