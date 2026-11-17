@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { ParkFeature } from '../../src/data/parks'
 import { distanceM } from '../../src/lib/geo'
-import { createBuildingIndex, localProjection, type LocalBuilding, type LocalPoint } from '../../src/lib/shade'
+import { createBuildingIndex, createTreeIndex, localProjection, type LocalBuilding, type LocalPoint } from '../../src/lib/shade'
 import { stageIntegrityErrors } from '../../src/lib/stage'
 import { contractValidator } from '../../src/test/contracts'
 import type { OverpassElement } from './parks'
@@ -155,5 +155,33 @@ describe('機能: 舞台（stage.json）の組み立て', () => {
   it('Given 建物の北120mの歩道 / When 組み立てる / Then 12時は日向', () => {
     const sidewalk = stage.spots.find((s) => s.id === 'OTM-001')!
     expect(sidewalk.hourly[12].shade_fraction).toBe(0)
+  })
+})
+
+describe('機能: 舞台の遮蔽率に街路樹の樹冠を入れる', () => {
+  const candidates: CandidateSpot[] = [{ id: 'OTM-001', name: '並木の歩道', ...lonLatOf([0, 0]), kind: 'sidewalk', capacity_pods: 1 }]
+  function lonLatOf(p: LocalPoint) {
+    const [lon, lat] = proj.toLonLat(p)
+    return { lon, lat }
+  }
+  const assemble = (trees?: ReturnType<typeof createTreeIndex>) =>
+    assembleStage({
+      area: { id: 'otemachi', name: '大手町・丸の内', bbox: BBOX },
+      date: '2025-08-30',
+      generator: 'test',
+      candidates,
+      index: createBuildingIndex([]),
+      trees,
+      proj,
+      greenOf: () => ({ radius_m: 100, trees_all: 1, trees_tall: 1, parks_count: 0, parks_area_m2: 0, nearest_park_m: null }),
+    })
+
+  it('Given 地点を覆う樹冠（樹高10m・半径20m） / When 組み立てる / Then 12時の遮蔽率は0.8', () => {
+    const stage = assemble(createTreeIndex([{ x: 0, y: 0, heightM: 10, crownRadiusM: 20 }]))
+    expect(stage.spots[0].hourly[12].shade_fraction).toBe(0.8)
+  })
+
+  it('Given 街路樹を渡さない / When 組み立てる / Then 建物だけ（12時は0）', () => {
+    expect(assemble().spots[0].hourly[12].shade_fraction).toBe(0)
   })
 })

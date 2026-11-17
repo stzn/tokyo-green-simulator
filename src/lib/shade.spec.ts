@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CANOPY_TRANSMITTANCE,
+  canopyShadeForSun,
+  combineShade,
   createBuildingIndex,
+  createTreeIndex,
+  crownOf,
+  estimateCrownSpreadM,
   horizonProfile,
   isInsideBuilding,
   localProjection,
+  nearbyCrowns,
   nearestWallDistanceM,
   shadeFractionForHour,
   skyViewFactor,
   type LocalBuilding,
+  type LocalTree,
 } from './shade'
 
 // 地点は原点。x=東[m]、y=北[m]
@@ -122,5 +130,115 @@ describe('機能: 局所の平面座標', () => {
     const [lon, lat] = proj.toLonLat([x, y])
     expect(lon).toBeCloseTo(ORIGIN.lon + 0.001, 9)
     expect(lat).toBeCloseTo(ORIGIN.lat + 0.001, 9)
+  })
+})
+
+// 樹高 heightM・樹冠の半径 crownRadiusM の木を (x, y) に置く
+const tree = (x: number, y: number, heightM: number, crownRadiusM: number): LocalTree => ({ x, y, heightM, crownRadiusM })
+
+describe('機能: 建物と樹冠の遮蔽の合成', () => {
+  it('Given 建物0.5・樹冠0.8 / When 合成する / Then 1−(1−0.5)(1−0.8) = 0.9', () => {
+    expect(combineShade(0.5, 0.8)).toBeCloseTo(0.9, 10)
+  })
+
+  it('Given 建物で完全に日影 / When 樹冠と合成する / Then 1のまま', () => {
+    expect(combineShade(1, 0.8)).toBe(1)
+  })
+
+  it('Given どちらも遮蔽なし / When 合成する / Then 0', () => {
+    expect(combineShade(0, 0)).toBe(0)
+  })
+})
+
+describe('機能: 街路樹の樹冠による日射の遮蔽', () => {
+  it('Given 透過率 / When 値を見る / Then 0.2（夏の葉の茂った樹冠を仮定）', () => {
+    expect(CANOPY_TRANSMITTANCE).toBe(0.2)
+  })
+
+  describe('シナリオ: 真上の太陽', () => {
+    it('Given 樹冠（半径3m）の真下の地点 / When 太陽高度90°で遮蔽を求める / Then 0.8', () => {
+      expect(canopyShadeForSun([tree(1, 1, 10, 3)], 180, 90)).toBeCloseTo(0.8, 10)
+    })
+
+    it('Given 樹冠の外（幹から10m）の地点 / When 太陽高度90°で遮蔽を求める / Then 0', () => {
+      expect(canopyShadeForSun([tree(10, 0, 10, 3)], 180, 90)).toBe(0)
+    })
+  })
+
+  describe('シナリオ: 斜めの太陽（高度45°）', () => {
+    it('Given 南8mに樹高10mの木（樹冠は高さ6〜10m） / When 南の太陽で求める / Then 太陽への線が樹冠を通るので0.8', () => {
+      expect(canopyShadeForSun([tree(0, -8, 10, 1)], 180, 45)).toBeCloseTo(0.8, 10)
+    })
+
+    it('Given 北8mに同じ木 / When 南の太陽で求める / Then 0', () => {
+      expect(canopyShadeForSun([tree(0, 8, 10, 1)], 180, 45)).toBe(0)
+    })
+
+    it('Given 南20mに樹高10mの木（樹冠の半径1m） / When 南の太陽で求める / Then 線は樹冠の上を抜けるので0', () => {
+      expect(canopyShadeForSun([tree(0, -20, 10, 1)], 180, 45)).toBe(0)
+    })
+
+    it('Given 南3mに樹高10mの木（樹冠の半径1m） / When 南の太陽で求める / Then 線は樹冠の下（幹の高さ）を抜けるので0', () => {
+      expect(canopyShadeForSun([tree(0, -3, 10, 1)], 180, 45)).toBe(0)
+    })
+  })
+
+  it('Given 太陽への線が2本の樹冠を通る / When 遮蔽を求める / Then 重ねず0.8（並木の連なった樹冠を1枚の葉群とみなす）', () => {
+    expect(canopyShadeForSun([tree(0, 0, 10, 3), tree(0.5, 0, 10, 3)], 180, 90)).toBeCloseTo(0.8, 10)
+  })
+
+  it('Given 夜（太陽高度0°以下） / When 遮蔽を求める / Then 樹冠は数えない（0）', () => {
+    expect(canopyShadeForSun([tree(0, 0, 10, 3)], 180, -5)).toBe(0)
+  })
+})
+
+describe('機能: 街路樹の樹冠の大きさ', () => {
+  it('Given 樹高10m / When 枝張りを高さから近似する / Then 0.40×10+0.36 = 4.36m', () => {
+    expect(estimateCrownSpreadM(10)).toBeCloseTo(4.36, 10)
+  })
+
+  it('Given 樹高8m・枝張り5m / When 樹冠にする / Then 半径は枝張りの半分の2.5m', () => {
+    expect(crownOf(8, 5)).toEqual({ heightM: 8, crownRadiusM: 2.5 })
+  })
+
+  it('Given 枝張りが欠損（−1） / When 樹冠にする / Then 高さからの近似の半分を半径にする', () => {
+    expect(crownOf(10, -1)?.crownRadiusM).toBeCloseTo(2.18, 10)
+  })
+
+  it('Given 樹高が欠損（0以下） / When 樹冠にする / Then null（数えない）', () => {
+    expect(crownOf(-1, 5)).toBeNull()
+    expect(crownOf(0, 5)).toBeNull()
+  })
+})
+
+describe('機能: 地点の近くの樹冠', () => {
+  const index = createTreeIndex([tree(100, 0, 10, 2), tree(5, 5, 8, 2), tree(-600, 0, 20, 5)])
+
+  it('Given 地点 (100, 0) / When 近くの樹冠を集める / Then 地点を原点にした座標で、遠い木は除く', () => {
+    const crowns = nearbyCrowns(index, [100, 0], 200)
+    expect(crowns).toHaveLength(2)
+    expect(crowns).toContainEqual(tree(0, 0, 10, 2))
+    expect(crowns).toContainEqual(tree(-95, 5, 8, 2))
+  })
+})
+
+describe('機能: 建物と樹冠を合わせた時間ごとの遮蔽率', () => {
+  // 地点の真上を覆う大きな樹冠（半径20m、高さ6〜10m）
+  const canopy = [tree(0, 0, 10, 20)]
+
+  it('Given 建物なし・地点が大きな樹冠の下 / When 12時を求める / Then 0.8', () => {
+    expect(shadeFractionForHour(profileOf([]), DATE, 12, ORIGIN.lat, ORIGIN.lon, { crowns: canopy })).toBeCloseTo(0.8, 10)
+  })
+
+  it('Given 南に高い建物・地点が樹冠の下 / When 12時を求める / Then 建物で完全に日影なので1.0', () => {
+    expect(shadeFractionForHour(profileOf([box(-20, -30, 20, -20, 100)]), DATE, 12, ORIGIN.lat, ORIGIN.lon, { crowns: canopy })).toBe(1)
+  })
+
+  it('Given 樹冠なし / When 12時を求める / Then 建物だけの結果（0）と同じ', () => {
+    expect(shadeFractionForHour(profileOf([]), DATE, 12, ORIGIN.lat, ORIGIN.lon, { crowns: [] })).toBe(0)
+  })
+
+  it('Given 樹冠の下 / When 0時を求める / Then 夜なので1.0', () => {
+    expect(shadeFractionForHour(profileOf([]), DATE, 0, ORIGIN.lat, ORIGIN.lon, { crowns: canopy })).toBe(1)
   })
 })
