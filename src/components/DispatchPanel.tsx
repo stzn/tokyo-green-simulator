@@ -1,0 +1,249 @@
+import { useMemo, useState } from 'react'
+import {
+  dispatchHours,
+  parseDispatch,
+  parseJson,
+  parseStage,
+  PET_CATEGORIES,
+  POD_ACTIONS,
+  snapshotAt,
+  type Dispatch,
+  type LoadResult,
+  type Stage,
+} from '../lib/dispatch'
+import type { ScenarioView } from '../lib/scenario'
+import { useAppStore } from '../store/appStore'
+import { Panel } from './ui'
+
+type Props = {
+  /** 舞台を読み込んだとき、地図をその区域へ動かす */
+  onFocusPoint: (view: ScenarioView) => void
+}
+
+const buttonClass =
+  'rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40'
+const fileClass =
+  'block w-full text-xs text-slate-300 file:mr-2 file:rounded-lg file:border file:border-white/10 file:bg-white/5 file:px-2.5 file:py-1.5 file:text-xs file:text-slate-200 hover:file:bg-white/10'
+
+const ACTION_LABELS = new Map(POD_ACTIONS.map((a) => [a.action, a.label]))
+const rgba = ([r, g, b]: number[]) => `rgb(${r} ${g} ${b})`
+const round5 = (v: number) => Math.round(v * 1e5) / 1e5
+
+// jsdomでも動くよう、Blob.text() ではなく FileReader で読む（MeasurementPanel と同じ）
+const readText = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsText(file)
+  })
+
+const readJsonFile = async (file: File): Promise<LoadResult<unknown>> => {
+  try {
+    return parseJson(await readText(file))
+  } catch {
+    return { ok: false, errors: ['ファイルを読み込めませんでした'] }
+  }
+}
+
+/** 区域の中心へ地図を動かす視点。地点の円とポッドが建物の陰に隠れないよう真上から見る */
+const viewOf = (stage: Stage): ScenarioView => {
+  const [west, south, east, north] = stage.area.bbox
+  return { longitude: round5((west + east) / 2), latitude: round5((south + north) / 2), zoom: 16, pitch: 0, bearing: 0 }
+}
+
+const describeDispatch = (stage: Stage, dispatch: Dispatch) =>
+  `${stage.area.name}（${stage.date}・${dispatch.weather_scenario}）の配車 ${dispatch.pods.length} 台を読み込みました`
+
+/** 役者が書き出した配車（dispatch.json）を舞台（stage.json）と突き合わせて読み込み、時刻を選んで地図に重ねる */
+export function DispatchPanel({ onFocusPoint }: Props) {
+  const stage = useAppStore((s) => s.stage)
+  const dispatch = useAppStore((s) => s.dispatch)
+  const hour = useAppStore((s) => s.dispatchHour)
+  const setStage = useAppStore((s) => s.setStage)
+  const setDispatch = useAppStore((s) => s.setDispatch)
+  const setDispatchHour = useAppStore((s) => s.setDispatchHour)
+  const clearDispatch = useAppStore((s) => s.clearDispatch)
+  const [message, setMessage] = useState('')
+  const [errors, setErrors] = useState<string[]>([])
+
+  const fail = (errs: string[]) => {
+    setMessage('')
+    setErrors(errs)
+  }
+
+  /** 舞台と配車をまとめて確かめ、両方とも合格したときだけ置き換える */
+  const applyBoth = (stageInput: unknown, dispatchInput: unknown) => {
+    const s = parseStage(stageInput)
+    if (!s.ok) return fail(s.errors.map((e) => `舞台: ${e}`))
+    const d = parseDispatch(dispatchInput, s.value)
+    if (!d.ok) return fail(d.errors.map((e) => `配車: ${e}`))
+    setStage(s.value)
+    setDispatch(d.value)
+    setErrors([])
+    setMessage(describeDispatch(s.value, d.value))
+    onFocusPoint(viewOf(s.value))
+  }
+
+  const loadSample = async () => {
+    // サンプルは使うときだけ読み込む（通常の起動では配らない）
+    const [stageJson, dispatchJson] = await Promise.all([
+      import('../../contracts/fixtures/stage.sample.json'),
+      import('../../contracts/fixtures/dispatch.sample.json'),
+    ])
+    applyBoth(stageJson.default, dispatchJson.default)
+  }
+
+  const loadStageFile = async (file: File | undefined) => {
+    if (!file) return
+    const json = await readJsonFile(file)
+    if (!json.ok) return fail(json.errors)
+    const s = parseStage(json.value)
+    if (!s.ok) return fail(s.errors)
+    setStage(s.value)
+    setErrors([])
+    setMessage(`舞台「${s.value.area.name}」（${s.value.spots.length} 地点）を読み込みました。続けて配車を選んでください`)
+    onFocusPoint(viewOf(s.value))
+  }
+
+  const loadDispatchFile = async (file: File | undefined) => {
+    if (!file) return
+    if (!stage) return fail(['先に舞台（stage.json）を読み込んでください（地点の座標と容量を舞台から引きます）'])
+    const json = await readJsonFile(file)
+    if (!json.ok) return fail(json.errors)
+    // 合格しなかったときは、表示中の配車を残す
+    const d = parseDispatch(json.value, stage)
+    if (!d.ok) return fail(d.errors)
+    setDispatch(d.value)
+    setErrors([])
+    setMessage(describeDispatch(stage, d.value))
+  }
+
+  const clear = () => {
+    clearDispatch()
+    setMessage('')
+    setErrors([])
+  }
+
+  const snapshot = useMemo(() => (stage && dispatch ? snapshotAt(stage, dispatch, hour) : null), [stage, dispatch, hour])
+  const hours = useMemo(() => (dispatch ? dispatchHours(dispatch) : []), [dispatch])
+  const pets = snapshot?.comfort.map((c) => c.petC) ?? []
+
+  return (
+    <Panel title="配車（役者の結果）">
+      <div className="space-y-2">
+        <label className="block text-[11px] text-slate-400">
+          舞台（stage.json）
+          <input
+            type="file"
+            accept=".json,application/json"
+            aria-label="舞台（stage.json）を選ぶ"
+            onChange={(e) => {
+              void loadStageFile(e.target.files?.[0])
+              // 同じファイルを選び直しても読み込めるようにする
+              e.target.value = ''
+            }}
+            className={`mt-1 ${fileClass}`}
+          />
+        </label>
+        <label className="block text-[11px] text-slate-400">
+          配車（dispatch.json）
+          <input
+            type="file"
+            accept=".json,application/json"
+            aria-label="配車（dispatch.json）を選ぶ"
+            onChange={(e) => {
+              void loadDispatchFile(e.target.files?.[0])
+              e.target.value = ''
+            }}
+            className={`mt-1 ${fileClass}`}
+          />
+        </label>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <button type="button" onClick={() => void loadSample()} className={buttonClass}>
+          サンプルを読み込む
+        </button>
+        <button type="button" disabled={!stage && !dispatch} onClick={clear} className={buttonClass}>
+          消去
+        </button>
+      </div>
+      <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+        データ契約 v1（contracts/）で確かめてから重ねます。ファイルはこの端末の中だけで扱います。
+      </p>
+
+      {message && (
+        <p role="status" className="mt-2 text-xs text-emerald-300">
+          {message}
+        </p>
+      )}
+      {errors.length > 0 && (
+        <div role="alert" className="mt-2 rounded-lg bg-red-950/60 p-2 text-xs text-red-200">
+          <ul className="space-y-0.5">
+            {errors.map((e) => (
+              <li key={e}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {dispatch && snapshot && (
+        <div className="mt-3">
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="dispatch-hour" className="text-[11px] text-slate-400">
+              時刻
+            </label>
+            <span className="text-sm font-semibold text-slate-100 tabular-nums">{`${String(hour).padStart(2, '0')}:00`}</span>
+          </div>
+          <input
+            id="dispatch-hour"
+            type="range"
+            min={0}
+            max={23}
+            step={1}
+            value={hour}
+            aria-label="時刻"
+            onChange={(e) => setDispatchHour(Number(e.target.value))}
+            className="w-full accent-emerald-400"
+          />
+          <p className="text-[11px] text-slate-500">
+            データのある時刻: {hours.length > 0 ? `${hours[0]}〜${hours[hours.length - 1]} 時` : 'なし'}
+          </p>
+
+          <p className="mt-2 text-xs text-slate-300">
+            {pets.length > 0 ? `地点の PET: ${Math.min(...pets).toFixed(1)}〜${Math.max(...pets).toFixed(1)} ℃（${pets.length} 地点）` : 'この時刻の PET はありません'}
+          </p>
+          {snapshot.pods.length > 0 ? (
+            <ul aria-label="この時刻のポッド" className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
+              {snapshot.pods.map((p) => (
+                <li key={p.podId} className="text-xs text-slate-200">
+                  <span className="font-medium">{p.podId}</span>
+                  <span className="ml-1.5 text-slate-400">{p.spotName}</span>
+                  <span className="ml-1.5">{ACTION_LABELS.get(p.action)}</span>
+                  <span className="ml-1.5 text-slate-500 tabular-nums">健康度 {p.plantHealth.toFixed(1)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-xs text-slate-500">この時刻のポッドはありません</p>
+          )}
+
+          <ul aria-label="凡例" className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-slate-300">
+            {POD_ACTIONS.map((a) => (
+              <li key={a.action} className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full border border-white" style={{ backgroundColor: rgba(a.color) }} aria-hidden="true" />
+                ポッド: {a.label}
+              </li>
+            ))}
+            {PET_CATEGORIES.map((c) => (
+              <li key={c.key} className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-sm" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
+                {c.label}（{c.range}）
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </Panel>
+  )
+}
