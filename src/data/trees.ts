@@ -1,4 +1,5 @@
 // 街路樹データ（public/data/trees.json）をブラウザで扱う型付き配列に変換し、絞り込み・詳細取得を行う
+import { BASE_URL } from '../config/baseUrl'
 import type { TreesColumnar } from '../../scripts/lib/parseTrees'
 import { containsPoint } from '../lib/geo'
 import type { Extent } from '../lib/projection'
@@ -34,7 +35,7 @@ export type TreeRecord = {
   estimatedCo2KgPerYear: number | null
 }
 
-export const TREES_URL = `${import.meta.env.BASE_URL}data/trees.json`
+export const TREES_URL = `${BASE_URL}data/trees.json`
 
 export function toTreeData(json: TreesColumnar): TreeData {
   return {

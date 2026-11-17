@@ -1,4 +1,5 @@
 // データソースと出典表記
+import { BASE_URL } from './baseUrl'
 export const PLATEAU_BUILDINGS_TILES = 'https://indigo-lab.github.io/plateau-tokyo23ku-building-mvt-2020/{z}/{x}/{y}.pbf'
 
 export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/dark'
@@ -8,7 +9,7 @@ export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/dark'
  * z=10〜13を持ち、ズームインでは13のタイルを使い回す。
  * 低ズーム側を欠かすとMapLibreのterrainがベースマップを描けなくなるため、アプリの最小ズームまで用意している
  */
-export const DEM_TILES = `${import.meta.env.BASE_URL}data/dem/{z}/{x}-{y}.png`
+export const DEM_TILES = `${BASE_URL}data/dem/{z}/{x}-{y}.png`
 export const DEM_MIN_ZOOM = 10
 export const DEM_MAX_ZOOM = 13
 

@@ -38,6 +38,62 @@ timestamp,location,lat,lon,environment,hrv_sdnn,heart_rate,notes
 - 「緑の文脈つきCSVを書き出す」で、元の列の後ろに `radius_m, trees_all, trees_tall, city_tree_routes, city_trees_known, parks_count, parks_area_m2, nearest_park_m, in_park` が付きます。pandasなどにそのまま渡せます
 - 書き出しは UTF-8（BOMなし）です。Excelで開くと文字化けする場合は、データの取り込み機能でUTF-8を指定してください
 
+## 役者への舞台の書き出し（stage.json）
+
+[virtual-greening-sim](https://github.com/stzn/virtual-greening-sim)（役者）へ渡す舞台を、データ契約 v1（`contracts/stage.schema.json`）の形で書き出します。パイロット区域は大手町・丸の内（区域 ID `otemachi`、bbox `[139.758, 35.676, 139.772, 35.692]`）です。
+
+```bash
+npm run stage:export                       # 2025-08-30（Asia/Tokyo）で計算 → public/data/stage/otemachi.json
+npm run stage:export -- --date 2025-07-15  # 日付を変える
+```
+
+- 建物は地図表示と同じ PLATEAU の MVT（z=16）を、区域から 500 m 広げた範囲で取ります。通路は OpenStreetMap（Overpass API）から取ります。取得結果は `scripts/.cache/stage/` に置き、再実行時はそこから読みます（約1分。2回目以降は数秒）
+- 公園・街路樹は `public/data/` の生成済みデータを使います
+- 書き出す前に契約のスキーマ（Ajv）と、地点 ID・時刻が重複しないことを確かめ、合わなければ書き出しません。生成済みのファイルは `src/lib/stage.spec.ts` でも同じことを確かめます
+- 出力は GitHub Pages でも配信されます（`/tokyo-green-simulator/data/stage/otemachi.json`）
+
+### 候補地点の抽出規則（`scripts/lib/stageSpots.ts`）
+
+1. OpenStreetMap の歩行者用の通路（`highway=footway / pedestrian / path`）のうち、地上で誰でも通れるものを使う。横断歩道（`footway=crossing`）、地下・立体・屋内・屋根付き（`tunnel` / `bridge` / `indoor` / `covered`、`layer≠0`、負の `level`）、私有（`access=private / no`）は除く
+2. 通路の上に 20 m ごとに点を打ち、区域の外、建物の中、建物の壁から 2 m 未満の点は使わない
+3. 種類を決める
+   - **公園沿い（`park_edge`、容量2）**：公園の外周から 20 m 以内。公園の内側で外周から 20 m より奥は使わない（公園の中には置かない）
+   - **広場（`plaza`、容量3）**：歩行者専用道（`highway=pedestrian`）、または最寄りの壁が 15 m 以上離れた開けた場所
+   - **歩道（`sidewalk`、容量1）**：それ以外
+4. 公園沿い → 広場 → 歩道の順に、すでに残した地点から 60 m 以上離れた点だけを残す
+5. 北から（同じ緯度なら西から）`OTM-001` からの連番を振る。名前は通路の名前（無ければ「名称なし」）か公園の名前から付ける
+
+2025-08-30 の書き出しでは **255 地点**（歩道 123・広場 89・公園沿い 43）になりました。
+
+### 日射遮蔽率（`shade_fraction`）と天空率（`sky_view_factor`）の計算（`src/lib/solar.ts`・`src/lib/shade.ts`）
+
+- **太陽位置**：NOAA の簡易式（均時差と赤緯の級数）で方位・高度を求めます（誤差 0.5° 程度。大気差の補正なし）
+- **地平線の仰角**：地点から方位 1° ごとに半直線を伸ばし、建物の外周の辺と交わる距離 d と建物の高さ H（`measuredHeight`。無い建物は地図表示と同じ 3 m）から仰角 atan(H/d) を求め、方位ごとに最大を取ります。500 m より遠い建物は数えません。地点の高さは地面（0 m）です
+- **遮蔽率**：各時（`hour` 時 00 分〜59 分）を 5 分ごとの 12 時刻に分け、太陽高度 ≤ 0（夜）か、太陽高度がその方位の建物の仰角より低い時刻を「遮蔽」として割合を取ります。夜は 1.0、日の出・日の入りを含む時は 0 と 1 の間になります
+- **天空率**：方位ごとの仰角 β から `1 − mean(sin²β)` で近似します（各方位を、仰角 β の壁が続く谷として扱う近似）
+
+2025-08-30 の結果（255 地点、遮蔽率 0.5 以上を「日影」と数えた割合）：
+
+| 時 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 日影の地点 | 95% | 75% | 64% | 56% | 51% | 44% | **38%** | 59% | 67% | 76% | 80% | 80% | 100% |
+
+天空率は最小 0.02・中央値 0.40・最大 0.89 でした（超高層の間の通路ほど小さい）。
+
+### 緑の文脈と需要
+
+- `green` は計測ログと同じ `computeGreenContext`（半径 100 m）で数え、CSV の列と同じ名前・丸めで入れます
+- `demand` は v1 では空です。入れるときも、地点・時刻ごとの集計値だけにします（個人の HRV は入れない）
+
+### 既知の制約
+
+- **街路樹の樹冠による日影は含みません**（建物だけ）。並木の下の歩道は、実際より日向寄りに出ます
+- 地形の起伏、建物の屋根の形（屋上設備など）、建物の穴（中庭）は見ません。高さの無い建物は 3 m として扱います
+- 500 m より遠い建物の影は数えないため、朝夕の太陽が低い時刻は日向寄りに出ることがあります
+- 建物は MVT（z=16）の形を使うので、細部は簡略化されています
+- 候補地点は OpenStreetMap のタグに頼っています。屋内・屋根付きのタグが無い通路（ビルの間の通り抜けなど）は地上の通路として混ざることがあり、そうした地点は天空率がとても小さく出ます
+- 容量（`capacity_pods`）は種類ごとの目安で、実際の歩道の幅は測っていません
+
 ## セットアップ
 
 Node.js **20.19以上または22.12以上**が必要です（Vite 8の要件。v24でも動作確認済み）。`node -v` で確認し、足りない場合は nvm・nodebrew などで切り替えてください（nvm なら `.nvmrc` があるので `nvm use` で切り替わります）。
@@ -78,9 +134,9 @@ npm run build
 ## 構成
 
 ```
-scripts/            データ取得（fetch-*.ts）と変換ロジック（lib/）
+scripts/            データ取得（fetch-*.ts）、舞台の書き出し（export-stage.ts）と変換ロジック（lib/）
 contracts/          役者（virtual-greening-sim）とのデータ契約 v1 の写し（スキーマとサンプル。直接編集しない）
-public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/）
+public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/ / stage/）
 src/
   data/cityTrees.ts           区道の街路樹（路線）の読み込み・絞り込み・線への展開・範囲集計
   data/parks.ts               公園ポリゴンの読み込みと範囲集計
@@ -88,6 +144,9 @@ src/
   lib/measurementLog.ts       計測ログCSVの読み込みと、緑の文脈つきCSVの書き出し
   lib/scenario.ts             シナリオの保存・共有（localStorageとURLハッシュへの符号化）
   lib/dem.ts                  標高タイルのエンコーディング（取得スクリプトと共用）
+  lib/solar.ts                太陽位置（方位・高度）
+  lib/shade.ts                建物による日射遮蔽率と天空率（方位ごとの地平線の仰角から求める）
+  lib/stage.ts                役者へ渡す舞台（stage.json）の型と整合性の確認
   lib/geo.ts                  面積・外周長・リング単純化など（球面近似）
   lib/projection.ts           現在地ミニマップ用の緯度経度→SVG座標の投影
   lib/simulation/             緑化・樹木の推定ロジックと係数（coefficients.ts）
