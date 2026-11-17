@@ -1,5 +1,6 @@
 // 区道の街路樹（public/data/city-trees.geojson）の読み込みと絞り込み。
 // 区市町村道は単木の位置が公開されていないため、路線の線に樹種と本数が付いたデータになっている
+import { BASE_URL } from '../config/baseUrl'
 import type { CityTreeRoute } from '../../scripts/lib/cityTrees'
 import { pathIntersectsExtent, type Position } from '../lib/geo'
 import type { Extent } from '../lib/projection'
@@ -12,7 +13,7 @@ export type CityTreeFeature = {
   properties: CityTreeRoute
 }
 
-export const CITY_TREES_URL = `${import.meta.env.BASE_URL}data/city-trees.geojson`
+export const CITY_TREES_URL = `${BASE_URL}data/city-trees.geojson`
 
 export async function loadCityTrees(signal?: AbortSignal): Promise<CityTreeFeature[]> {
   const res = await fetch(CITY_TREES_URL, { signal })

@@ -17,7 +17,8 @@
     "data:parks": "tsx scripts/fetch-parks.ts",
     "data:wards": "tsx scripts/fetch-wards.ts",
     "data:dem": "tsx scripts/fetch-dem.ts",
-    "data:city-trees": "tsx scripts/fetch-city-trees.ts"
+    "data:city-trees": "tsx scripts/fetch-city-trees.ts",
+    "stage:export": "tsx scripts/export-stage.ts"
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.4.0",
@@ -34,6 +35,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@mapbox/vector-tile": "^2.0.5",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -49,6 +51,7 @@
     "adm-zip": "^0.6.1",
     "jsdom": "^30.1.0",
     "oxlint": "^1.81.0",
+    "pbf": "^4.0.2",
     "pngjs": "^7.0.0",
     "proj4": "^2.22.0",
     "shapefile": "^0.6.6",

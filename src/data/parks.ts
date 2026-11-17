@@ -1,5 +1,6 @@
 // 公園ポリゴン（public/data/parks.geojson）の読み込みと、表示範囲内の集計。
 // 描画（layers/parks.ts）と集計で同じデータを使うため、アプリ側で一度だけ読み込む
+import { BASE_URL } from '../config/baseUrl'
 import { ringIntersectsExtent, type PolygonRings } from '../lib/geo'
 import type { Extent } from '../lib/projection'
 import type { ParkInfo } from '../store/appStore'
@@ -10,7 +11,7 @@ export type ParkFeature = {
   properties: ParkInfo
 }
 
-export const PARKS_URL = `${import.meta.env.BASE_URL}data/parks.geojson`
+export const PARKS_URL = `${BASE_URL}data/parks.geojson`
 
 export async function loadParks(signal?: AbortSignal): Promise<ParkFeature[]> {
   const res = await fetch(PARKS_URL, { signal })
