@@ -11,6 +11,7 @@ import {
   type LoadResult,
   type Stage,
 } from '../lib/dispatch'
+import { JITAI_RATE_CLASSES, parseJitaiSummary, zoneCellsAt } from '../lib/jitai'
 import type { ScenarioView } from '../lib/scenario'
 import { useAppStore } from '../store/appStore'
 import { Panel } from './ui'
@@ -63,6 +64,8 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   const setStage = useAppStore((s) => s.setStage)
   const setDispatch = useAppStore((s) => s.setDispatch)
   const setDispatchHour = useAppStore((s) => s.setDispatchHour)
+  const jitaiSummary = useAppStore((s) => s.jitaiSummary)
+  const setJitaiSummary = useAppStore((s) => s.setJitaiSummary)
   const clearDispatch = useAppStore((s) => s.clearDispatch)
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<string[]>([])
@@ -72,14 +75,17 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     setErrors(errs)
   }
 
-  /** 舞台と配車をまとめて確かめ、両方とも合格したときだけ置き換える */
-  const applyBoth = (stageInput: unknown, dispatchInput: unknown) => {
+  /** 舞台・配車・JITAI の集計をまとめて確かめ、すべて合格したときだけ置き換える */
+  const applyAll = (stageInput: unknown, dispatchInput: unknown, jitaiInput: unknown) => {
     const s = parseStage(stageInput)
     if (!s.ok) return fail(s.errors.map((e) => `舞台: ${e}`))
     const d = parseDispatch(dispatchInput, s.value)
     if (!d.ok) return fail(d.errors.map((e) => `配車: ${e}`))
+    const j = parseJitaiSummary(jitaiInput, s.value)
+    if (!j.ok) return fail(j.errors.map((e) => `JITAI の集計: ${e}`))
     setStage(s.value)
     setDispatch(d.value)
+    setJitaiSummary(j.value)
     setErrors([])
     setMessage(describeDispatch(s.value, d.value))
     onFocusPoint(viewOf(s.value))
@@ -87,11 +93,12 @@ export function DispatchPanel({ onFocusPoint }: Props) {
 
   const loadSample = async () => {
     // サンプルは使うときだけ読み込む（通常の起動では配らない）
-    const [stageJson, dispatchJson] = await Promise.all([
+    const [stageJson, dispatchJson, jitaiJson] = await Promise.all([
       import('../../contracts/fixtures/stage.sample.json'),
       import('../../contracts/fixtures/dispatch.sample.json'),
+      import('../../contracts/fixtures/jitai-summary.sample.json'),
     ])
-    applyBoth(stageJson.default, dispatchJson.default)
+    applyAll(stageJson.default, dispatchJson.default, jitaiJson.default)
   }
 
   const loadStageFile = async (file: File | undefined) => {
@@ -119,6 +126,20 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     setMessage(describeDispatch(stage, d.value))
   }
 
+  const loadJitaiFile = async (file: File | undefined) => {
+    if (!file) return
+    if (!stage) return fail(['先に舞台（stage.json）を読み込んでください（区画の位置を舞台の区域から決めます）'])
+    const json = await readJsonFile(file)
+    if (!json.ok) return fail(json.errors)
+    const j = parseJitaiSummary(json.value, stage)
+    if (!j.ok) return fail(j.errors)
+    setJitaiSummary(j.value)
+    setErrors([])
+    setMessage(
+      `JITAI の集計（${j.value.weather_scenario}・ワーカー ${j.value.workers} 人）を読み込みました: 判定 ${j.value.totals.decisions} 件・介入 ${j.value.totals.interventions} 件`,
+    )
+  }
+
   const clear = () => {
     clearDispatch()
     setMessage('')
@@ -126,8 +147,13 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   }
 
   const snapshot = useMemo(() => (stage && dispatch ? snapshotAt(stage, dispatch, hour) : null), [stage, dispatch, hour])
-  const hours = useMemo(() => (dispatch ? dispatchHours(dispatch) : []), [dispatch])
+  // 配車か JITAI の集計にデータのある時刻（昇順）
+  const hours = useMemo(
+    () => [...new Set([...(dispatch ? dispatchHours(dispatch) : []), ...(jitaiSummary?.zones.map((z) => z.hour) ?? [])])].sort((a, b) => a - b),
+    [dispatch, jitaiSummary],
+  )
   const pets = snapshot?.comfort.map((c) => c.petC) ?? []
+  const zones = useMemo(() => (stage && jitaiSummary ? zoneCellsAt(jitaiSummary, stage, hour) : []), [stage, jitaiSummary, hour])
 
   return (
     <Panel title="配車（役者の結果）">
@@ -154,6 +180,19 @@ export function DispatchPanel({ onFocusPoint }: Props) {
             aria-label="配車（dispatch.json）を選ぶ"
             onChange={(e) => {
               void loadDispatchFile(e.target.files?.[0])
+              e.target.value = ''
+            }}
+            className={`mt-1 ${fileClass}`}
+          />
+        </label>
+        <label className="block text-[11px] text-slate-400">
+          JITAI の集計（jitai-summary.json）
+          <input
+            type="file"
+            accept=".json,application/json"
+            aria-label="JITAI の集計（jitai-summary.json）を選ぶ"
+            onChange={(e) => {
+              void loadJitaiFile(e.target.files?.[0])
               e.target.value = ''
             }}
             className={`mt-1 ${fileClass}`}
@@ -187,7 +226,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
         </div>
       )}
 
-      {dispatch && snapshot && (
+      {stage && (dispatch || jitaiSummary) && (
         <div className="mt-3">
           <div className="flex items-baseline justify-between">
             <label htmlFor="dispatch-hour" className="text-[11px] text-slate-400">
@@ -210,22 +249,50 @@ export function DispatchPanel({ onFocusPoint }: Props) {
             データのある時刻: {hours.length > 0 ? `${hours[0]}〜${hours[hours.length - 1]} 時` : 'なし'}
           </p>
 
-          <p className="mt-2 text-xs text-slate-300">
-            {pets.length > 0 ? `地点の PET: ${Math.min(...pets).toFixed(1)}〜${Math.max(...pets).toFixed(1)} ℃（${pets.length} 地点）` : 'この時刻の PET はありません'}
-          </p>
-          {snapshot.pods.length > 0 ? (
-            <ul aria-label="この時刻のポッド" className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
-              {snapshot.pods.map((p) => (
-                <li key={p.podId} className="text-xs text-slate-200">
-                  <span className="font-medium">{p.podId}</span>
-                  <span className="ml-1.5 text-slate-400">{p.spotName}</span>
-                  <span className="ml-1.5">{ACTION_LABELS.get(p.action)}</span>
-                  <span className="ml-1.5 text-slate-500 tabular-nums">健康度 {p.plantHealth.toFixed(1)}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-1 text-xs text-slate-500">この時刻のポッドはありません</p>
+          {snapshot && (
+            <>
+              <p className="mt-2 text-xs text-slate-300">
+                {pets.length > 0 ? `地点の PET: ${Math.min(...pets).toFixed(1)}〜${Math.max(...pets).toFixed(1)} ℃（${pets.length} 地点）` : 'この時刻の PET はありません'}
+              </p>
+              {snapshot.pods.length > 0 ? (
+                <ul aria-label="この時刻のポッド" className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
+                  {snapshot.pods.map((p) => (
+                    <li key={p.podId} className="text-xs text-slate-200">
+                      <span className="font-medium">{p.podId}</span>
+                      <span className="ml-1.5 text-slate-400">{p.spotName}</span>
+                      <span className="ml-1.5">{ACTION_LABELS.get(p.action)}</span>
+                      <span className="ml-1.5 text-slate-500 tabular-nums">健康度 {p.plantHealth.toFixed(1)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500">この時刻のポッドはありません</p>
+              )}
+            </>
+          )}
+
+          {jitaiSummary && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-300">
+                JITAI（{jitaiSummary.weather_scenario}・{jitaiSummary.workers} 人、{jitaiSummary.min_workers} 人未満の区画・時刻は出さない）
+              </p>
+              {zones.length > 0 ? (
+                <ul aria-label="この時刻の JITAI（区画ごと）" className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
+                  {zones.map((z) => (
+                    <li key={z.zone.join(',')} className="text-xs text-slate-200 tabular-nums">
+                      <span className="text-slate-400">区画 [{z.zone.join(', ')}]</span>
+                      <span className="ml-1.5">判定 {z.decisions}</span>
+                      <span className="ml-1.5">介入 {z.interventions}（{Math.round(z.rate * 100)}%）</span>
+                      <span className="ml-1.5 text-slate-500">
+                        見送り 予定 {z.skipped_calendar}・ポッド {z.skipped_pods}・PET {z.skipped_pet}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500">この時刻の区画はありません</p>
+              )}
+            </div>
           )}
 
           <ul aria-label="凡例" className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-slate-300">
@@ -241,6 +308,13 @@ export function DispatchPanel({ onFocusPoint }: Props) {
                 {c.label}（{c.range}）
               </li>
             ))}
+            {jitaiSummary &&
+              JITAI_RATE_CLASSES.map((c) => (
+                <li key={c.label} className="flex items-center gap-1.5">
+                  <span className="size-2.5 border border-white/40" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
+                  介入率 {c.label}
+                </li>
+              ))}
           </ul>
         </div>
       )}

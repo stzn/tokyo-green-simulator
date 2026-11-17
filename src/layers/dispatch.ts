@@ -1,8 +1,9 @@
 // 配車（dispatch.json）のレイヤー。地点の PET を快適度の色の円で、その上にポッドを行動ごとの色の点で描く
 // deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
 import { _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
-import { ScatterplotLayer } from '@deck.gl/layers'
+import { PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
 import { petCategory, POD_ACTIONS, type ComfortMarker, type DispatchSnapshot, type PodAction, type PodMarker } from '../lib/dispatch'
+import { interventionColor, type ZoneCell } from '../lib/jitai'
 
 type Color = [number, number, number, number]
 
@@ -23,14 +24,36 @@ const terrainExtension = new TerrainExtension()
 const ALWAYS_ON_TOP = { depthCompare: 'always' } as const
 
 type Options = {
-  snapshot: DispatchSnapshot
+  snapshot: DispatchSnapshot | null
+  /** JITAI の集計の、選んだ時刻の区画（無ければ空） */
+  zones?: ZoneCell[]
   visible: boolean
   terrain: boolean
 }
 
-export function createDispatchLayers({ snapshot, visible, terrain }: Options) {
+export function createDispatchLayers({ snapshot, zones = [], visible, terrain }: Options) {
   const extensions = terrain ? [terrainExtension] : []
   const layers = []
+  // 区画は地点・ポッドの下に、介入率の色で薄く塗る
+  if (zones.length > 0) {
+    layers.push(
+      new PolygonLayer<ZoneCell, TerrainExtensionProps>({
+        id: 'jitai-zones',
+        data: zones,
+        visible,
+        pickable: false,
+        getPolygon: (z) => z.polygon,
+        getFillColor: (z) => interventionColor(z.rate),
+        getLineColor: [226, 232, 240, 160],
+        stroked: true,
+        lineWidthUnits: 'pixels',
+        getLineWidth: 1,
+        extensions,
+        terrainDrawMode: 'drape',
+      }),
+    )
+  }
+  if (!snapshot) return layers
   // データが無いレイヤーは作らない（空のまま地形の仕組みに乗せると、初回描画でdeck.glがエラーを出す）
   if (snapshot.comfort.length > 0) {
     layers.push(

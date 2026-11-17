@@ -278,3 +278,17 @@ describe('機能: 配車（舞台と役者の結果）の保持', () => {
     expect(store.getState().dispatch).toBeNull()
   })
 })
+
+describe('機能: JITAI の集計の保持', () => {
+  it('Given 舞台と集計 / When 舞台を置き換える・消去する / Then 古い舞台に合わせた集計は外す', () => {
+    const s = createAppStore()
+    const summary = { zones: [] } as unknown as NonNullable<ReturnType<AppStore['getState']>['jitaiSummary']>
+    s.getState().setJitaiSummary(summary)
+    expect(s.getState().jitaiSummary).toBe(summary)
+    s.getState().setStage({} as Stage)
+    expect(s.getState().jitaiSummary).toBeNull()
+    s.getState().setJitaiSummary(summary)
+    s.getState().clearDispatch()
+    expect(s.getState().jitaiSummary).toBeNull()
+  })
+})

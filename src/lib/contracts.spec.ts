@@ -24,6 +24,11 @@ describe('機能: 役者とのデータ契約 v1', () => {
       const validate = validatorOf('dispatch.schema.json')
       expect(validate(read('fixtures/dispatch.sample.json')), JSON.stringify(validate.errors)).toBe(true)
     })
+
+    it('Given JITAI の集計のサンプル / When jitai-summary のスキーマで検証する / Then 合格する', () => {
+      const validate = validatorOf('jitai-summary.schema.json')
+      expect(validate(read('fixtures/jitai-summary.sample.json')), JSON.stringify(validate.errors)).toBe(true)
+    })
   })
 
   describe('シナリオ: 契約に反するデータ', () => {

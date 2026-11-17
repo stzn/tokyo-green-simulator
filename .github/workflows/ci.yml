@@ -1,0 +1,27 @@
+name: CI
+
+# PR ごとに、デプロイ（deploy.yml）と同じ検証を回す。main への push はデプロイ側で検証する
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx tsc -b --noEmit
+      - run: npx oxlint
+      - run: npm run build
