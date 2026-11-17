@@ -50,7 +50,7 @@ npm run stage:export -- --date 2025-07-15  # 日付を変える
 - 建物は地図表示と同じ PLATEAU の MVT（z=16）を、区域から 500 m 広げた範囲で取ります。通路は OpenStreetMap（Overpass API）から取ります。取得結果は `scripts/.cache/stage/` に置き、再実行時はそこから読みます（約1分。2回目以降は数秒）
 - 公園・街路樹は `public/data/` の生成済みデータを使います
 - 書き出す前に契約のスキーマ（Ajv）と、地点 ID・時刻が重複しないことを確かめ、合わなければ書き出しません。生成済みのファイルは `src/lib/stage.spec.ts` でも同じことを確かめます
-- 出力は GitHub Pages でも配信されます（`/tokyo-green-simulator/data/stage/otemachi.json`）
+- 出力は GitHub Pages でも配信されます（`/tokyo-green-simulator/data/stage/otemachi.json`）。地点の位置・名前は © OpenStreetMap contributors（ODbL）、遮蔽・天空率は PLATEAU（CC BY 4.0）に由来します
 
 ### 候補地点の抽出規則（`scripts/lib/stageSpots.ts`）
 
