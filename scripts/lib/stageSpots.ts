@@ -12,6 +12,8 @@ import {
   type BuildingIndex,
   type LocalPoint,
   localProjection,
+  nearbyCrowns,
+  type TreeIndex,
 } from '../../src/lib/shade'
 import type { SpotKind, Stage, StageGreen, StageSpot } from '../../src/lib/stage'
 import type { OverpassElement } from './parks'
@@ -144,7 +146,7 @@ export function extractCandidateSpots(
 }
 
 /**
- * 候補地点ごとに、0〜23時の日射遮蔽率と天空率を建物から求め、緑の文脈を付けて舞台にする。
+ * 候補地点ごとに、0〜23時の日射遮蔽率（建物と、trees があれば街路樹の樹冠）と天空率（建物）を求め、緑の文脈を付けて舞台にする。
  * 需要（demand）は v1 では空（集計値の用意ができてから入れる）
  */
 export function assembleStage(input: {
@@ -153,17 +155,21 @@ export function assembleStage(input: {
   generator: string
   candidates: CandidateSpot[]
   index: BuildingIndex
+  /** 街路樹の樹冠。無ければ建物だけで遮蔽率を求める */
+  trees?: TreeIndex
   proj: Projection
   greenOf: (spot: CandidateSpot) => StageGreen
 }): Stage {
-  const { area, date, generator, candidates, index, proj, greenOf } = input
+  const { area, date, generator, candidates, index, trees, proj, greenOf } = input
   const spots: StageSpot[] = candidates.map((c) => {
-    const profile = horizonProfile(index, proj.toXY([c.lon, c.lat]))
+    const xy = proj.toXY([c.lon, c.lat])
+    const profile = horizonProfile(index, xy)
+    const crowns = trees ? nearbyCrowns(trees, xy) : []
     return {
       ...c,
       sky_view_factor: round3(skyViewFactor(profile)),
       green: greenOf(c),
-      hourly: Array.from({ length: 24 }, (_, hour) => ({ hour, shade_fraction: round3(shadeFractionForHour(profile, date, hour, c.lat, c.lon)) })),
+      hourly: Array.from({ length: 24 }, (_, hour) => ({ hour, shade_fraction: round3(shadeFractionForHour(profile, date, hour, c.lat, c.lon, { crowns })) })),
       demand: [],
     }
   })

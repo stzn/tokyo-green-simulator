@@ -1,7 +1,7 @@
 // パイロット区域（大手町・丸の内）の舞台（stage.json、データ契約 v1）を書き出す。
 //   npm run stage:export                     # 2025-08-30 で計算
 //   npm run stage:export -- --date 2025-07-15
-// 建物は地図表示と同じ PLATEAU の MVT、通路は OpenStreetMap（Overpass API）から取り、
+// 建物は地図表示と同じ PLATEAU の MVT、街路樹の樹冠は public/data/trees.json、通路は OpenStreetMap（Overpass API）から取り、
 // 取得結果は scripts/.cache/ に置いて再実行時はそこから読む。公園・街路樹は public/data/ の生成済みデータを使う
 import { execSync } from 'node:child_process'
 import { setDefaultResultOrder } from 'node:dns'
@@ -13,7 +13,7 @@ import type { CityTreeFeature } from '../src/data/cityTrees'
 import { computeGreenContext } from '../src/data/greenContext'
 import type { ParkFeature } from '../src/data/parks'
 import { toTreeData } from '../src/data/trees'
-import { createBuildingIndex, DEFAULT_MAX_DISTANCE_M, localProjection, type LocalBuilding } from '../src/lib/shade'
+import { createBuildingIndex, createTreeIndex, crownOf, DEFAULT_MAX_DISTANCE_M, localProjection, type LocalBuilding, type LocalTree } from '../src/lib/shade'
 import { STAGE_OUTPUT_PATH, stageIntegrityErrors, toStageGreen, type Stage } from '../src/lib/stage'
 import { decodeBuildingTile } from './lib/buildingTiles'
 import { tileRange } from './lib/dem'
@@ -134,6 +134,23 @@ const trees = toTreeData(await readJson<TreesColumnar>('public/data/trees.json')
 const cityTrees = (await readJson<{ features: CityTreeFeature[] }>('public/data/city-trees.geojson')).features
 console.log(`歩行者用の通路 ${ways.length} 本、公園 ${parks.length.toLocaleString()} 件、街路樹 ${trees.count.toLocaleString()} 本`)
 
+// 街路樹の樹冠：建物と同じく区域から遮蔽を数える距離ぶん広げた範囲の木を使う。
+// 区道の街路樹（city-trees.geojson）は路線ごとの樹種・本数だけで単木の位置・高さ・枝張りが無いため、樹冠には入れない
+const localTrees: LocalTree[] = []
+let estimatedSpread = 0
+for (let i = 0; i < trees.count; i++) {
+  const lon = trees.positions[i * 2]
+  const lat = trees.positions[i * 2 + 1]
+  if (lon < mWest || lon > mEast || lat < mSouth || lat > mNorth) continue
+  const crown = crownOf(trees.height[i], trees.spread[i])
+  if (!crown) continue
+  if (!(trees.spread[i] > 0)) estimatedSpread++
+  const [x, y] = proj.toXY([lon, lat])
+  localTrees.push({ x, y, ...crown })
+}
+console.log(`  樹冠に使う街路樹 ${localTrees.length.toLocaleString()} 本（うち枝張りを樹高から近似 ${estimatedSpread.toLocaleString()} 本）`)
+const treeIndex = createTreeIndex(localTrees)
+
 // 3. 候補地点 → 遮蔽率・天空率・緑の文脈
 const candidates = extractCandidateSpots({ ways, parks, index, proj, bbox: AREA.bbox, idPrefix: ID_PREFIX })
 const stage = assembleStage({
@@ -142,6 +159,7 @@ const stage = assembleStage({
   generator: generatorName(),
   candidates,
   index,
+  trees: treeIndex,
   proj,
   greenOf: (spot) => {
     const context = computeGreenContext(spot, GREEN_RADIUS_M, { trees, cityTrees, parks })

@@ -1,6 +1,7 @@
-// 建物（外周と高さ）による日射の遮蔽と天空率。
+// 建物（外周と高さ）と街路樹の樹冠による日射の遮蔽と、建物による天空率。
 // 地点ごとに「方位ごとの地平線の仰角（horizon profile）」を一度求め、
 // 太陽の高度がその方位の仰角より低ければ日影、天空率は仰角から近似する。
+// 樹冠は円板（円柱）とみなし、地点から太陽への線が通れば透過率の分だけ日射を通す（下の「街路樹の樹冠」）。
 // 座標は区域の中心を原点にした局所の平面（x=東[m]、y=北[m]）で扱う。地形の起伏は見ない
 import { jstDate, solarPosition } from './solar'
 import { pointInRing } from './geo'
@@ -161,10 +162,87 @@ export function horizonProfile(index: BuildingIndex, point: LocalPoint, { maxDis
   return profile
 }
 
+// ---- 街路樹の樹冠 ----
+// 仮定（README の「街路樹の樹冠による遮蔽」にも書いている）:
+// - 樹冠は幹の位置を中心とする半径 crownRadiusM（= 枝張り/2）の円板で、高さ 0.6H〜1.0H（H = 樹高）を占める円柱とする。
+//   枝下高を樹高の 6 割とするのは街路樹の剪定（建築限界 4.5 m 程度の確保）と一般的な樹形からの目安
+// - 地点から太陽への線が樹冠を通れば、日射の透過率を 0.2 とする（遮蔽 0.8）。
+//   都市の街路樹の夏季の日射透過率はおおむね 0.1〜0.3 と報告されており、その中央の値。
+//   データに落葉・常緑の別が無いため、季節によらず葉の茂った夏の値を使う（冬の落葉樹では遮蔽を過大に見積もる）
+// - 線が複数の樹冠を通っても透過率は重ねない（並木の連なった樹冠を 1 枚の葉群とみなす。遮蔽を過大にしない側）
+
+/** 樹冠の日射透過率（夏の値を仮定） */
+export const CANOPY_TRANSMITTANCE = 0.2
+/** 樹冠の下端の高さの、樹高に対する比 */
+export const CROWN_BASE_RATIO = 0.6
+
+/** 地点まわりの局所座標の木。x, y は幹の位置[m]、heightM は樹高、crownRadiusM は樹冠の半径 */
+export type LocalTree = { x: number; y: number; heightM: number; crownRadiusM: number }
+
+/**
+ * 枝張り[m]を樹高[m]から近似する: 枝張り ≈ 0.40 × 樹高 + 0.36。
+ * 東京都の街路樹データ（public/data/trees.json）のうち、樹高・枝張りが両方ある 92,152 本への最小二乗の直線
+ */
+export function estimateCrownSpreadM(heightM: number): number {
+  return 0.4 * heightM + 0.36
+}
+
+/** 樹高・枝張り（欠損は負の値）から樹冠を作る。樹高が無い木は数えない（null） */
+export function crownOf(heightM: number, spreadM: number): { heightM: number; crownRadiusM: number } | null {
+  if (!(heightM > 0)) return null
+  const spread = spreadM > 0 ? spreadM : estimateCrownSpreadM(heightM)
+  return { heightM, crownRadiusM: spread / 2 }
+}
+
+export type TreeIndex = { cellM: number; trees: LocalTree[]; cells: Map<string, number[]> }
+
+/** 木を格子（既定50m）に振り分ける（樹冠の広がりの分だけ周りのセルにも入れる） */
+export function createTreeIndex(trees: LocalTree[], cellM = 50): TreeIndex {
+  const cells = new Map<string, number[]>()
+  trees.forEach((t, i) => addToCells(cells, cellM, t.x - t.crownRadiusM, t.y - t.crownRadiusM, t.x + t.crownRadiusM, t.y + t.crownRadiusM, i))
+  return { cellM, trees, cells }
+}
+
+/** 地点から maxDistanceM 以内（幹までの距離）の木を、地点を原点にした座標で返す */
+export function nearbyCrowns(index: TreeIndex, [x, y]: LocalPoint, maxDistanceM = DEFAULT_MAX_DISTANCE_M): LocalTree[] {
+  const crowns: LocalTree[] = []
+  for (const id of collect(index.cells, index.cellM, [x, y], maxDistanceM)) {
+    const t = index.trees[id]
+    if (Math.hypot(t.x - x, t.y - y) > maxDistanceM) continue
+    crowns.push({ ...t, x: t.x - x, y: t.y - y })
+  }
+  return crowns
+}
+
+/**
+ * 地点（原点・地面）から太陽への線が樹冠を通るときの遮蔽（1 − 透過率）、通らなければ 0。
+ * 線は水平距離 t のとき高さ t·tan(高度) なので、樹冠の高さ 0.6H〜H を通る区間は t ∈ [0.6H, H] / tan(高度)。
+ * その水平の線分が樹冠の円（半径 r）に掛かれば通るとみなす
+ */
+export function canopyShadeForSun(crowns: LocalTree[], azimuthDeg: number, altitudeDeg: number): number {
+  if (altitudeDeg <= 0) return 0
+  const ux = Math.sin(toRad(azimuthDeg))
+  const uy = Math.cos(toRad(azimuthDeg))
+  // 真上の太陽では tan が発散するので 0 として扱う（線分は原点の 1 点）
+  const cot = altitudeDeg >= 90 ? 0 : 1 / Math.tan(toRad(altitudeDeg))
+  for (const t of crowns) {
+    const t0 = CROWN_BASE_RATIO * t.heightM * cot
+    const t1 = t.heightM * cot
+    if (distanceToSegment(t0 * ux - t.x, t0 * uy - t.y, t1 * ux - t.x, t1 * uy - t.y) <= t.crownRadiusM) return 1 - CANOPY_TRANSMITTANCE
+  }
+  return 0
+}
+
+/** 建物と樹冠の遮蔽の合成: 1 − (1 − 建物)(1 − 樹冠)（それぞれを独立な透過とみなす） */
+export function combineShade(building: number, canopy: number): number {
+  return 1 - (1 - building) * (1 - canopy)
+}
+
 /**
  * 指定日の hour 時台（hour:00〜hour:59、日本時間）の日射遮蔽率。
- * 1時間を samplesPerHour 等分した各時刻の中央で太陽位置を求め、
- * 夜（太陽高度 ≤ 0）または建物の仰角より太陽が低い時刻を「遮蔽」として割合を取る
+ * 1時間を samplesPerHour 等分した各時刻の中央で太陽位置を求め、各時刻の遮蔽を平均する。
+ * 各時刻の遮蔽は、建物（夜 = 太陽高度 ≤ 0、または建物の仰角より太陽が低ければ 1、それ以外は 0）と
+ * 樹冠（crowns、地点を原点にした座標。canopyShadeForSun）を combineShade で合わせたもの
  */
 export function shadeFractionForHour(
   profile: Float64Array,
@@ -172,14 +250,14 @@ export function shadeFractionForHour(
   hour: number,
   latDeg: number,
   lonDeg: number,
-  samplesPerHour = 12,
+  { samplesPerHour = 12, crowns = [] }: { samplesPerHour?: number; crowns?: LocalTree[] } = {},
 ): number {
   let shaded = 0
   for (let k = 0; k < samplesPerHour; k++) {
     const minute = ((k + 0.5) * 60) / samplesPerHour
     const sun = solarPosition(jstDate(date, hour, minute), latDeg, lonDeg)
-    if (sun.altitudeDeg <= 0) shaded++
-    else if (sun.altitudeDeg < profile[Math.floor(sun.azimuthDeg) % HORIZON_BINS]) shaded++
+    const building = sun.altitudeDeg <= 0 || sun.altitudeDeg < profile[Math.floor(sun.azimuthDeg) % HORIZON_BINS] ? 1 : 0
+    shaded += building === 1 ? 1 : combineShade(building, canopyShadeForSun(crowns, sun.azimuthDeg, sun.altitudeDeg))
   }
   return shaded / samplesPerHour
 }
