@@ -14,7 +14,7 @@ import {
   type LoadResult,
   type Stage,
 } from '../lib/dispatch'
-import { DEMO_LABEL, DEMO_POLICIES, fetchDemo, fetchDemoComparison, policyOf, type DemoPolicy } from '../lib/demo'
+import { DEMO_CONDITIONS, DEMO_POLICIES, demoLabel, fetchDemo, fetchDemoComparison, policyOf, type DemoCondition, type DemoPolicy } from '../lib/demo'
 import { compareZonesAt, JITAI_RATE_CLASSES, parseJitaiSummary, ZONE_DIFF_CLASSES, zoneCellsAt, type JitaiSummary } from '../lib/jitai'
 import type { ScenarioView } from '../lib/scenario'
 import { useAppStore } from '../store/appStore'
@@ -80,6 +80,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   const setSpotColor = useAppStore((s) => s.setSpotColor)
   const comparison = useAppStore((s) => s.comparison)
   const setComparison = useAppStore((s) => s.setComparison)
+  const [demoCondition, setDemoCondition] = useState<DemoCondition>(DEMO_CONDITIONS[0].id)
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<string[]>([])
 
@@ -89,7 +90,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   }
 
   /** 地点データ・配車・JITAI の集計をまとめて確かめ、すべて合格したときだけ置き換える */
-  const applyAll = (stageInput: unknown, dispatchInput: unknown, jitaiInput: unknown, demo = false) => {
+  const applyAll = (stageInput: unknown, dispatchInput: unknown, jitaiInput: unknown, demo: DemoCondition | null = null) => {
     const s = parseStage(stageInput)
     if (!s.ok) return fail(s.errors.map((e) => `地点データ: ${e}`))
     const d = parseDispatch(dispatchInput, s.value)
@@ -102,7 +103,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     setErrors([])
     setMessage(
       demo
-        ? `デモ（${DEMO_LABEL}・方式 ${policyOf(d.value.generator)}）: 判定 ${j.value.totals.decisions} 件・介入 ${j.value.totals.interventions} 件`
+        ? `デモ（${demoLabel(demo)}・方式 ${policyOf(d.value.generator)}）: 判定 ${j.value.totals.decisions} 件・介入 ${j.value.totals.interventions} 件`
         : describeDispatch(s.value, d.value),
     )
     onFocusPoint(viewOf(s.value))
@@ -110,14 +111,14 @@ export function DispatchPanel({ onFocusPoint }: Props) {
 
   const loadDemo = async (policy: DemoPolicy) => {
     // 読み込みに失敗したときは、表示中のデータを残す
-    const r = await fetchDemo(policy)
+    const r = await fetchDemo(demoCondition, policy)
     if (!r.ok) return fail(r.errors)
-    applyAll(r.value.stage, r.value.dispatch, r.value.jitai, true)
+    applyAll(r.value.stage, r.value.dispatch, r.value.jitai, demoCondition)
   }
 
   /** 比較のデモ: coverage を主、greedy を比較に置く。どれかが合格しなければ何も置き換えない */
   const loadComparison = async () => {
-    const r = await fetchDemoComparison()
+    const r = await fetchDemoComparison(demoCondition)
     if (!r.ok) return fail(r.errors)
     const s = parseStage(r.value.stage)
     if (!s.ok) return fail(s.errors.map((e) => `地点データ: ${e}`))
@@ -138,7 +139,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     // 主を置き換えると比較は外れるので、最後に置く
     setComparison({ dispatch: otherDispatch, jitaiSummary: otherJitai })
     setErrors([])
-    setMessage(`デモ（${DEMO_LABEL}）: ${policyOf(mainDispatch.generator)}（主）と ${policyOf(otherDispatch.generator)}（比較）を並べています`)
+    setMessage(`デモ（${demoLabel(demoCondition)}）: ${policyOf(mainDispatch.generator)}（主）と ${policyOf(otherDispatch.generator)}（比較）を並べています`)
     onFocusPoint(viewOf(s.value))
   }
 
@@ -283,8 +284,21 @@ export function DispatchPanel({ onFocusPoint }: Props) {
           消去
         </button>
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label={`デモ（${DEMO_LABEL}）`}>
-        <span className="text-[11px] text-slate-400">デモ（{DEMO_LABEL}）</span>
+      <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label="デモ">
+        <label className="flex items-center gap-1 text-[11px] text-slate-400">
+          デモの条件
+          <select
+            value={demoCondition}
+            onChange={(e) => setDemoCondition(e.target.value as DemoCondition)}
+            className="rounded-lg border border-white/10 bg-slate-900 px-1.5 py-1 text-xs text-slate-200"
+          >
+            {DEMO_CONDITIONS.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </label>
         {DEMO_POLICIES.map((policy) => (
           <button key={policy} type="button" onClick={() => void loadDemo(policy)} className={buttonClass}>
             デモ: {policy}

@@ -6,15 +6,22 @@ import { parseJson, type LoadResult } from './dispatch'
 export const DEMO_POLICIES = ['coverage', 'greedy'] as const
 export type DemoPolicy = (typeof DEMO_POLICIES)[number]
 
-/** デモの条件（表示用）。データの出どころは README の「配車のデモ」 */
-export const DEMO_LABEL = 'heatwave・5 台'
-const DEMO_DIR = 'data/demo/heatwave-p5/'
+/** デモの条件（気象 × ポッドの台数）。先頭が既定。データの出どころは README の「配車のデモ」 */
+export const DEMO_CONDITIONS = [
+  { id: 'heatwave-p5', label: 'heatwave・5 台' },
+  { id: 'heatwave-p8', label: 'heatwave・8 台' },
+  { id: 'normal-p5', label: 'normal・5 台' },
+  { id: 'rainy-p5', label: 'rainy・5 台' },
+] as const
+export type DemoCondition = (typeof DEMO_CONDITIONS)[number]['id']
+
+export const demoLabel = (condition: DemoCondition): string => DEMO_CONDITIONS.find((c) => c.id === condition)?.label ?? condition
 
 export type DemoUrls = { stage: string; dispatch: string; jitai: string }
 export type DemoJson = { stage: unknown; dispatch: unknown; jitai: unknown }
 
-export function demoUrls(policy: DemoPolicy, base: string = BASE_URL): DemoUrls {
-  const dir = `${base}${DEMO_DIR}`
+export function demoUrls(condition: DemoCondition, policy: DemoPolicy, base: string = BASE_URL): DemoUrls {
+  const dir = `${base}data/demo/${condition}/`
   return {
     stage: `${dir}stage.json`,
     dispatch: `${dir}dispatch.${policy}.json`,
@@ -40,8 +47,12 @@ const fetchJson = async (url: string, fetchFn: FetchFn): Promise<LoadResult<unkn
 }
 
 /** デモの 3 つの JSON を読む。契約の確認は呼び出し側（地点データと突き合わせる）で行う */
-export async function fetchDemo(policy: DemoPolicy, fetchFn: FetchFn = (url) => fetch(url)): Promise<LoadResult<DemoJson>> {
-  const urls = demoUrls(policy)
+export async function fetchDemo(
+  condition: DemoCondition,
+  policy: DemoPolicy,
+  fetchFn: FetchFn = (url) => fetch(url),
+): Promise<LoadResult<DemoJson>> {
+  const urls = demoUrls(condition, policy)
   const [stage, dispatch, jitai] = await Promise.all([
     fetchJson(urls.stage, fetchFn),
     fetchJson(urls.dispatch, fetchFn),
@@ -55,9 +66,12 @@ export async function fetchDemo(policy: DemoPolicy, fetchFn: FetchFn = (url) => 
 export type DemoComparisonJson = { stage: unknown; main: { dispatch: unknown; jitai: unknown }; other: { dispatch: unknown; jitai: unknown } }
 
 /** 比較のデモを読む。地点データは 1 回、配車と集計は主（coverage）と比較（greedy）の 2 方式 */
-export async function fetchDemoComparison(fetchFn: FetchFn = (url) => fetch(url)): Promise<LoadResult<DemoComparisonJson>> {
-  const main = demoUrls('coverage')
-  const other = demoUrls('greedy')
+export async function fetchDemoComparison(
+  condition: DemoCondition,
+  fetchFn: FetchFn = (url) => fetch(url),
+): Promise<LoadResult<DemoComparisonJson>> {
+  const main = demoUrls(condition, 'coverage')
+  const other = demoUrls(condition, 'greedy')
   const results = await Promise.all([main.stage, main.dispatch, main.jitai, other.dispatch, other.jitai].map((u) => fetchJson(u, fetchFn)))
   const values: unknown[] = []
   const errors: string[] = []
