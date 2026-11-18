@@ -248,3 +248,47 @@ describe('機能: 方式を並べて比べる（デモ）', () => {
     expect(useAppStore.getState().comparison).toBeNull()
   })
 })
+
+describe('機能: 自分のファイルどうしで比べる', () => {
+  const demo = (name: string) => demoFile(`heatwave-p5/${name}`)
+  const compareInput = () => screen.getByLabelText('比較（配車と JITAI の集計）を選ぶ')
+  const loadMain = async () => {
+    await uploadStage(demo('stage.json'))
+    await uploadDispatch(demo('dispatch.coverage.json'))
+    await userEvent.upload(
+      screen.getByLabelText('JITAI の集計（jitai-summary.json）を選ぶ'),
+      jsonFile(demo('jitai-summary.coverage.json'), 'jitai-summary.json'),
+    )
+    await screen.findByText(/JITAI の集計.*を読み込みました/)
+  }
+
+  it('Given 主の配車・集計がそろっていない / Then 比較は選べず、理由を書く', async () => {
+    setup()
+    await uploadStage(demo('stage.json'))
+    await uploadDispatch(demo('dispatch.coverage.json'))
+    expect(compareInput()).toBeDisabled()
+    expect(screen.getByText(/主の地点データ・配車・JITAI の集計を読み込むと選べます/)).toBeInTheDocument()
+  })
+
+  it('Given 主を読み込んだ / When 比較に配車と集計の 2 ファイルを選ぶ / Then 方式の名前で並べ、比較を外せる', async () => {
+    setup()
+    await loadMain()
+    await userEvent.upload(compareInput(), [
+      jsonFile(demo('jitai-summary.greedy.json'), 'b.json'),
+      jsonFile(demo('dispatch.greedy.json'), 'a.json'),
+    ])
+    expect(await screen.findByText(/1 日の介入: coverage 167 件・greedy 35 件/)).toBeInTheDocument()
+    expect(useAppStore.getState().comparison?.dispatch.generator).toMatch(/greedy$/)
+    await userEvent.click(screen.getByRole('button', { name: '比較を外す' }))
+    expect(useAppStore.getState().comparison).toBeNull()
+    expect(screen.queryByText(/1 日の介入/)).not.toBeInTheDocument()
+  })
+
+  it('Given 主を読み込んだ / When 比較に配車 1 つだけを選ぶ / Then 理由を出し、比較は置かない', async () => {
+    setup()
+    await loadMain()
+    await userEvent.upload(compareInput(), jsonFile(demo('dispatch.greedy.json'), 'a.json'))
+    expect(await screen.findByRole('alert')).toHaveTextContent('JITAI の集計')
+    expect(useAppStore.getState().comparison).toBeNull()
+  })
+})

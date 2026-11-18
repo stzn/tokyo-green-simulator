@@ -17,6 +17,7 @@ import {
 import { DEMO_CONDITIONS, DEMO_POLICIES, demoLabel, fetchDemo, fetchDemoComparison, policyOf, type DemoCondition, type DemoPolicy } from '../lib/demo'
 import { compareZonesAt, JITAI_RATE_CLASSES, parseJitaiSummary, ZONE_DIFF_CLASSES, zoneCellsAt, type JitaiSummary } from '../lib/jitai'
 import type { ScenarioView } from '../lib/scenario'
+import { classifyComparisonFiles, comparisonNames } from '../lib/compare'
 import { useAppStore } from '../store/appStore'
 import { Panel } from './ui'
 
@@ -143,6 +144,27 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     onFocusPoint(viewOf(s.value))
   }
 
+  /** 自分のファイルの比較: 配車と JITAI の集計を 1 つずつ選び、主の地点データと突き合わせて置く。合格しなければ表示中の比較を残す */
+  const loadComparisonFiles = async (files: File[]) => {
+    if (files.length === 0) return
+    if (!stage) return fail(['先に主の地点データ（stage.json）を読み込んでください'])
+    const jsons: unknown[] = []
+    for (const file of files) {
+      const json = await readJsonFile(file)
+      if (!json.ok) return fail(json.errors.map((e) => `${file.name}: ${e}`))
+      jsons.push(json.value)
+    }
+    const c = classifyComparisonFiles(jsons)
+    if (!c.ok) return fail(c.errors)
+    const d = parseDispatch(c.value.dispatch, stage)
+    if (!d.ok) return fail(d.errors.map((e) => `配車（比較）: ${e}`))
+    const j = parseJitaiSummary(c.value.jitai, stage)
+    if (!j.ok) return fail(j.errors.map((e) => `JITAI の集計（比較）: ${e}`))
+    setComparison({ dispatch: d.value, jitaiSummary: j.value })
+    setErrors([])
+    setMessage(`比較（${j.value.weather_scenario}・ポッド ${d.value.pods.length} 台）を読み込みました`)
+  }
+
   const loadSample = async () => {
     // サンプルは使うときだけ読み込む（通常の起動では配らない）
     const [stageJson, dispatchJson, jitaiJson] = await Promise.all([
@@ -212,8 +234,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
       ].sort((a, b) => a - b),
     [dispatch, jitaiSummary, comparison],
   )
-  const mainName = dispatch ? policyOf(dispatch.generator) : '主'
-  const otherName = comparison ? policyOf(comparison.dispatch.generator) : '比較'
+  const [mainName, otherName] = dispatch && comparison ? comparisonNames(dispatch, comparison.dispatch) : ['主', '比較']
   const comparisonPods = useMemo(
     () => (stage && comparison ? snapshotAt(stage, comparison.dispatch, hour).pods : []),
     [stage, comparison, hour],
@@ -275,6 +296,24 @@ export function DispatchPanel({ onFocusPoint }: Props) {
             className={`mt-1 ${fileClass}`}
           />
         </label>
+        <label className="block text-[11px] text-slate-400">
+          比較（配車と JITAI の集計）
+          <input
+            type="file"
+            accept=".json,application/json"
+            multiple
+            disabled={!stage || !dispatch || !jitaiSummary}
+            aria-label="比較（配車と JITAI の集計）を選ぶ"
+            onChange={(e) => {
+              void loadComparisonFiles([...(e.target.files ?? [])])
+              e.target.value = ''
+            }}
+            className={`mt-1 ${fileClass} disabled:opacity-40`}
+          />
+          {(!stage || !dispatch || !jitaiSummary) && (
+            <span className="mt-0.5 block text-[11px] text-slate-500">主の地点データ・配車・JITAI の集計を読み込むと選べます（2 ファイルをまとめて選ぶ）</span>
+          )}
+        </label>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
         <button type="button" onClick={() => void loadSample()} className={buttonClass}>
@@ -283,6 +322,11 @@ export function DispatchPanel({ onFocusPoint }: Props) {
         <button type="button" disabled={!stage && !dispatch} onClick={clear} className={buttonClass}>
           消去
         </button>
+        {comparison && (
+          <button type="button" onClick={() => setComparison(null)} className={buttonClass}>
+            比較を外す
+          </button>
+        )}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label="デモ">
         <label className="flex items-center gap-1 text-[11px] text-slate-400">
