@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { DEMO_POLICIES, demoUrls, fetchDemo, policyOf } from './demo'
+import { DEMO_POLICIES, demoUrls, fetchDemo, fetchDemoComparison, policyOf } from './demo'
 import { parseDispatch, parseStage } from './dispatch'
 import { parseJitaiSummary } from './jitai'
 
@@ -59,5 +59,22 @@ describe('機能: 配車のデモのデータ（public/data/demo/heatwave-p5）'
     const broken = await fetchDemo('greedy', vi.fn(async () => new Response('{oops', { status: 200 })))
     expect(broken.ok).toBe(false)
     if (!broken.ok) expect(broken.errors.join()).toContain('JSON')
+  })
+})
+
+describe('機能: 比較のデモを読む', () => {
+  it('Given 置いてあるデモ / When 比較を読む / Then 地点データは 1 回、配車と集計は coverage と greedy を読む', async () => {
+    const r = await fetchDemoComparison(diskFetch)
+    expect(r.ok).toBe(true)
+    const urls = diskFetch.mock.calls.map(([u]) => String(u).split('/').pop())
+    expect(urls.sort()).toEqual(
+      ['dispatch.coverage.json', 'dispatch.greedy.json', 'jitai-summary.coverage.json', 'jitai-summary.greedy.json', 'stage.json'].sort(),
+    )
+    if (r.ok) expect(policyOf((r.value.main.dispatch as { generator: string }).generator)).toBe('coverage')
+  })
+
+  it('Given どれかが 404 / When 比較を読む / Then 例外にせず理由を返す', async () => {
+    const r = await fetchDemoComparison(vi.fn(async () => new Response('', { status: 404 })))
+    expect(r.ok).toBe(false)
   })
 })

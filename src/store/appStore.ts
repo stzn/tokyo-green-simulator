@@ -9,6 +9,7 @@ import type { Measurement } from '../lib/measurementLog'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
 
 export type SpotColor = 'pet' | 'demand'
+export type Comparison = { dispatch: Dispatch; jitaiSummary: JitaiSummary }
 export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees' | 'measurements' | 'dispatch'
 export type TreeMode = 'columns' | 'heatmap'
 
@@ -66,6 +67,8 @@ export type AppState = {
   jitaiSummary: JitaiSummary | null
   /** 地点の円を何で塗るか（PET の暑さか、需要か） */
   spotColor: SpotColor
+  /** 主の配車と並べて比べる、別の方式の配車と JITAI の集計（主と同じ地点データで確かめてから置く） */
+  comparison: Comparison | null
 
   toggleLayer: (key: LayerKey) => void
   setTreeMode: (mode: TreeMode) => void
@@ -93,6 +96,8 @@ export type AppState = {
   setJitaiSummary: (summary: JitaiSummary) => void
   clearDispatch: () => void
   setSpotColor: (spotColor: SpotColor) => void
+  /** 比較を置く。主の配車・地点データを置き換える・消去すると外れる */
+  setComparison: (comparison: Comparison | null) => void
 }
 
 const DEFAULT_DISPATCH_HOUR = 12
@@ -112,6 +117,7 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   dispatchHour: DEFAULT_DISPATCH_HOUR,
   spotColor: 'pet',
   jitaiSummary: null,
+  comparison: null,
 
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
   setTreeMode: (treeMode) => set(() => ({ treeMode })),
@@ -139,12 +145,13 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   setMeasurements: (measurements) => set((s) => ({ measurements, selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   clearMeasurements: () => set((s) => ({ measurements: [], selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   setMeasurementRadius: (measurementRadiusM) => set(() => ({ measurementRadiusM })),
-  setStage: (stage) => set(() => ({ stage, dispatch: null, jitaiSummary: null, spotColor: 'pet' })),
-  setDispatch: (dispatch) => set(() => ({ dispatch, dispatchHour: dispatchHours(dispatch)[0] ?? DEFAULT_DISPATCH_HOUR })),
+  setStage: (stage) => set(() => ({ stage, dispatch: null, jitaiSummary: null, spotColor: 'pet', comparison: null })),
+  setDispatch: (dispatch) => set(() => ({ dispatch, dispatchHour: dispatchHours(dispatch)[0] ?? DEFAULT_DISPATCH_HOUR, comparison: null })),
   setDispatchHour: (hour) => set(() => ({ dispatchHour: Math.min(23, Math.max(0, Math.round(hour))) })),
   setJitaiSummary: (jitaiSummary) => set(() => ({ jitaiSummary })),
-  clearDispatch: () => set(() => ({ stage: null, dispatch: null, jitaiSummary: null, dispatchHour: DEFAULT_DISPATCH_HOUR, spotColor: 'pet' })),
+  clearDispatch: () => set(() => ({ stage: null, dispatch: null, jitaiSummary: null, dispatchHour: DEFAULT_DISPATCH_HOUR, spotColor: 'pet', comparison: null })),
   setSpotColor: (spotColor) => set(() => ({ spotColor })),
+  setComparison: (comparison) => set(() => ({ comparison })),
 })
 
 /** テストや複数インスタンス用のファクトリ */

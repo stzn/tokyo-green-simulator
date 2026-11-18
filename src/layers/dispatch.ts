@@ -12,7 +12,7 @@ import {
   type PodAction,
   type PodMarker,
 } from '../lib/dispatch'
-import { interventionColor, type ZoneCell } from '../lib/jitai'
+import { interventionColor, zoneDiffColor, type ZoneCell, type ZoneDiff } from '../lib/jitai'
 
 type Color = [number, number, number, number]
 
@@ -40,15 +40,45 @@ type Options = {
   demand?: DemandMarker[]
   /** 地点の円を何で塗るか（既定は PET） */
   spotColor?: 'pet' | 'demand'
+  /** 方式の比較中の、選んだ時刻の区画の件数の差（あれば zones の代わりに塗る） */
+  zoneDiffs?: ZoneDiff[]
+  /** 方式の比較中の、比較側のポッド（塗りの無い輪で描く） */
+  comparisonPods?: PodMarker[]
   visible: boolean
   terrain: boolean
 }
 
-export function createDispatchLayers({ snapshot, zones = [], demand = [], spotColor = 'pet', visible, terrain }: Options) {
+export function createDispatchLayers({
+  snapshot,
+  zones = [],
+  demand = [],
+  spotColor = 'pet',
+  zoneDiffs = [],
+  comparisonPods = [],
+  visible,
+  terrain,
+}: Options) {
   const extensions = terrain ? [terrainExtension] : []
   const layers = []
-  // 区画は地点・ポッドの下に、介入率の色で薄く塗る
-  if (zones.length > 0) {
+  // 区画は地点・ポッドの下に塗る。比較中は件数の差の色、そうでなければ介入率の色
+  if (zoneDiffs.length > 0) {
+    layers.push(
+      new PolygonLayer<ZoneDiff, TerrainExtensionProps>({
+        id: 'jitai-zone-diff',
+        data: zoneDiffs,
+        visible,
+        pickable: false,
+        getPolygon: (z) => z.polygon,
+        getFillColor: (z) => zoneDiffColor(z.diff),
+        getLineColor: [226, 232, 240, 160],
+        stroked: true,
+        lineWidthUnits: 'pixels',
+        getLineWidth: 1,
+        extensions,
+        terrainDrawMode: 'drape',
+      }),
+    )
+  } else if (zones.length > 0) {
     layers.push(
       new PolygonLayer<ZoneCell, TerrainExtensionProps>({
         id: 'jitai-zones',
@@ -104,6 +134,28 @@ export function createDispatchLayers({ snapshot, zones = [], demand = [], spotCo
         data: snapshot.comfort,
         getPosition: (c) => [c.lon, c.lat],
         getFillColor: (c) => petCategory(c.petC).color,
+      }),
+    )
+  }
+  // 比較側のポッドは白い輪だけで、主の点より下に、少し西へずらして描く（同じ地点にいても両方見える）
+  if (comparisonPods.length > 0) {
+    layers.push(
+      new ScatterplotLayer<PodMarker, TerrainExtensionProps>({
+        id: 'dispatch-pods-compare',
+        data: comparisonPods,
+        visible,
+        pickable: false,
+        getPosition: (p) => [p.lon - (p.slot + 1) * SLOT_OFFSET_DEG, p.lat],
+        filled: false,
+        stroked: true,
+        getLineColor: [255, 255, 255, 255],
+        radiusUnits: 'pixels',
+        getRadius: 7,
+        lineWidthUnits: 'pixels',
+        getLineWidth: 3,
+        extensions,
+        terrainDrawMode: 'offset',
+        parameters: ALWAYS_ON_TOP,
       }),
     )
   }

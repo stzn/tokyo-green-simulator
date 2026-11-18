@@ -1,7 +1,7 @@
 import { PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
 import { describe, expect, it } from 'vitest'
 import { demandClass, type ComfortMarker, type DemandMarker, type PodMarker } from '../lib/dispatch'
-import { interventionColor, type ZoneCell } from '../lib/jitai'
+import { interventionColor, zoneDiffColor, type ZoneCell, type ZoneDiff } from '../lib/jitai'
 import { actionColor, createDispatchLayers } from './dispatch'
 
 const pod = (podId: string, action: PodMarker['action'], slot = 0): PodMarker => ({
@@ -116,5 +116,42 @@ describe('機能: 地点の色を需要にする', () => {
 
   it('Given 地点の色が PET / When 作る / Then 今までどおり PET の円を作る', () => {
     expect(build('pet').map((l) => l.id)).toEqual(['dispatch-comfort', 'dispatch-pods'])
+  })
+})
+
+describe('機能: 方式の比較のレイヤー', () => {
+  const diff: ZoneDiff = {
+    zone: [0, 0],
+    main: 5,
+    other: 1,
+    diff: 4,
+    polygon: [
+      [139.76, 35.68],
+      [139.77, 35.68],
+      [139.77, 35.69],
+      [139.76, 35.69],
+      [139.76, 35.68],
+    ],
+  }
+  const build = () =>
+    createDispatchLayers({
+      snapshot: { pods: [pod('P1', 'stay')], comfort: [comfort] },
+      zones: [],
+      zoneDiffs: [diff],
+      comparisonPods: [pod('P9', 'move')],
+      visible: true,
+      terrain: false,
+    })
+
+  it('Given 比較中 / When 作る / Then 差の区画 → 地点 → 比較の輪 → 主の点の順に重ねる', () => {
+    expect(build().map((l) => l.id)).toEqual(['jitai-zone-diff', 'dispatch-comfort', 'dispatch-pods-compare', 'dispatch-pods'])
+  })
+
+  it('Given 比較中 / Then 区画は件数の差の色、比較のポッドは塗りの無い輪', () => {
+    const [zonesLayer, , ring] = build()
+    const fill = (zonesLayer as PolygonLayer<ZoneDiff>).props.getFillColor as unknown as (z: ZoneDiff) => number[]
+    expect(fill(diff)).toEqual(zoneDiffColor(4))
+    expect((ring as ScatterplotLayer<PodMarker>).props.filled).toBe(false)
+    expect((ring as ScatterplotLayer<PodMarker>).props.stroked).toBe(true)
   })
 })

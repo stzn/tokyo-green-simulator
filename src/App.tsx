@@ -38,7 +38,7 @@ import { fromScenario, readScenarioFromHash, type ScenarioView } from './lib/sce
 import { useDebouncedValue } from './lib/useDebouncedValue'
 import { computeGreenContext } from './data/greenContext'
 import { demandAt, snapshotAt } from './lib/dispatch'
-import { zoneCellsAt } from './lib/jitai'
+import { compareZonesAt, zoneCellsAt } from './lib/jitai'
 import { useAppStore } from './store/appStore'
 
 type LoadState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; data: TreeData }
@@ -134,7 +134,7 @@ export default function App() {
   const parks = useParks()
   const [viewBounds, setViewBounds] = useState<Extent | null>(null)
 
-  const { layers, treeMode, speciesFilter, wardFilter, selection, greened, measurements, measurementRadiusM, stage, dispatch, dispatchHour, jitaiSummary, spotColor } = useAppStore(
+  const { layers, treeMode, speciesFilter, wardFilter, selection, greened, measurements, measurementRadiusM, stage, dispatch, dispatchHour, jitaiSummary, spotColor, comparison } = useAppStore(
     useShallow((s) => ({
       layers: s.layers,
       treeMode: s.treeMode,
@@ -149,6 +149,7 @@ export default function App() {
       dispatchHour: s.dispatchHour,
       jitaiSummary: s.jitaiSummary,
       spotColor: s.spotColor,
+      comparison: s.comparison,
     })),
   )
   const select = useAppStore((s) => s.select)
@@ -193,6 +194,15 @@ export default function App() {
   // 選んだ時刻のポッドの位置と地点の PET
   const dispatchSnapshot = useMemo(() => (stage && dispatch ? snapshotAt(stage, dispatch, dispatchHour) : null), [stage, dispatch, dispatchHour])
   const jitaiZones = useMemo(() => (stage && jitaiSummary ? zoneCellsAt(jitaiSummary, stage, dispatchHour) : []), [stage, jitaiSummary, dispatchHour])
+  // 方式の比較中は、比較側のポッドと区画の件数の差を作る
+  const comparisonPods = useMemo(
+    () => (stage && comparison ? snapshotAt(stage, comparison.dispatch, dispatchHour).pods : []),
+    [stage, comparison, dispatchHour],
+  )
+  const zoneDiffs = useMemo(
+    () => (stage && jitaiSummary && comparison ? compareZonesAt(jitaiSummary, comparison.jitaiSummary, stage, dispatchHour) : []),
+    [stage, jitaiSummary, comparison, dispatchHour],
+  )
   const demandMarkers = useMemo(() => (stage && spotColor === 'demand' ? demandAt(stage, dispatchHour) : []), [stage, spotColor, dispatchHour])
 
   const greenedList = useMemo(() => Object.values(greened), [greened])
@@ -225,6 +235,8 @@ export default function App() {
         zones: jitaiZones,
         demand: demandMarkers,
         spotColor,
+        zoneDiffs,
+        comparisonPods,
         visible: layers.dispatch,
         terrain: onTerrain,
       }),
@@ -251,6 +263,8 @@ export default function App() {
       jitaiZones,
       demandMarkers,
       spotColor,
+      zoneDiffs,
+      comparisonPods,
       cityTreePaths,
       greened,
       greenedList,

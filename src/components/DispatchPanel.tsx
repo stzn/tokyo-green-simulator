@@ -14,8 +14,8 @@ import {
   type LoadResult,
   type Stage,
 } from '../lib/dispatch'
-import { DEMO_LABEL, DEMO_POLICIES, fetchDemo, policyOf, type DemoPolicy } from '../lib/demo'
-import { JITAI_RATE_CLASSES, parseJitaiSummary, zoneCellsAt } from '../lib/jitai'
+import { DEMO_LABEL, DEMO_POLICIES, fetchDemo, fetchDemoComparison, policyOf, type DemoPolicy } from '../lib/demo'
+import { compareZonesAt, JITAI_RATE_CLASSES, parseJitaiSummary, ZONE_DIFF_CLASSES, zoneCellsAt, type JitaiSummary } from '../lib/jitai'
 import type { ScenarioView } from '../lib/scenario'
 import { useAppStore } from '../store/appStore'
 import { Panel } from './ui'
@@ -57,6 +57,11 @@ const viewOf = (stage: Stage): ScenarioView => {
   return { longitude: round5((west + east) / 2), latitude: round5((south + north) / 2), zoom: 16, pitch: 0, bearing: 0 }
 }
 
+/** 件数の差を符号つきで書く（0 は符号なし） */
+const signed = (n: number) => (n > 0 ? `+${n}` : String(n))
+const sumInterventionsAt = (summary: JitaiSummary, hour: number) =>
+  summary.zones.filter((z) => z.hour === hour).reduce((sum, z) => sum + z.interventions, 0)
+
 const describeDispatch = (stage: Stage, dispatch: Dispatch) =>
   `${stage.area.name}（${stage.date}・${dispatch.weather_scenario}）の配車 ${dispatch.pods.length} 台を読み込みました`
 
@@ -73,6 +78,8 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   const clearDispatch = useAppStore((s) => s.clearDispatch)
   const spotColor = useAppStore((s) => s.spotColor)
   const setSpotColor = useAppStore((s) => s.setSpotColor)
+  const comparison = useAppStore((s) => s.comparison)
+  const setComparison = useAppStore((s) => s.setComparison)
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<string[]>([])
 
@@ -106,6 +113,33 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     const r = await fetchDemo(policy)
     if (!r.ok) return fail(r.errors)
     applyAll(r.value.stage, r.value.dispatch, r.value.jitai, true)
+  }
+
+  /** 比較のデモ: coverage を主、greedy を比較に置く。どれかが合格しなければ何も置き換えない */
+  const loadComparison = async () => {
+    const r = await fetchDemoComparison()
+    if (!r.ok) return fail(r.errors)
+    const s = parseStage(r.value.stage)
+    if (!s.ok) return fail(s.errors.map((e) => `地点データ: ${e}`))
+    const errs: string[] = []
+    const check = <T,>(res: LoadResult<T>, label: string): T | null => {
+      if (res.ok) return res.value
+      errs.push(...res.errors.map((e) => `${label}: ${e}`))
+      return null
+    }
+    const mainDispatch = check(parseDispatch(r.value.main.dispatch, s.value), '配車（主）')
+    const mainJitai = check(parseJitaiSummary(r.value.main.jitai, s.value), 'JITAI の集計（主）')
+    const otherDispatch = check(parseDispatch(r.value.other.dispatch, s.value), '配車（比較）')
+    const otherJitai = check(parseJitaiSummary(r.value.other.jitai, s.value), 'JITAI の集計（比較）')
+    if (!mainDispatch || !mainJitai || !otherDispatch || !otherJitai) return fail(errs)
+    setStage(s.value)
+    setDispatch(mainDispatch)
+    setJitaiSummary(mainJitai)
+    // 主を置き換えると比較は外れるので、最後に置く
+    setComparison({ dispatch: otherDispatch, jitaiSummary: otherJitai })
+    setErrors([])
+    setMessage(`デモ（${DEMO_LABEL}）: ${policyOf(mainDispatch.generator)}（主）と ${policyOf(otherDispatch.generator)}（比較）を並べています`)
+    onFocusPoint(viewOf(s.value))
   }
 
   const loadSample = async () => {
@@ -164,10 +198,28 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   }
 
   const snapshot = useMemo(() => (stage && dispatch ? snapshotAt(stage, dispatch, hour) : null), [stage, dispatch, hour])
-  // 配車か JITAI の集計にデータのある時刻（昇順）
+  // 配車か JITAI の集計（比較中は比較の側も）にデータのある時刻（昇順）
   const hours = useMemo(
-    () => [...new Set([...(dispatch ? dispatchHours(dispatch) : []), ...(jitaiSummary?.zones.map((z) => z.hour) ?? [])])].sort((a, b) => a - b),
-    [dispatch, jitaiSummary],
+    () =>
+      [
+        ...new Set([
+          ...(dispatch ? dispatchHours(dispatch) : []),
+          ...(jitaiSummary?.zones.map((z) => z.hour) ?? []),
+          ...(comparison ? dispatchHours(comparison.dispatch) : []),
+          ...(comparison?.jitaiSummary.zones.map((z) => z.hour) ?? []),
+        ]),
+      ].sort((a, b) => a - b),
+    [dispatch, jitaiSummary, comparison],
+  )
+  const mainName = dispatch ? policyOf(dispatch.generator) : '主'
+  const otherName = comparison ? policyOf(comparison.dispatch.generator) : '比較'
+  const comparisonPods = useMemo(
+    () => (stage && comparison ? snapshotAt(stage, comparison.dispatch, hour).pods : []),
+    [stage, comparison, hour],
+  )
+  const zoneDiffs = useMemo(
+    () => (stage && jitaiSummary && comparison ? compareZonesAt(jitaiSummary, comparison.jitaiSummary, stage, hour) : []),
+    [stage, jitaiSummary, comparison, hour],
   )
   const pets = snapshot?.comfort.map((c) => c.petC) ?? []
   const zones = useMemo(() => (stage && jitaiSummary ? zoneCellsAt(jitaiSummary, stage, hour) : []), [stage, jitaiSummary, hour])
@@ -238,6 +290,9 @@ export function DispatchPanel({ onFocusPoint }: Props) {
             デモ: {policy}
           </button>
         ))}
+        <button type="button" onClick={() => void loadComparison()} className={buttonClass} title="coverage を主、greedy を比較に並べます">
+          デモ: 比べる
+        </button>
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
         データ契約 v1（contracts/）で確かめてから重ねます。ファイルはこの端末の中だけで扱います。
@@ -321,6 +376,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
               <p className="mt-2 text-xs text-slate-300">
                 {pets.length > 0 ? `地点の PET: ${Math.min(...pets).toFixed(1)}〜${Math.max(...pets).toFixed(1)} ℃（${pets.length} 地点）` : 'この時刻の PET はありません'}
               </p>
+              {comparison && <p className="mt-1 text-[11px] text-slate-400">{mainName} のポッド（塗りの点）</p>}
               {snapshot.pods.length > 0 ? (
                 <ul aria-label="この時刻のポッド" className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
                   {snapshot.pods.map((p) => (
@@ -335,10 +391,57 @@ export function DispatchPanel({ onFocusPoint }: Props) {
               ) : (
                 <p className="mt-1 text-xs text-slate-500">この時刻のポッドはありません</p>
               )}
+              {comparison && (
+                <>
+                  <p className="mt-1 text-[11px] text-slate-400">{otherName} のポッド（白い輪）</p>
+                  {comparisonPods.length > 0 ? (
+                    <ul aria-label={`この時刻のポッド（${otherName}）`} className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
+                      {comparisonPods.map((p) => (
+                        <li key={p.podId} className="text-xs text-slate-200">
+                          <span className="font-medium">{p.podId}</span>
+                          <span className="ml-1.5 text-slate-400">{p.spotName}</span>
+                          <span className="ml-1.5">{ACTION_LABELS.get(p.action)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-1 text-xs text-slate-500">この時刻のポッドはありません</p>
+                  )}
+                </>
+              )}
             </>
           )}
 
-          {jitaiSummary && (
+          {jitaiSummary && comparison && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-300">
+                1 日の介入: {mainName} {jitaiSummary.totals.interventions} 件・{otherName} {comparison.jitaiSummary.totals.interventions} 件
+              </p>
+              <p className="mt-1 text-xs text-slate-300 tabular-nums">
+                {(() => {
+                  const m = sumInterventionsAt(jitaiSummary, hour)
+                  const o = sumInterventionsAt(comparison.jitaiSummary, hour)
+                  return `この時刻の介入: ${mainName} ${m} 件・${otherName} ${o} 件（差 ${signed(m - o)}）`
+                })()}
+              </p>
+              <p className="mt-1 text-[11px] text-slate-500">
+                区画は介入の件数の差（{mainName} − {otherName}）で塗ります。片方にしか無い区画（{jitaiSummary.min_workers} 人未満で出していない）は 0 件とみなします
+              </p>
+              {zoneDiffs.length > 0 ? (
+                <ul aria-label="この時刻の区画（方式の差）" className="mt-1 max-h-32 space-y-0.5 overflow-y-auto">
+                  {zoneDiffs.map((z) => (
+                    <li key={z.zone.join(',')} className="text-xs text-slate-200 tabular-nums">
+                      {`区画 [${z.zone.join(', ')}] ${mainName} ${z.main}・${otherName} ${z.other}（差 ${signed(z.diff)}）`}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500">この時刻の区画はありません</p>
+              )}
+            </div>
+          )}
+
+          {jitaiSummary && !comparison && (
             <div className="mt-3">
               <p className="text-xs text-slate-300">
                 JITAI（{jitaiSummary.weather_scenario}・{jitaiSummary.workers} 人、{jitaiSummary.min_workers} 人未満の区画・時刻は出さない）
@@ -382,7 +485,22 @@ export function DispatchPanel({ onFocusPoint }: Props) {
                     {c.label}（{c.range}）
                   </li>
                 ))}
+            {comparison && (
+              <li className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full border-2 border-white" aria-hidden="true" />
+                {otherName} のポッド
+              </li>
+            )}
             {jitaiSummary &&
+              comparison &&
+              ZONE_DIFF_CLASSES.map((c) => (
+                <li key={c.label} className="flex items-center gap-1.5">
+                  <span className="size-2.5 border border-white/40" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
+                  区画: {c.label.replace('主', mainName).replace('比較', otherName)}
+                </li>
+              ))}
+            {jitaiSummary &&
+              !comparison &&
               JITAI_RATE_CLASSES.map((c) => (
                 <li key={c.label} className="flex items-center gap-1.5">
                   <span className="size-2.5 border border-white/40" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
