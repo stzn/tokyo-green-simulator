@@ -1,4 +1,4 @@
-// パイロット区域（大手町・丸の内）の舞台（stage.json、データ契約 v1）を書き出す。
+// パイロット区域（大手町・丸の内）の地点データ（stage.json、データ契約 v1）を書き出す。
 //   npm run stage:export                     # 2025-08-30 で計算
 //   npm run stage:export -- --date 2025-07-15
 // 建物は地図表示と同じ PLATEAU の MVT、街路樹の樹冠は public/data/trees.json、通路は OpenStreetMap（Overpass API）から取り、

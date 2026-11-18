@@ -1,8 +1,8 @@
-// 配車のデモ（役者の結果を public/data/demo/ に置いたもの）の読み込み
+// 配車のデモ（シミュレーターの結果を public/data/demo/ に置いたもの）の読み込み
 import { BASE_URL } from '../config/baseUrl'
 import { parseJson, type LoadResult } from './dispatch'
 
-/** デモを置いた配車の方式（舞台は共通、配車と JITAI の集計は方式ごと） */
+/** デモを置いた配車の方式（地点データは共通、配車と JITAI の集計は方式ごと） */
 export const DEMO_POLICIES = ['coverage', 'greedy'] as const
 export type DemoPolicy = (typeof DEMO_POLICIES)[number]
 
@@ -39,7 +39,7 @@ const fetchJson = async (url: string, fetchFn: FetchFn): Promise<LoadResult<unkn
   }
 }
 
-/** デモの 3 つの JSON を読む。契約の確認は呼び出し側（舞台と突き合わせる）で行う */
+/** デモの 3 つの JSON を読む。契約の確認は呼び出し側（地点データと突き合わせる）で行う */
 export async function fetchDemo(policy: DemoPolicy, fetchFn: FetchFn = (url) => fetch(url)): Promise<LoadResult<DemoJson>> {
   const urls = demoUrls(policy)
   const [stage, dispatch, jitai] = await Promise.all([

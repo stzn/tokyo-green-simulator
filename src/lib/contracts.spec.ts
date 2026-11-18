@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import Ajv2020 from 'ajv/dist/2020'
 import { describe, expect, it } from 'vitest'
 
-// 役者（virtual-greening-sim）とのデータ契約 v1。正本は役者側の src/vmgs/contracts.py で、
+// シミュレーター（virtual-greening-sim）とのデータ契約 v1。正本はシミュレーター側の src/vmgs/contracts.py で、
 // contracts/ 一式（スキーマとサンプル）をそのまま写している。jsdom では import.meta.url が使えないため、
 // リポジトリ直下（テストの実行場所）から読む
 const read = (name: string): unknown =>
@@ -13,9 +13,9 @@ const read = (name: string): unknown =>
 const validatorOf = (schemaFile: string) =>
   new Ajv2020({ allErrors: true, formats: { date: /^\d{4}-\d{2}-\d{2}$/ } }).compile(read(schemaFile) as object)
 
-describe('機能: 役者とのデータ契約 v1', () => {
+describe('機能: シミュレーターとのデータ契約 v1', () => {
   describe('シナリオ: 契約確認用のサンプル', () => {
-    it('Given 舞台のサンプル / When stage のスキーマで検証する / Then 合格する', () => {
+    it('Given 地点データのサンプル / When stage のスキーマで検証する / Then 合格する', () => {
       const validate = validatorOf('stage.schema.json')
       expect(validate(read('fixtures/stage.sample.json')), JSON.stringify(validate.errors)).toBe(true)
     })

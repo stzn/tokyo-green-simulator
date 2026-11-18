@@ -1,7 +1,7 @@
-// 役者（virtual-greening-sim）が書き出す JITAI の集計（jitai-summary.json）の読み込みと表示データ化。
+// シミュレーター（virtual-greening-sim）が書き出す JITAI の集計（jitai-summary.json）の読み込みと表示データ化。
 // 区画（徒歩圏の 400 m 四方）× 時刻ごとの判定・介入・段階別の見送りの件数だけで、個人の記録は含まない。
-// 形の検証は contracts/ の JSON Schema に任せ、JSON Schema で表せないこと（件数の和・重複・舞台との食い違い）は
-// 役者側の JitaiSummary の検証と jitai_summary_errors_against_stage と同じ基準でここで確かめる
+// 形の検証は contracts/ の JSON Schema に任せ、JSON Schema で表せないこと（件数の和・重複・地点データとの食い違い）は
+// シミュレーター側の JitaiSummary の検証と jitai_summary_errors_against_stage と同じ基準でここで確かめる
 import Ajv2020 from 'ajv/dist/2020'
 import jitaiSummarySchema from '../../contracts/jitai-summary.schema.json'
 import type { LoadResult, Stage } from './dispatch'
@@ -36,7 +36,7 @@ const ajv = new Ajv2020({ allErrors: true, formats: { date: /^\d{4}-\d{2}-\d{2}$
 const validateShape = ajv.compile(jitaiSummarySchema)
 const MAX_ERRORS = 20
 
-/** JITAI の集計を確かめる。形に加えて、件数の和・区画と時刻の重複・舞台との食い違い（区域・日付・区画の原点）を弾く */
+/** JITAI の集計を確かめる。形に加えて、件数の和・区画と時刻の重複・地点データとの食い違い（区域・日付・区画の原点）を弾く */
 export function parseJitaiSummary(input: unknown, stage: Stage): LoadResult<JitaiSummary> {
   if (!validateShape(input)) {
     const errors = (validateShape.errors ?? []).slice(0, MAX_ERRORS).map((e) => {
@@ -56,16 +56,16 @@ export function parseJitaiSummary(input: unknown, stage: Stage): LoadResult<Jita
     const parts = z.interventions + z.skipped_calendar + z.skipped_pods + z.skipped_pet
     if (parts !== z.decisions) errors.push(`区画 [${z.zone.join(', ')}] の ${z.hour} 時: 判定 ${z.decisions} 件が、介入と見送りの和 ${parts} 件と違います`)
   }
-  if (summary.stage_ref.area_id !== stage.area.id) errors.push(`区域が違う: 集計 ${summary.stage_ref.area_id}、舞台 ${stage.area.id}`)
-  if (summary.stage_ref.date !== stage.date) errors.push(`日付が違う: 集計 ${summary.stage_ref.date}、舞台 ${stage.date}`)
+  if (summary.stage_ref.area_id !== stage.area.id) errors.push(`区域が違う: 集計 ${summary.stage_ref.area_id}、地点データ ${stage.area.id}`)
+  if (summary.stage_ref.date !== stage.date) errors.push(`日付が違う: 集計 ${summary.stage_ref.date}、地点データ ${stage.date}`)
   const [west, south] = stage.area.bbox
   if (summary.grid.origin_lon !== west || summary.grid.origin_lat !== south) {
-    errors.push(`区画の原点が区域の南西の角と違う: 集計 (${summary.grid.origin_lon}, ${summary.grid.origin_lat})、舞台 (${west}, ${south})`)
+    errors.push(`区画の原点が区域の南西の角と違う: 集計 (${summary.grid.origin_lon}, ${summary.grid.origin_lat})、地点データ (${west}, ${south})`)
   }
   return errors.length > 0 ? { ok: false, errors: errors.slice(0, MAX_ERRORS) } : { ok: true, value: summary }
 }
 
-// 役者側の vmgs.jitai.demand.demand_zones と同じ近似（区域の中央の緯度で平面に近似）
+// シミュレーター側の vmgs.jitai.demand.demand_zones と同じ近似（区域の中央の緯度で平面に近似）
 const EARTH_RADIUS_M = 6_371_000
 const M_PER_DEG_LAT = (Math.PI / 180) * EARTH_RADIUS_M
 

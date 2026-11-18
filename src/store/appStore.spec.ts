@@ -231,7 +231,7 @@ describe('機能: 計測ログの保持', () => {
   })
 })
 
-describe('機能: 配車（舞台と役者の結果）の保持', () => {
+describe('機能: 配車（地点データとシミュレーターの結果）の保持', () => {
   const read = (name: string): unknown => JSON.parse(readFileSync(join(process.cwd(), 'contracts', 'fixtures', name), 'utf-8'))
   const stageResult = parseStage(read('stage.sample.json'))
   if (!stageResult.ok) throw new Error(stageResult.errors.join())
@@ -240,14 +240,14 @@ describe('機能: 配車（舞台と役者の結果）の保持', () => {
   if (!dispatchResult.ok) throw new Error(dispatchResult.errors.join())
   const dispatch: Dispatch = dispatchResult.value
 
-  it('Given 初期状態 / Then 舞台も配車も無く、時刻は 12 時', () => {
+  it('Given 初期状態 / Then 地点データも配車も無く、時刻は 12 時', () => {
     const s = store.getState()
     expect(s.stage).toBeNull()
     expect(s.dispatch).toBeNull()
     expect(s.dispatchHour).toBe(12)
   })
 
-  it('Given 舞台 / When 配車を置く / Then 保持し、時刻を配車の最初の時刻に合わせる', () => {
+  it('Given 地点データ / When 配車を置く / Then 保持し、時刻を配車の最初の時刻に合わせる', () => {
     store.getState().setStage(stage)
     store.getState().setDispatch(dispatch)
     expect(store.getState().dispatch).toBe(dispatch)
@@ -263,14 +263,14 @@ describe('機能: 配車（舞台と役者の結果）の保持', () => {
     expect(store.getState().dispatchHour).toBe(0)
   })
 
-  it('Given 配車を表示中 / When 舞台を置き換える / Then 古い舞台に合わせた配車は外す', () => {
+  it('Given 配車を表示中 / When 地点データを置き換える / Then 古い地点データに合わせた配車は外す', () => {
     store.getState().setStage(stage)
     store.getState().setDispatch(dispatch)
     store.getState().setStage({ ...stage })
     expect(store.getState().dispatch).toBeNull()
   })
 
-  it('Given 配車を表示中 / When 消去する / Then 舞台も配車も外す', () => {
+  it('Given 配車を表示中 / When 消去する / Then 地点データも配車も外す', () => {
     store.getState().setStage(stage)
     store.getState().setDispatch(dispatch)
     store.getState().clearDispatch()
@@ -280,7 +280,7 @@ describe('機能: 配車（舞台と役者の結果）の保持', () => {
 })
 
 describe('機能: JITAI の集計の保持', () => {
-  it('Given 舞台と集計 / When 舞台を置き換える・消去する / Then 古い舞台に合わせた集計は外す', () => {
+  it('Given 地点データと集計 / When 地点データを置き換える・消去する / Then 古い地点データに合わせた集計は外す', () => {
     const s = createAppStore()
     const summary = { zones: [] } as unknown as NonNullable<ReturnType<AppStore['getState']>['jitaiSummary']>
     s.getState().setJitaiSummary(summary)

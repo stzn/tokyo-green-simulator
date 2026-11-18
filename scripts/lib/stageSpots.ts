@@ -1,4 +1,4 @@
-// ポッドを置ける候補地点の抽出と、舞台（stage.json、データ契約 v1）の組み立て。
+// ポッドを置ける候補地点の抽出と、地点データ（stage.json、データ契約 v1）の組み立て。
 // 候補地点は OpenStreetMap の歩行者用の通路（歩道・歩行者専用道）の上に一定間隔で点を打ち、
 // 建物・公園との位置関係で種類を決めてから、地点どうしが近すぎないよう間引く。規則は README に書いている
 import { outerRings, type ParkFeature } from '../../src/data/parks'
@@ -146,7 +146,7 @@ export function extractCandidateSpots(
 }
 
 /**
- * 候補地点ごとに、0〜23時の日射遮蔽率（建物と、trees があれば街路樹の樹冠）と天空率（建物）を求め、緑の文脈を付けて舞台にする。
+ * 候補地点ごとに、0〜23時の日射遮蔽率（建物と、trees があれば街路樹の樹冠）と天空率（建物）を求め、緑の文脈を付けて地点データにする。
  * 需要（demand）は v1 では空（集計値の用意ができてから入れる）
  */
 export function assembleStage(input: {

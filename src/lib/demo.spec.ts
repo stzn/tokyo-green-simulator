@@ -13,7 +13,7 @@ const diskFetch = vi.fn(async (url: string) => Response.json(readDemo(String(url
 afterEach(() => vi.clearAllMocks())
 
 describe('機能: 配車のデモのデータ（public/data/demo/heatwave-p5）', () => {
-  it('Given 置いてあるデモ / When 方式ごとに舞台と突き合わせて読む / Then 契約 v1 に合格する（契約を変えたら作り直す）', () => {
+  it('Given 置いてあるデモ / When 方式ごとに地点データと突き合わせて読む / Then 契約 v1 に合格する（契約を変えたら作り直す）', () => {
     const stage = parseStage(readDemo('stage.json'))
     expect(stage.ok, stage.ok ? '' : stage.errors.join('\n')).toBe(true)
     if (!stage.ok) return
@@ -22,12 +22,12 @@ describe('機能: 配車のデモのデータ（public/data/demo/heatwave-p5）'
       expect(d.ok, d.ok ? '' : d.errors.join('\n')).toBe(true)
       const j = parseJitaiSummary(readDemo(`jitai-summary.${policy}.json`), stage.value)
       expect(j.ok, j.ok ? '' : j.errors.join('\n')).toBe(true)
-      // 舞台は方式によらず同じなので、配車がどちらの方式かは generator で見分ける
+      // 地点データは方式によらず同じなので、配車がどちらの方式かは generator で見分ける
       if (d.ok) expect(policyOf(d.value.generator)).toBe(policy)
     }
   })
 
-  it('Given 方式 / Then 舞台は共通、配車と集計は方式ごとの URL を返す', () => {
+  it('Given 方式 / Then 地点データは共通、配車と集計は方式ごとの URL を返す', () => {
     expect(demoUrls('greedy', '/base/')).toEqual({
       stage: '/base/data/demo/heatwave-p5/stage.json',
       dispatch: '/base/data/demo/heatwave-p5/dispatch.greedy.json',

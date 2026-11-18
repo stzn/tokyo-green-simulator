@@ -1,5 +1,5 @@
-// 役者（virtual-greening-sim）へ渡す舞台（stage.json、データ契約 v1）の型と、スキーマで表せない整合性の確認。
-// 型は contracts/stage.schema.json（正本は役者側の src/vmgs/contracts.py）に合わせる
+// シミュレーター（virtual-greening-sim）へ渡す地点データ（stage.json、データ契約 v1）の型と、スキーマで表せない整合性の確認。
+// 型は contracts/stage.schema.json（正本はシミュレーター側の src/vmgs/contracts.py）に合わせる
 import type { GreenContext } from './measurementLog'
 
 export type SpotKind = 'sidewalk' | 'plaza' | 'park_edge' | 'rooftop'

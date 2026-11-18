@@ -40,8 +40,8 @@ describe('機能: JSON の文字列を読む', () => {
   })
 })
 
-describe('機能: 舞台（stage.json）を読み込む', () => {
-  it('Given 契約確認用のサンプル / When 読み込む / Then 3 地点の舞台になる', () => {
+describe('機能: 地点データ（stage.json）を読み込む', () => {
+  it('Given 契約確認用のサンプル / When 読み込む / Then 3 地点の地点データになる', () => {
     const r = parseStage(rawStage())
     expect(r.ok).toBe(true)
     if (r.ok) expect(r.value.spots.map((s) => s.id)).toEqual(['OTM-001', 'OTM-002', 'OTM-003'])
@@ -79,7 +79,7 @@ describe('機能: 舞台（stage.json）を読み込む', () => {
 
 describe('機能: 配車（dispatch.json）を読み込む', () => {
   describe('シナリオ: 契約に合う配車', () => {
-    it('Given サンプルの舞台と配車 / When 読み込む / Then 2 台のポッドの配車になる', () => {
+    it('Given サンプルの地点データと配車 / When 読み込む / Then 2 台のポッドの配車になる', () => {
       const r = parseDispatch(rawDispatch(), sampleStage())
       expect(r.ok, r.ok ? '' : r.errors.join('\n')).toBe(true)
       if (r.ok) expect(r.value.pods.map((p) => p.id)).toEqual(['P1', 'P2'])
@@ -114,7 +114,7 @@ describe('機能: 配車（dispatch.json）を読み込む', () => {
     })
   })
 
-  describe('シナリオ: 舞台と食い違う（JSON Schema では表せない）', () => {
+  describe('シナリオ: 地点データと食い違う（JSON Schema では表せない）', () => {
     it('Given 区域が違う / When 読み込む / Then 区域の食い違いを理由に不合格', () => {
       const data = rawDispatch()
       data.stage_ref.area_id = 'shinjuku'
@@ -131,20 +131,20 @@ describe('機能: 配車（dispatch.json）を読み込む', () => {
       if (!r.ok) expect(r.errors.join()).toMatch('日付が違う')
     })
 
-    it('Given 舞台にない地点へのポッド / When 読み込む / Then ポッドと時刻つきで不合格', () => {
+    it('Given 地点データにない地点へのポッド / When 読み込む / Then ポッドと時刻つきで不合格', () => {
       const data = rawDispatch()
       data.pods[0].timeline[0].spot_id = 'OTM-999'
       const r = parseDispatch(data, sampleStage())
       expect(r.ok).toBe(false)
-      if (!r.ok) expect(r.errors.join()).toMatch(/舞台にない地点.*P1.*11 時.*OTM-999/)
+      if (!r.ok) expect(r.errors.join()).toMatch(/地点データにない地点.*P1.*11 時.*OTM-999/)
     })
 
-    it('Given 舞台にない地点の快適度 / When 読み込む / Then 不合格', () => {
+    it('Given 地点データにない地点の快適度 / When 読み込む / Then 不合格', () => {
       const data = rawDispatch()
       data.comfort[0].spot_id = 'OTM-999'
       const r = parseDispatch(data, sampleStage())
       expect(r.ok).toBe(false)
-      if (!r.ok) expect(r.errors.join()).toMatch(/舞台にない地点の快適度.*OTM-999/)
+      if (!r.ok) expect(r.errors.join()).toMatch(/地点データにない地点の快適度.*OTM-999/)
     })
 
     it('Given 容量 1 の地点に同じ時刻 2 台 / When 読み込む / Then 容量超過を理由に不合格', () => {
@@ -194,7 +194,7 @@ describe('機能: 時刻ごとの表示データ', () => {
     expect(dispatchHours(sampleDispatch())).toEqual([11, 12, 13, 14])
   })
 
-  it('Given 12 時 / When 表示データにする / Then 各ポッドを舞台の地点の座標に置き、行動と健康度を添える', () => {
+  it('Given 12 時 / When 表示データにする / Then 各ポッドを地点データの地点の座標に置き、行動と健康度を添える', () => {
     const { pods } = snapshotAt(sampleStage(), sampleDispatch(), 12)
     expect(pods).toEqual([
       { podId: 'P1', spotId: 'OTM-001', spotName: '大手町 仲通り北の歩道', lon: 139.7652, lat: 35.6872, action: 'move', plantHealth: 95.5, slot: 0 },

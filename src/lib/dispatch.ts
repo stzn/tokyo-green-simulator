@@ -1,6 +1,6 @@
-// 役者（virtual-greening-sim）が書き出す配車（dispatch.json）と、舞台（stage.json）の読み込み・表示データ化。
+// シミュレーター（virtual-greening-sim）が書き出す配車（dispatch.json）と、地点データ（stage.json）の読み込み・表示データ化。
 // 形の検証は contracts/ の JSON Schema（データ契約 v1 の写し）に任せ、JSON Schema では表せないこと
-// （重複・舞台との食い違い・容量超過）は役者側の dispatch_errors_against_stage と同じ基準でここで確かめる。
+// （重複・地点データとの食い違い・容量超過）はシミュレーター側の dispatch_errors_against_stage と同じ基準でここで確かめる。
 // 壊れた入力は例外にせず、理由の一覧を返す（呼び出し側で画面に出す）
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020'
 import dispatchSchema from '../../contracts/dispatch.schema.json'
@@ -78,7 +78,7 @@ export function parseJson(text: string): LoadResult<unknown> {
   }
 }
 
-/** 舞台（stage.json）を確かめる。地点 ID と、地点ごとの時刻の重複も弾く */
+/** 地点データ（stage.json）を確かめる。地点 ID と、地点ごとの時刻の重複も弾く */
 export function parseStage(input: unknown): LoadResult<Stage> {
   if (!validateStageShape(input)) return { ok: false, errors: shapeErrors(validateStageShape.errors) }
   const stage = input as Stage
@@ -94,7 +94,7 @@ export function parseStage(input: unknown): LoadResult<Stage> {
   return errors.length > 0 ? { ok: false, errors: errors.slice(0, MAX_ERRORS) } : { ok: true, value: stage }
 }
 
-/** 配車（dispatch.json）を確かめる。形に加えて、舞台との食い違い（区域・日付・未知の地点・容量超過）と重複を弾く */
+/** 配車（dispatch.json）を確かめる。形に加えて、地点データとの食い違い（区域・日付・未知の地点・容量超過）と重複を弾く */
 export function parseDispatch(input: unknown, stage: Stage): LoadResult<Dispatch> {
   if (!validateDispatchShape(input)) return { ok: false, errors: shapeErrors(validateDispatchShape.errors) }
   const raw = input as Omit<Dispatch, 'comfort'> & { comfort?: SpotComfort[] }
@@ -114,15 +114,15 @@ export function parseDispatch(input: unknown, stage: Stage): LoadResult<Dispatch
     errors.push(`快適度が重複しています: ${spotId} の ${hour} 時`)
   }
 
-  // 舞台との食い違い（役者側 dispatch_errors_against_stage と同じ基準）
-  if (dispatch.stage_ref.area_id !== stage.area.id) errors.push(`区域が違う: 配車 ${dispatch.stage_ref.area_id}、舞台 ${stage.area.id}`)
-  if (dispatch.stage_ref.date !== stage.date) errors.push(`日付が違う: 配車 ${dispatch.stage_ref.date}、舞台 ${stage.date}`)
+  // 地点データとの食い違い（シミュレーター側 dispatch_errors_against_stage と同じ基準）
+  if (dispatch.stage_ref.area_id !== stage.area.id) errors.push(`区域が違う: 配車 ${dispatch.stage_ref.area_id}、地点データ ${stage.area.id}`)
+  if (dispatch.stage_ref.date !== stage.date) errors.push(`日付が違う: 配車 ${dispatch.stage_ref.date}、地点データ ${stage.date}`)
   const capacity = new Map(stage.spots.map((s) => [s.id, s.capacity_pods]))
   const used = new Map<string, { spotId: string; hour: number; n: number }>()
   for (const pod of dispatch.pods) {
     for (const step of pod.timeline) {
       if (!capacity.has(step.spot_id)) {
-        errors.push(`舞台にない地点: ポッド ${pod.id} の ${step.hour} 時 ${step.spot_id}`)
+        errors.push(`地点データにない地点: ポッド ${pod.id} の ${step.hour} 時 ${step.spot_id}`)
         continue
       }
       const key = `${step.spot_id}@${step.hour}`
@@ -135,7 +135,7 @@ export function parseDispatch(input: unknown, stage: Stage): LoadResult<Dispatch
     if (n > cap) errors.push(`容量超過: ${spotId} の ${hour} 時に ${n} 台（容量 ${cap}）`)
   }
   for (const c of dispatch.comfort) {
-    if (!capacity.has(c.spot_id)) errors.push(`舞台にない地点の快適度: ${c.spot_id}`)
+    if (!capacity.has(c.spot_id)) errors.push(`地点データにない地点の快適度: ${c.spot_id}`)
   }
 
   return errors.length > 0 ? { ok: false, errors: errors.slice(0, MAX_ERRORS) } : { ok: true, value: dispatch }
@@ -167,7 +167,7 @@ export function dispatchHours(dispatch: Dispatch): number[] {
   return [...hours].sort((a, b) => a - b)
 }
 
-/** ある時刻のポッドの位置と地点の PET。座標は舞台の地点から引く（読み込み時に地点の存在は確かめてある） */
+/** ある時刻のポッドの位置と地点の PET。座標は地点データの地点から引く（読み込み時に地点の存在は確かめてある） */
 export function snapshotAt(stage: Stage, dispatch: Dispatch, hour: number): DispatchSnapshot {
   const spots = new Map(stage.spots.map((s) => [s.id, s]))
   const slots = new Map<string, number>()

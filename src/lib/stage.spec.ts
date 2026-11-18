@@ -5,7 +5,7 @@ import { STAGE_OUTPUT_PATH, stageIntegrityErrors, toStageGreen, type Stage } fro
 
 const sample = () => readJson('contracts', 'fixtures', 'stage.sample.json') as Stage
 
-describe('機能: 舞台（stage.json）の整合性', () => {
+describe('機能: 地点データ（stage.json）の整合性', () => {
   describe('シナリオ: 地点 ID と時刻の重複', () => {
     it('Given 契約確認用のサンプル / When 確かめる / Then 問題なし', () => {
       expect(stageIntegrityErrors(sample())).toEqual([])
@@ -45,7 +45,7 @@ describe('機能: 舞台（stage.json）の整合性', () => {
   })
 })
 
-describe('機能: 書き出した大手町・丸の内の舞台', () => {
+describe('機能: 書き出した大手町・丸の内の地点データ', () => {
   // npm run stage:export の出力（リポジトリに含める）
   it('Given 生成済みの stage.json / When 契約のスキーマと整合性を確かめる / Then 合格し、全地点が0〜23時を1回ずつ持つ', () => {
     const stage = readJson(STAGE_OUTPUT_PATH) as Stage

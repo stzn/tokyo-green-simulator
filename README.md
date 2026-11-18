@@ -21,7 +21,7 @@
 | 表示範囲の集計 | いま地図に映っている範囲の街路樹（都道・区市町村道）の本数と公園の数・面積を集計する。樹種・行政区の絞り込みにも連動し、地図を動かし終えてから更新する |
 | シナリオの保存・共有 | 緑化した建物と地図の視点を、この端末に保存（localStorage）したり、共有リンク（URL）にして渡したりできる。リンクを開くと同じ建物が緑化され、同じ視点で始まる |
 | 計測ログの重ね合わせ | 計測ログ（CSV）を読み込んで地点を地図に表示し、各地点の半径50・100・200 m以内の緑（街路樹の本数、区道の路線・本数、公園の数・面積、最寄りの公園までの距離）を数える。数えた列を足したCSVを書き出せる。データはこの端末の中だけで扱い、保存も共有リンクへの埋め込みもしない |
-| 配車の重ね合わせ | 役者（[virtual-greening-sim](https://github.com/stzn/virtual-greening-sim)）が書き出した配車（`dispatch.json`）を、舞台（`stage.json`）と突き合わせて読み込み、0〜23 時のスライダーで選んだ時刻のポッドの位置（行動ごとに色分け）と地点の快適度（PET）を地図に重ねる。データ契約 v1 で確かめ、合わない入力は理由を表示して読み込まない |
+| 配車の重ね合わせ | シミュレーター（[virtual-greening-sim](https://github.com/stzn/virtual-greening-sim)）が書き出した配車（`dispatch.json`）を、地点データ（`stage.json`）と突き合わせて読み込み、0〜23 時のスライダーで選んだ時刻のポッドの位置（行動ごとに色分け）と地点の快適度（PET）を地図に重ねる。データ契約 v1 で確かめ、合わない入力は理由を表示して読み込まない |
 | 現在地ミニマップ | 東京23区全体の小さな地図を常時表示し、今の表示範囲をエメラルド色の矩形で重ねて示す。パン・ズーム・回転に追従する |
 
 ## 計測ログ（experiment_log.csv）の形式
@@ -39,9 +39,9 @@ timestamp,location,lat,lon,environment,hrv_sdnn,heart_rate,notes
 - 「緑の文脈つきCSVを書き出す」で、元の列の後ろに `radius_m, trees_all, trees_tall, city_tree_routes, city_trees_known, parks_count, parks_area_m2, nearest_park_m, in_park` が付きます。pandasなどにそのまま渡せます
 - 書き出しは UTF-8（BOMなし）です。Excelで開くと文字化けする場合は、データの取り込み機能でUTF-8を指定してください
 
-## 役者への舞台の書き出し（stage.json）
+## シミュレーターへの地点データの書き出し（stage.json）
 
-[virtual-greening-sim](https://github.com/stzn/virtual-greening-sim)（役者）へ渡す舞台を、データ契約 v1（`contracts/stage.schema.json`）の形で書き出します。パイロット区域は大手町・丸の内（区域 ID `otemachi`、bbox `[139.758, 35.676, 139.772, 35.692]`）です。
+[virtual-greening-sim](https://github.com/stzn/virtual-greening-sim)（シミュレーター）へ渡す地点データを、データ契約 v1（`contracts/stage.schema.json`）の形で書き出します。パイロット区域は大手町・丸の内（区域 ID `otemachi`、bbox `[139.758, 35.676, 139.772, 35.692]`）です。
 
 ```bash
 npm run stage:export                       # 2025-08-30（Asia/Tokyo）で計算 → public/data/stage/otemachi.json
@@ -111,26 +111,26 @@ npm run stage:export -- --date 2025-07-15  # 日付を変える
 
 ## 配車（dispatch.json）の重ね合わせ
 
-役者が配車を計算した結果を、地図の上で時刻ごとに見られます。形式は [データ契約 v1](contracts/README.md) です（正本は役者側、`contracts/` はその写し）。
+シミュレーターが配車を計算した結果を、地図の上で時刻ごとに見られます。形式は [データ契約 v1](contracts/README.md) です（正本はシミュレーター側、`contracts/` はその写し）。
 
-1. 「配車（役者の結果）」パネルで、舞台（`stage.json`）を選ぶ。地点の座標と容量はここから引きます。地図はその区域へ動きます
+1. 「配車（シミュレーターの結果）」パネルで、地点データ（`stage.json`）を選ぶ。地点の座標と容量はここから引きます。地図はその区域へ動きます
 2. 続けて配車（`dispatch.json`）を選ぶ。手元にファイルが無いときは「サンプルを読み込む」で、`contracts/fixtures/` のサンプル（大手町・丸の内の 3 地点・2 台）を試せます
 3. 「時刻」のスライダーで 0〜23 時を選ぶと、その時刻のポッドと地点の PET が地図に出ます
 
 - **ポッド**：滞在（緑）・移動（桃）・散水（水色）の点。同じ地点に複数台いるときは少しずらして描きます
 - **地点の PET**：地点を中心に半径 25 m の円で、PET の温熱感覚の区分（Matzarakis & Mayer 1996）の色で塗ります。快適（18〜23 ℃）・やや暑い（23〜29 ℃）・暑い（29〜35 ℃）・とても暑い（35〜41 ℃）・非常に暑い（41 ℃ 超）、18 ℃ 未満は「涼しい」にまとめます
-- 読み込み時に、JSON Schema（Ajv）に加えて、JSON Schema では表せないこと（区域・日付が舞台と一致するか、地点が舞台にあるか、地点の容量を超えていないか、ポッド ID・時刻・地点と時刻の快適度の重複）を確かめます。役者側の `dispatch_errors_against_stage` と同じ基準です。合わないときは理由を表示し、表示中の配車はそのまま残します
-- 舞台を読み込み直すと、古い舞台に合わせて確かめた配車は外れます。ファイルはこの端末の中だけで扱い、保存も送信もしません
+- 読み込み時に、JSON Schema（Ajv）に加えて、JSON Schema では表せないこと（区域・日付が地点データと一致するか、地点が地点データにあるか、地点の容量を超えていないか、ポッド ID・時刻・地点と時刻の快適度の重複）を確かめます。シミュレーター側の `dispatch_errors_against_stage` と同じ基準です。合わないときは理由を表示し、表示中の配車はそのまま残します
+- 地点データを読み込み直すと、古い地点データに合わせて確かめた配車は外れます。ファイルはこの端末の中だけで扱い、保存も送信もしません
 
 ### JITAI の集計（jitai-summary.json）
 
-役者の `vmgs jitai --summary-out`（または `vmgs loop`）が書き出す JITAI の集計を、同じパネルで重ねられます。中身は徒歩圏（400 m 四方）の区画 × 時刻ごとの判定・介入・見送りの件数だけで、個人の記録や ID は含みません（3 人未満の区画・時刻は役者側で出しません）。
+シミュレーターの `vmgs jitai --summary-out`（または `vmgs loop`）が書き出す JITAI の集計を、同じパネルで重ねられます。中身は徒歩圏（400 m 四方）の区画 × 時刻ごとの判定・介入・見送りの件数だけで、個人の記録や ID は含みません（3 人未満の区画・時刻はシミュレーター側で出しません）。
 
-1. 舞台を読み込んでから、「JITAI の集計」で `jitai-summary.json` を選ぶ（「サンプルを読み込む」でもサンプルが入ります）
+1. 地点データを読み込んでから、「JITAI の集計」で `jitai-summary.json` を選ぶ（「サンプルを読み込む」でもサンプルが入ります）
 2. 時刻のスライダーに合わせて、区画を介入率（介入 ÷ 判定）で塗ります：介入なし（灰）・〜20%（黄）・〜40%（橙）・40% 超（緑）
 3. パネルに、その時刻の区画ごとの判定・介入・段階別の見送り（予定・ポッド・PET）を出します
 
-読み込み時に、契約のスキーマに加えて、件数の和（判定 = 介入 + 見送り）・区画と時刻の重複・舞台との食い違い（区域・日付・区画の原点が区域の南西の角か）を確かめます。役者側の `jitai_summary_errors_against_stage` と同じ基準です。
+読み込み時に、契約のスキーマに加えて、件数の和（判定 = 介入 + 見送り）・区画と時刻の重複・地点データとの食い違い（区域・日付・区画の原点が区域の南西の角か）を確かめます。シミュレーター側の `jitai_summary_errors_against_stage` と同じ基準です。
 
 ## セットアップ
 
@@ -173,19 +173,19 @@ PR ごとに GitHub Actions（`.github/workflows/ci.yml`）で、テスト・型
 
 ### 配車のデモ（coverage と greedy）
 
-パネルの「デモ: coverage」「デモ: greedy」で、役者の結果（heatwave・ポッド 5 台）をワンクリックで重ねられます。舞台は 2 つの方式で共通なので、ボタンを押し替えると配車と JITAI の集計だけが替わります。
+パネルの「デモ: coverage」「デモ: greedy」で、シミュレーターの結果（heatwave・ポッド 5 台）をワンクリックで重ねられます。地点データは 2 つの方式で共通なので、ボタンを押し替えると配車と JITAI の集計だけが替わります。
 
 | 方式 | 判定 | 介入 | 介入率 |
 | --- | --- | --- | --- |
-| coverage（徒歩圏で覆える需要を見る。役者の既定） | 719 | 167 | 23.2% |
+| coverage（徒歩圏で覆える需要を見る。シミュレーターの既定） | 719 | 167 | 23.2% |
 | greedy（地点ごとの需要だけを見る） | 896 | 35 | 3.9% |
 
 暑い時刻（12〜16 時）に、greedy では区画ごとの見送りに PET（暑さ）が多く出ます。
 
-- **データ**：`public/data/demo/heatwave-p5/`（`stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、計 1.7 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した舞台です
-- **出どころ**：役者 `vmgs@0798ea4` の `vmgs loop`（樹冠ありの舞台、heatwave、ポッド 5 台、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）
-- **契約の確認**：`src/lib/demo.spec.ts` が、置いたファイルを契約 v1 で確かめます。契約や舞台を変えて合わなくなったら CI が落ちるので、下の手順で作り直してください
-- **作り直す手順**（役者のリポジトリで）：
+- **データ**：`public/data/demo/heatwave-p5/`（`stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、計 1.7 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した地点データです
+- **出どころ**：シミュレーター `vmgs@0798ea4` の `vmgs loop`（樹冠ありの地点データ、heatwave、ポッド 5 台、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）
+- **契約の確認**：`src/lib/demo.spec.ts` が、置いたファイルを契約 v1 で確かめます。契約や地点データを変えて合わなくなったら CI が落ちるので、下の手順で作り直してください
+- **作り直す手順**（シミュレーターのリポジトリで）：
 
 ```bash
 for p in coverage greedy; do uv run vmgs loop --stage ~/tokyo-green-simulator/public/data/stage/otemachi.json --scenario heatwave --pods 5 --rounds 1 --policy $p --out-dir runs/demo-$p; done
@@ -200,21 +200,21 @@ D=~/tokyo-green-simulator/public/data/demo/heatwave-p5; cp runs/demo-coverage/st
 ## 構成
 
 ```
-scripts/            データ取得（fetch-*.ts）、舞台の書き出し（export-stage.ts）と変換ロジック（lib/）
-contracts/          役者（virtual-greening-sim）とのデータ契約 v1 の写し（スキーマとサンプル。直接編集しない）
+scripts/            データ取得（fetch-*.ts）、地点データの書き出し（export-stage.ts）と変換ロジック（lib/）
+contracts/          シミュレーター（virtual-greening-sim）とのデータ契約 v1 の写し（スキーマとサンプル。直接編集しない）
 public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/ / stage/ / demo/）
 src/
   data/cityTrees.ts           区道の街路樹（路線）の読み込み・絞り込み・線への展開・範囲集計
   data/parks.ts               公園ポリゴンの読み込みと範囲集計
   data/greenContext.ts        計測地点まわり（半径R m）の緑の集計
   lib/measurementLog.ts       計測ログCSVの読み込みと、緑の文脈つきCSVの書き出し
-  lib/dispatch.ts             舞台・配車（データ契約 v1）の検証と、時刻ごとの表示データ（ポッドの位置・地点の PET）
+  lib/dispatch.ts             地点データ・配車（データ契約 v1）の検証と、時刻ごとの表示データ（ポッドの位置・地点の PET）
   lib/demo.ts                 配車のデモ（public/data/demo/）の読み込み
   lib/scenario.ts             シナリオの保存・共有（localStorageとURLハッシュへの符号化）
   lib/dem.ts                  標高タイルのエンコーディング（取得スクリプトと共用）
   lib/solar.ts                太陽位置（方位・高度）
   lib/shade.ts                建物と街路樹の樹冠による日射遮蔽率、建物による天空率（方位ごとの地平線の仰角から求める）
-  lib/stage.ts                役者へ渡す舞台（stage.json）の型と整合性の確認
+  lib/stage.ts                シミュレーターへ渡す地点データ（stage.json）の型と整合性の確認
   lib/geo.ts                  面積・外周長・リング単純化など（球面近似）
   lib/projection.ts           現在地ミニマップ用の緯度経度→SVG座標の投影
   lib/simulation/             緑化・樹木の推定ロジックと係数（coefficients.ts）

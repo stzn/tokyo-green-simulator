@@ -160,7 +160,7 @@
     }
   },
   "additionalProperties": false,
-  "description": "JITAI の集計（役者 → 舞台）。min_workers 人未満の区画・時刻は入れない。個人の記録は持たない。",
+  "description": "JITAI の集計（シミュレーター → 地図アプリ）。min_workers 人未満の区画・時刻は入れない。個人の記録は持たない。",
   "properties": {
     "schema_version": {
       "const": "1",

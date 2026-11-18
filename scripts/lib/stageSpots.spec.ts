@@ -116,7 +116,7 @@ describe('機能: ポッドを置ける候補地点の抽出', () => {
   })
 })
 
-describe('機能: 舞台（stage.json）の組み立て', () => {
+describe('機能: 地点データ（stage.json）の組み立て', () => {
   const candidates: CandidateSpot[] = [
     { id: 'OTM-001', name: '北の歩道', ...lonLatOf([0, 100]), kind: 'sidewalk', capacity_pods: 1 },
     { id: 'OTM-002', name: '南の広場', ...lonLatOf([0, 0]), kind: 'plaza', capacity_pods: 3 },
@@ -158,7 +158,7 @@ describe('機能: 舞台（stage.json）の組み立て', () => {
   })
 })
 
-describe('機能: 舞台の遮蔽率に街路樹の樹冠を入れる', () => {
+describe('機能: 地点データの遮蔽率に街路樹の樹冠を入れる', () => {
   const candidates: CandidateSpot[] = [{ id: 'OTM-001', name: '並木の歩道', ...lonLatOf([0, 0]), kind: 'sidewalk', capacity_pods: 1 }]
   function lonLatOf(p: LocalPoint) {
     const [lon, lat] = proj.toLonLat(p)
