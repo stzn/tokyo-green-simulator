@@ -183,36 +183,41 @@ PR ごとに GitHub Actions（`.github/workflows/ci.yml`）で、テスト・型
 
 ### 配車のデモ（coverage と greedy）
 
-パネルの「デモ: coverage」「デモ: greedy」で、シミュレーターの結果（heatwave・ポッド 5 台）をワンクリックで重ねられます。地点データは 2 つの方式で共通なので、ボタンを押し替えると配車と JITAI の集計だけが替わります。
+パネルの「デモの条件」で気象とポッドの台数を選び、「デモ: coverage」「デモ: greedy」で、シミュレーターの結果をワンクリックで重ねられます。地点データは同じ条件の 2 つの方式で共通なので、ボタンを押し替えると配車と JITAI の集計だけが替わります。
 
-| 方式 | 判定 | 介入 | 介入率 |
-| --- | --- | --- | --- |
-| coverage（徒歩圏で覆える需要を見る。シミュレーターの既定） | 719 | 167 | 23.2% |
-| greedy（地点ごとの需要だけを見る） | 896 | 35 | 3.9% |
+| 条件 | coverage（判定・介入・介入率） | greedy（判定・介入・介入率） |
+| --- | --- | --- |
+| heatwave・5 台（既定） | 719・167・23.2% | 896・35・3.9% |
+| heatwave・8 台 | 691・198・28.7% | 867・66・7.6% |
+| normal・5 台 | 631・234・37.1% | 750・132・17.6% |
+| rainy・5 台 | 930・19・2.0% | 934・15・1.6% |
 
-暑い時刻（12〜16 時）に、greedy では区画ごとの見送りに天候（デモは雨が無いので、すべて PET の暑さ）が多く出ます。
+coverage は徒歩圏で覆える需要を見る方式（シミュレーターの既定）、greedy は地点ごとの需要だけを見る方式です。
 
-「デモ: 比べる」を押すと、coverage を主、greedy を比較として 1 画面に重ねます。
+- heatwave の暑い時刻（12〜16 時）は、greedy では区画ごとの見送りに天候（PET の暑さ）が多く出ます
+- rainy は 9〜17 時に 1 mm/h 以上の雨が続くため、その時刻は両方式とも介入が 0 件で、見送りは天候（雨）になります。介入は雨のやむ 18 時だけです
+
+「デモ: 比べる」を押すと、選んだ条件の coverage を主、greedy を比較として 1 画面に重ねます。
 
 - **ポッド**：coverage は行動ごとの色の点、greedy は白い輪（同じ地点にいても見えるよう、少し西へずらす）
 - **区画**：その時刻の介入の件数の差（coverage − greedy）で塗ります。緑は coverage が多い、灰は同じ、赤は greedy が多い（±1〜2 件と 3 件以上で濃さを変える）。介入率ではなく件数で比べるのは、介入が多いと後の判定が減り、率どうしは比べにくいためです。片方の集計にしか無い区画（3 人未満で出していない）は、出ていない側を 0 件とみなします
-- **パネル**：1 日の介入の合計（coverage 167・greedy 35）、その時刻の介入の件数と差、差の大きい順の区画の一覧。地点の色を「需要」にすると、需要の濃い区画を coverage が覆っているかを見られます
+- **パネル**：1 日の介入の合計（heatwave・5 台なら coverage 167・greedy 35）、その時刻の介入の件数と差、差の大きい順の区画の一覧。地点の色を「需要」にすると、需要の濃い区画を coverage が覆っているかを見られます
 - ほかのデモ・サンプル・ファイルを読み込むか、消去すると比較は外れます
 
-- **データ**：`public/data/demo/heatwave-p5/`（`stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、計 1.7 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した地点データです
-- **出どころ**：シミュレーター `vmgs@0798ea4` の `vmgs loop`（樹冠ありの地点データ、heatwave、ポッド 5 台、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）
-- **契約の確認**：`src/lib/demo.spec.ts` が、置いたファイルを契約 v1 で確かめます。契約や地点データを変えて合わなくなったら CI が落ちるので、下の手順で作り直してください
-- **作り直す手順**（シミュレーターのリポジトリで）：
+- **データ**：`public/data/demo/{heatwave-p5,heatwave-p8,normal-p5,rainy-p5}/`（それぞれ `stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、1 条件あたり 1.7 MB、計 6.8 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した地点データです
+- **出どころ**：シミュレーターの `vmgs loop`（樹冠ありの地点データ、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）。heatwave・5 台は `vmgs@0798ea4`、ほかは `vmgs@049abc5`（雨の見送り入り。heatwave・5 台も作り直して件数が同じことを確かめた）
+- **契約の確認**：`src/lib/demo.spec.ts` が、置いた全条件のファイルを契約 v1 で確かめます。契約や地点データを変えて合わなくなったら CI が落ちるので、下の手順で作り直してください
+- **作り直す手順**（シミュレーターのリポジトリで。条件は `気象:台数`）：
 
 ```bash
-for p in coverage greedy; do uv run vmgs loop --stage ~/tokyo-green-simulator/public/data/stage/otemachi.json --scenario heatwave --pods 5 --rounds 1 --policy $p --out-dir runs/demo-$p; done
+for c in heatwave:5 heatwave:8 normal:5 rainy:5; do s=${c%%:*}; n=${c##*:}; for p in coverage greedy; do uv run vmgs loop --stage ~/tokyo-green-simulator/public/data/stage/otemachi.json --scenario $s --pods $n --rounds 1 --policy $p --out-dir runs/demo/$s-p$n-$p; done; done
 ```
 
 ```bash
-D=~/tokyo-green-simulator/public/data/demo/heatwave-p5; cp runs/demo-coverage/stage.r1.json $D/stage.json; for p in coverage greedy; do cp runs/demo-$p/dispatch.r1.json $D/dispatch.$p.json; cp runs/demo-$p/jitai-summary.r1.json $D/jitai-summary.$p.json; done
+for c in heatwave-p5 heatwave-p8 normal-p5 rainy-p5; do D=~/tokyo-green-simulator/public/data/demo/$c; mkdir -p $D; cp runs/demo/$c-coverage/stage.r1.json $D/stage.json; for p in coverage greedy; do cp runs/demo/$c-$p/dispatch.r1.json $D/dispatch.$p.json; cp runs/demo/$c-$p/jitai-summary.r1.json $D/jitai-summary.$p.json; done; done
 ```
 
-作り直したら、この節の表の件数と出どころの版を書き換えます。
+条件を足すときは、`src/lib/demo.ts` の `DEMO_CONDITIONS` にも足します。作り直したら、この節の表の件数と出どころの版を書き換えます。
 
 ## 構成
 

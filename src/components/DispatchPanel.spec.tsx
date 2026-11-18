@@ -132,13 +132,11 @@ describe('機能: JITAI の集計の表示', () => {
   })
 })
 
+/** デモの URL の末尾（条件のディレクトリとファイル名）から、置いてあるファイルの中身を返す */
+const demoFile = (url: string) => readFileSync(join(process.cwd(), 'public', 'data', 'demo', ...String(url).split('/').slice(-2)), 'utf-8')
+
 describe('機能: 配車のデモ（heatwave・5 台）', () => {
-  const demo = (name: string) => readFileSync(join(process.cwd(), 'public', 'data', 'demo', 'heatwave-p5', name), 'utf-8')
-  const stubDemo = () =>
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (url: string) => new Response(demo(String(url).split('/').pop() ?? ''), { status: 200 })),
-    )
+  const stubDemo = () => vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(demoFile(url), { status: 200 })))
   afterEach(() => vi.unstubAllGlobals())
 
   it('Given 初期状態 / When 「デモ: coverage」を押す / Then 3 つを読み込み、方式と判定・介入の件数を出してスライダーを出す', async () => {
@@ -151,6 +149,17 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     expect(useAppStore.getState().dispatch?.pods).toHaveLength(5)
     expect(screen.getByRole('slider', { name: '時刻' })).toBeInTheDocument()
     expect(onFocusPoint).toHaveBeenCalled()
+  })
+
+  it('Given デモの条件で rainy・5 台を選ぶ / When 「デモ: coverage」を押す / Then その条件の配車と集計を読み、条件の名前と件数を出す', async () => {
+    stubDemo()
+    setup()
+    expect(screen.getByRole('combobox', { name: 'デモの条件' })).toHaveValue('heatwave-p5')
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'デモの条件' }), 'rainy・5 台')
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('デモ（rainy・5 台・方式 coverage）: 判定 930 件・介入 19 件')
+    expect(useAppStore.getState().jitaiSummary?.weather_scenario).toBe('rainy')
   })
 
   it('Given coverage を表示中 / When 「デモ: greedy」を押す / Then 配車と集計が greedy に替わる', async () => {
@@ -209,13 +218,7 @@ describe('機能: 地点の需要の表示', () => {
 })
 
 describe('機能: 方式を並べて比べる（デモ）', () => {
-  const demoFile = (name: string) => readFileSync(join(process.cwd(), 'public', 'data', 'demo', 'heatwave-p5', name), 'utf-8')
-  beforeEach(() =>
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (url: string) => new Response(demoFile(String(url).split('/').pop() ?? ''), { status: 200 })),
-    ),
-  )
+  beforeEach(() => vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(demoFile(url), { status: 200 }))))
   afterEach(() => vi.unstubAllGlobals())
 
   it('Given 初期状態 / When 「デモ: 比べる」を押す / Then coverage を主、greedy を比較に置き、1 日の介入の合計を並べる', async () => {
