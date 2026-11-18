@@ -140,7 +140,7 @@
           "type": "integer"
         },
         "skipped_pet": {
-          "description": "PET の段階で見送った件数",
+          "description": "天候（雨・PET）の段階で見送った件数",
           "minimum": 0,
           "title": "Skipped Pet",
           "type": "integer"
