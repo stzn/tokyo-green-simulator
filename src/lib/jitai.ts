@@ -108,3 +108,41 @@ export const JITAI_RATE_CLASSES: { label: string; max: number; color: Color }[] 
 export function interventionColor(rate: number): Color {
   return (JITAI_RATE_CLASSES.find((c) => rate <= c.max) ?? JITAI_RATE_CLASSES[JITAI_RATE_CLASSES.length - 1]).color
 }
+
+/** 2 つの方式の、ある区画・時刻の介入の件数と差（主 − 比較） */
+export type ZoneDiff = { zone: [number, number]; main: number; other: number; diff: number; polygon: [number, number][] }
+
+/**
+ * ある時刻の区画を 2 つの集計で比べる。区画は和集合で、片方の集計に無い区画（3 人未満で出していない）は 0 件とみなす。
+ * 介入率ではなく件数で比べる（介入が多いと後の判定が減り、率どうしは比べにくいため）。差の大きい順に返す
+ */
+export function compareZonesAt(main: JitaiSummary, other: JitaiSummary, stage: Stage, hour: number): ZoneDiff[] {
+  const counts = new Map<string, { zone: [number, number]; main: number; other: number }>()
+  const add = (summary: JitaiSummary, side: 'main' | 'other') => {
+    for (const z of summary.zones) {
+      if (z.hour !== hour) continue
+      const key = z.zone.join(',')
+      const entry = counts.get(key) ?? { zone: z.zone, main: 0, other: 0 }
+      entry[side] += z.interventions
+      counts.set(key, entry)
+    }
+  }
+  add(main, 'main')
+  add(other, 'other')
+  return [...counts.values()]
+    .map((c) => ({ ...c, diff: c.main - c.other, polygon: zonePolygon(c.zone, main.grid, stage) }))
+    .sort((a, b) => b.diff - a.diff || a.zone[0] - b.zone[0] || a.zone[1] - b.zone[1])
+}
+
+/** 件数の差の区分（min 以上を含む、上から順に当てる）。主が多いと緑、同じは灰、比較が多いと赤 */
+export const ZONE_DIFF_CLASSES: { label: string; min: number; color: Color }[] = [
+  { label: '主が 3 件以上多い', min: 3, color: [22, 163, 74, 170] },
+  { label: '主が 1〜2 件多い', min: 1, color: [134, 239, 172, 130] },
+  { label: '同じ', min: 0, color: [148, 163, 184, 70] },
+  { label: '比較が 1〜2 件多い', min: -2, color: [252, 165, 165, 130] },
+  { label: '比較が 3 件以上多い', min: Number.NEGATIVE_INFINITY, color: [220, 38, 38, 170] },
+]
+
+export function zoneDiffColor(diff: number): Color {
+  return (ZONE_DIFF_CLASSES.find((c) => diff >= c.min) ?? ZONE_DIFF_CLASSES[ZONE_DIFF_CLASSES.length - 1]).color
+}

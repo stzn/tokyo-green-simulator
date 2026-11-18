@@ -309,3 +309,36 @@ describe('機能: 地点の色（PET・需要）の切り替え', () => {
     expect(s.getState().spotColor).toBe('pet')
   })
 })
+
+describe('機能: 方式の比較の保持', () => {
+  const read = (name: string): unknown => JSON.parse(readFileSync(join(process.cwd(), 'contracts', 'fixtures', name), 'utf-8'))
+  const stageResult = parseStage(read('stage.sample.json'))
+  if (!stageResult.ok) throw new Error(stageResult.errors.join())
+  const stage: Stage = stageResult.value
+  const dispatchResult = parseDispatch(read('dispatch.sample.json'), stage)
+  if (!dispatchResult.ok) throw new Error(dispatchResult.errors.join())
+  const dispatch: Dispatch = dispatchResult.value
+  const summary = { zones: [] } as unknown as NonNullable<ReturnType<AppStore['getState']>['jitaiSummary']>
+
+  it('Given 主の配車 / When 比較を置く / Then 保持する', () => {
+    const s = createAppStore()
+    s.getState().setStage(stage)
+    s.getState().setDispatch(dispatch)
+    s.getState().setComparison({ dispatch, jitaiSummary: summary })
+    expect(s.getState().comparison?.dispatch).toBe(dispatch)
+  })
+
+  it('Given 比較中 / When 主の配車・地点データを置き換える・消去する / Then 比較を外す', () => {
+    const s = createAppStore()
+    const compare = () => s.getState().setComparison({ dispatch, jitaiSummary: summary })
+    compare()
+    s.getState().setDispatch(dispatch)
+    expect(s.getState().comparison).toBeNull()
+    compare()
+    s.getState().setStage(stage)
+    expect(s.getState().comparison).toBeNull()
+    compare()
+    s.getState().clearDispatch()
+    expect(s.getState().comparison).toBeNull()
+  })
+})

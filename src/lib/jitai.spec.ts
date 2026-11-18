@@ -2,7 +2,17 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parseStage, type Stage } from './dispatch'
-import { interventionColor, JITAI_RATE_CLASSES, parseJitaiSummary, zoneCellsAt, zonePolygon } from './jitai'
+import {
+  compareZonesAt,
+  interventionColor,
+  JITAI_RATE_CLASSES,
+  parseJitaiSummary,
+  ZONE_DIFF_CLASSES,
+  zoneCellsAt,
+  zoneDiffColor,
+  zonePolygon,
+  type JitaiSummary,
+} from './jitai'
 
 const read = (name: string): Record<string, unknown> =>
   JSON.parse(readFileSync(join(process.cwd(), 'contracts', 'fixtures', name), 'utf-8')) as Record<string, unknown>
@@ -82,5 +92,41 @@ describe('機能: 区画を地図に置く', () => {
     expect(interventionColor(0)).toEqual(JITAI_RATE_CLASSES[0].color)
     expect(interventionColor(0.5)).toEqual(JITAI_RATE_CLASSES[JITAI_RATE_CLASSES.length - 1].color)
     expect(interventionColor(0)).not.toEqual(interventionColor(0.5))
+  })
+})
+
+describe('機能: 2 つの方式の区画を比べる', () => {
+  const zone = (ix: number, iy: number, hour: number, interventions: number) => ({
+    zone: [ix, iy] as [number, number],
+    hour,
+    decisions: 10,
+    interventions,
+    skipped_calendar: 10 - interventions,
+    skipped_pods: 0,
+    skipped_pet: 0,
+  })
+  const withZones = (zones: ReturnType<typeof zone>[]): JitaiSummary => {
+    const r = parseJitaiSummary({ ...sample(), zones }, stage)
+    if (!r.ok) throw new Error(r.errors.join())
+    return r.value
+  }
+
+  it('Given 主と比較の集計 / When 時刻を選ぶ / Then 区画の和集合を、介入の件数の差（主 − 比較）の大きい順に返す', () => {
+    const main = withZones([zone(0, 0, 12, 5), zone(1, 0, 12, 1), zone(0, 0, 13, 9)])
+    const other = withZones([zone(0, 0, 12, 1), zone(0, 1, 12, 2)])
+    const diffs = compareZonesAt(main, other, stage, 12)
+    expect(diffs.map((d) => [d.zone, d.main, d.other, d.diff])).toEqual([
+      [[0, 0], 5, 1, 4],
+      [[1, 0], 1, 0, 1],
+      // 片方にしか無い区画（もう片方は 3 人未満で出していない）は、出ていない側を 0 件とみなす
+      [[0, 1], 0, 2, -2],
+    ])
+    expect(diffs[0].polygon).toHaveLength(5)
+  })
+
+  it('Given 件数の差 / Then 主が多い・同じ・比較が多いで色が分かれ、差が大きいほど濃い', () => {
+    const keys = [3, 1, 0, -1, -3].map((d) => zoneDiffColor(d).join(','))
+    expect(new Set(keys).size).toBe(5)
+    expect(ZONE_DIFF_CLASSES).toHaveLength(5)
   })
 })

@@ -207,3 +207,41 @@ describe('機能: 地点の需要の表示', () => {
     expect(screen.getByText(/この地点データには需要がありません/)).toBeInTheDocument()
   })
 })
+
+describe('機能: 方式を並べて比べる（デモ）', () => {
+  const demoFile = (name: string) => readFileSync(join(process.cwd(), 'public', 'data', 'demo', 'heatwave-p5', name), 'utf-8')
+  beforeEach(() =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => new Response(demoFile(String(url).split('/').pop() ?? ''), { status: 200 })),
+    ),
+  )
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('Given 初期状態 / When 「デモ: 比べる」を押す / Then coverage を主、greedy を比較に置き、1 日の介入の合計を並べる', async () => {
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: 比べる' }))
+    expect(await screen.findByText(/1 日の介入: coverage 167 件・greedy 35 件/)).toBeInTheDocument()
+    expect(useAppStore.getState().dispatch?.generator).toMatch(/coverage$/)
+    expect(useAppStore.getState().comparison?.dispatch.generator).toMatch(/greedy$/)
+  })
+
+  it('Given 比較中 / When 14 時にする / Then その時刻の介入の件数と差、差の大きい順の区画を出す', async () => {
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: 比べる' }))
+    await screen.findByText(/1 日の介入/)
+    fireEvent.change(screen.getByRole('slider', { name: '時刻' }), { target: { value: '14' } })
+    expect(screen.getByText(/この時刻の介入: coverage 12 件・greedy 0 件（差 \+12）/)).toBeInTheDocument()
+    const list = screen.getByRole('list', { name: 'この時刻の区画（方式の差）' })
+    expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent('区画 [1, 1] coverage 5・greedy 0（差 +5）')
+  })
+
+  it('Given 比較中 / When 「デモ: coverage」を押す / Then 比較を外す', async () => {
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: 比べる' }))
+    await screen.findByText(/1 日の介入/)
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
+    await screen.findByText(/方式 coverage/, { selector: '[role=status]' })
+    expect(useAppStore.getState().comparison).toBeNull()
+  })
+})

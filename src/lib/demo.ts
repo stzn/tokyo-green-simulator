@@ -51,3 +51,21 @@ export async function fetchDemo(policy: DemoPolicy, fetchFn: FetchFn = (url) => 
   if (!stage.ok || !dispatch.ok || !jitai.ok) return { ok: false, errors }
   return { ok: true, value: { stage: stage.value, dispatch: dispatch.value, jitai: jitai.value } }
 }
+
+export type DemoComparisonJson = { stage: unknown; main: { dispatch: unknown; jitai: unknown }; other: { dispatch: unknown; jitai: unknown } }
+
+/** 比較のデモを読む。地点データは 1 回、配車と集計は主（coverage）と比較（greedy）の 2 方式 */
+export async function fetchDemoComparison(fetchFn: FetchFn = (url) => fetch(url)): Promise<LoadResult<DemoComparisonJson>> {
+  const main = demoUrls('coverage')
+  const other = demoUrls('greedy')
+  const results = await Promise.all([main.stage, main.dispatch, main.jitai, other.dispatch, other.jitai].map((u) => fetchJson(u, fetchFn)))
+  const values: unknown[] = []
+  const errors: string[] = []
+  for (const r of results) {
+    if (r.ok) values.push(r.value)
+    else errors.push(...r.errors)
+  }
+  if (errors.length > 0) return { ok: false, errors }
+  const [stage, mainDispatch, mainJitai, otherDispatch, otherJitai] = values
+  return { ok: true, value: { stage, main: { dispatch: mainDispatch, jitai: mainJitai }, other: { dispatch: otherDispatch, jitai: otherJitai } } }
+}
