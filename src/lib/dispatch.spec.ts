@@ -1,7 +1,20 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { dispatchHours, parseDispatch, parseJson, parseStage, petCategory, snapshotAt, type Dispatch, type Stage } from './dispatch'
+import {
+  DEMAND_CLASSES,
+  demandAt,
+  demandClass,
+  dispatchHours,
+  hasDemand,
+  parseDispatch,
+  parseJson,
+  parseStage,
+  petCategory,
+  snapshotAt,
+  type Dispatch,
+  type Stage,
+} from './dispatch'
 
 // jsdom では import.meta.url が使えないため、リポジトリ直下（テストの実行場所）から読む
 const read = (name: string): Record<string, unknown> =>
@@ -240,5 +253,44 @@ describe('機能: PET の快適度の区分', () => {
 
   it('Given 暑さの段階が違う PET / When 区分する / Then 色が違う', () => {
     expect(petCategory(31).color).not.toEqual(petCategory(38).color)
+  })
+})
+
+describe('機能: 地点の需要（demand）の表示データ', () => {
+  it('Given サンプルの地点データ / When 12 時の需要を取る / Then 全地点を座標つきで返し、重みと 1 日の最大に対する割合を添える', () => {
+    const markers = demandAt(sampleStage(), 12)
+    expect(markers.map((m) => [m.spotId, m.weight, m.share])).toEqual([
+      ['OTM-001', 1.0, 1.0],
+      ['OTM-002', 0.8, 0.8],
+      ['OTM-003', 0, 0],
+    ])
+    expect(markers[0]).toMatchObject({ spotName: '大手町 仲通り北の歩道', lon: expect.any(Number), lat: expect.any(Number) })
+  })
+
+  it('Given 15 時 / Then 割合は時刻ごとではなく 1 日の最大（12 時の 1.0）で割る', () => {
+    expect(demandAt(sampleStage(), 15).find((m) => m.spotId === 'OTM-001')?.share).toBeCloseTo(0.6)
+  })
+
+  it('Given 需要が 1 件も無い地点データ / Then 需要は無いとみなし、全地点の重みは 0', () => {
+    const stage = sampleStage()
+    const empty: Stage = { ...stage, spots: stage.spots.map((s) => ({ ...s, demand: [] })) }
+    expect(hasDemand(empty)).toBe(false)
+    expect(hasDemand(stage)).toBe(true)
+    expect(demandAt(empty, 12).every((m) => m.weight === 0 && m.share === 0)).toBe(true)
+  })
+
+  it('Given 境目の割合 / When 区分する / Then 無し・わずか・やや多い・多い・とても多いに分ける', () => {
+    expect([0, 0.05, 0.1, 0.29, 0.3, 0.59, 0.6, 1].map((v) => demandClass(v).key)).toEqual([
+      'none',
+      'trace',
+      'some',
+      'some',
+      'many',
+      'many',
+      'most',
+      'most',
+    ])
+    // 区分ごとに色が違う（凡例で見分けられる）
+    expect(new Set(DEMAND_CLASSES.map((c) => c.color.join(','))).size).toBe(DEMAND_CLASSES.length)
   })
 })

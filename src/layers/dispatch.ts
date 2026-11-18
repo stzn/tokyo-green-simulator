@@ -1,8 +1,17 @@
-// 配車（dispatch.json）のレイヤー。地点の PET を快適度の色の円で、その上にポッドを行動ごとの色の点で描く
+// 配車（dispatch.json）のレイヤー。地点の PET（または需要）を区分の色の円で、その上にポッドを行動ごとの色の点で描く
 // deck.gl 9.4では実験扱いのため _TerrainExtension という名前でエクスポートされている
 import { _TerrainExtension as TerrainExtension, type TerrainExtensionProps } from '@deck.gl/extensions'
 import { PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
-import { petCategory, POD_ACTIONS, type ComfortMarker, type DispatchSnapshot, type PodAction, type PodMarker } from '../lib/dispatch'
+import {
+  demandClass,
+  petCategory,
+  POD_ACTIONS,
+  type ComfortMarker,
+  type DemandMarker,
+  type DispatchSnapshot,
+  type PodAction,
+  type PodMarker,
+} from '../lib/dispatch'
 import { interventionColor, type ZoneCell } from '../lib/jitai'
 
 type Color = [number, number, number, number]
@@ -27,11 +36,15 @@ type Options = {
   snapshot: DispatchSnapshot | null
   /** JITAI の集計の、選んだ時刻の区画（無ければ空） */
   zones?: ZoneCell[]
+  /** 選んだ時刻の全地点の需要（地点の色が需要のときに使う） */
+  demand?: DemandMarker[]
+  /** 地点の円を何で塗るか（既定は PET） */
+  spotColor?: 'pet' | 'demand'
   visible: boolean
   terrain: boolean
 }
 
-export function createDispatchLayers({ snapshot, zones = [], visible, terrain }: Options) {
+export function createDispatchLayers({ snapshot, zones = [], demand = [], spotColor = 'pet', visible, terrain }: Options) {
   const extensions = terrain ? [terrainExtension] : []
   const layers = []
   // 区画は地点・ポッドの下に、介入率の色で薄く塗る
@@ -55,26 +68,42 @@ export function createDispatchLayers({ snapshot, zones = [], visible, terrain }:
   }
   if (!snapshot) return layers
   // データが無いレイヤーは作らない（空のまま地形の仕組みに乗せると、初回描画でdeck.glがエラーを出す）
-  if (snapshot.comfort.length > 0) {
+  // 地点の円は、PET か需要のどちらかで塗る（2 重にすると密な地点で読めない）
+  const spotCircle = {
+    visible,
+    pickable: false,
+    getLineColor: [15, 23, 42, 200] as Color,
+    radiusUnits: 'meters' as const,
+    getRadius: COMFORT_RADIUS_M,
+    // ズームアウトしても見失わない大きさは保つ
+    radiusMinPixels: 6,
+    stroked: true,
+    lineWidthUnits: 'pixels' as const,
+    getLineWidth: 1,
+    extensions,
+    terrainDrawMode: 'offset' as const,
+    parameters: ALWAYS_ON_TOP,
+  }
+  if (spotColor === 'demand') {
+    if (demand.length > 0) {
+      layers.push(
+        new ScatterplotLayer<DemandMarker, TerrainExtensionProps>({
+          ...spotCircle,
+          id: 'dispatch-demand',
+          data: demand,
+          getPosition: (d) => [d.lon, d.lat],
+          getFillColor: (d) => demandClass(d.share).color,
+        }),
+      )
+    }
+  } else if (snapshot.comfort.length > 0) {
     layers.push(
       new ScatterplotLayer<ComfortMarker, TerrainExtensionProps>({
+        ...spotCircle,
         id: 'dispatch-comfort',
         data: snapshot.comfort,
-        visible,
-        pickable: false,
         getPosition: (c) => [c.lon, c.lat],
         getFillColor: (c) => petCategory(c.petC).color,
-        getLineColor: [15, 23, 42, 200],
-        radiusUnits: 'meters',
-        getRadius: COMFORT_RADIUS_M,
-        // ズームアウトしても見失わない大きさは保つ
-        radiusMinPixels: 6,
-        stroked: true,
-        lineWidthUnits: 'pixels',
-        getLineWidth: 1,
-        extensions,
-        terrainDrawMode: 'offset',
-        parameters: ALWAYS_ON_TOP,
       }),
     )
   }

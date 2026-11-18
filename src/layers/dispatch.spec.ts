@@ -1,6 +1,6 @@
 import { PolygonLayer, ScatterplotLayer } from '@deck.gl/layers'
 import { describe, expect, it } from 'vitest'
-import type { ComfortMarker, PodMarker } from '../lib/dispatch'
+import { demandClass, type ComfortMarker, type DemandMarker, type PodMarker } from '../lib/dispatch'
 import { interventionColor, type ZoneCell } from '../lib/jitai'
 import { actionColor, createDispatchLayers } from './dispatch'
 
@@ -92,5 +92,29 @@ describe('機能: 配車のレイヤーを作る', () => {
 
   it('Given 配車が無く JITAI の区画だけ / When 作る / Then 区画のレイヤーだけ作る', () => {
     expect(createDispatchLayers({ snapshot: null, zones: [], visible: true, terrain: false })).toEqual([])
+  })
+})
+
+describe('機能: 地点の色を需要にする', () => {
+  const demand: DemandMarker[] = [
+    { spotId: 'OTM-001', spotName: '仲通り', lon: 139.7652, lat: 35.6872, weight: 1.2, share: 0.9 },
+    { spotId: 'OTM-003', spotName: '和田倉', lon: 139.7612, lat: 35.6842, weight: 0, share: 0 },
+  ]
+  const build = (spotColor: 'pet' | 'demand') =>
+    createDispatchLayers({ snapshot: { pods: [pod('P1', 'stay')], comfort: [comfort] }, demand, spotColor, visible: true, terrain: false })
+
+  it('Given 地点の色が需要 / When 作る / Then PET の円の代わりに需要の円を作り、ポッドをその上に重ねる', () => {
+    const layers = build('demand')
+    expect(layers.map((l) => l.id)).toEqual(['dispatch-demand', 'dispatch-pods'])
+    const circles = layers[0] as ScatterplotLayer<DemandMarker>
+    const fill = circles.props.getFillColor as unknown as (m: DemandMarker) => number[]
+    expect(fill(demand[0])).toEqual(demandClass(0.9).color)
+    // 重みの無い地点は「無し」（灰）の色で描く
+    expect(fill(demand[1])).toEqual(demandClass(0).color)
+    expect(circles.props.parameters).toMatchObject({ depthCompare: 'always' })
+  })
+
+  it('Given 地点の色が PET / When 作る / Then 今までどおり PET の円を作る', () => {
+    expect(build('pet').map((l) => l.id)).toEqual(['dispatch-comfort', 'dispatch-pods'])
   })
 })

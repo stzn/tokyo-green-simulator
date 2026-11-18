@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import {
+  DEMAND_CLASSES,
+  demandAt,
   dispatchHours,
+  hasDemand,
   parseDispatch,
   parseJson,
   parseStage,
@@ -68,6 +71,8 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   const jitaiSummary = useAppStore((s) => s.jitaiSummary)
   const setJitaiSummary = useAppStore((s) => s.setJitaiSummary)
   const clearDispatch = useAppStore((s) => s.clearDispatch)
+  const spotColor = useAppStore((s) => s.spotColor)
+  const setSpotColor = useAppStore((s) => s.setSpotColor)
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<string[]>([])
 
@@ -166,6 +171,13 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   )
   const pets = snapshot?.comfort.map((c) => c.petC) ?? []
   const zones = useMemo(() => (stage && jitaiSummary ? zoneCellsAt(jitaiSummary, stage, hour) : []), [stage, jitaiSummary, hour])
+  const stageHasDemand = useMemo(() => (stage ? hasDemand(stage) : false), [stage])
+  // 選んだ時刻に重みのある地点（多い順）
+  const demandNow = useMemo(
+    () => (stage && spotColor === 'demand' ? demandAt(stage, hour).filter((d) => d.weight > 0).sort((a, b) => b.weight - a.weight) : []),
+    [stage, spotColor, hour],
+  )
+  const demandTotal = demandNow.reduce((sum, d) => sum + d.weight, 0)
 
   return (
     <Panel title="配車（シミュレーターの結果）">
@@ -269,6 +281,41 @@ export function DispatchPanel({ onFocusPoint }: Props) {
             データのある時刻: {hours.length > 0 ? `${hours[0]}〜${hours[hours.length - 1]} 時` : 'なし'}
           </p>
 
+          <fieldset className="mt-2">
+            <legend className="text-[11px] text-slate-400">地点の色</legend>
+            <div className="mt-1 flex gap-3 text-xs text-slate-200">
+              <label className="flex items-center gap-1">
+                <input type="radio" name="spot-color" checked={spotColor === 'pet'} onChange={() => setSpotColor('pet')} />
+                PET（暑さ）
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="spot-color"
+                  checked={spotColor === 'demand'}
+                  disabled={!stageHasDemand}
+                  onChange={() => setSpotColor('demand')}
+                />
+                需要
+              </label>
+            </div>
+            {!stageHasDemand && (
+              <p className="mt-1 text-[11px] text-slate-500">
+                この地点データには需要がありません（シミュレーターは 8〜19 時に全地点で一様とみなします）
+              </p>
+            )}
+          </fieldset>
+          {spotColor === 'demand' && (
+            <p className="mt-2 text-xs text-slate-300">
+              {demandNow.length > 0
+                ? `需要: 合計 ${demandTotal.toFixed(1)}（${demandNow.length} 地点）、多い順に ${demandNow
+                    .slice(0, 3)
+                    .map((d) => d.spotName)
+                    .join('・')}`
+                : 'この時刻の需要はありません'}
+            </p>
+          )}
+
           {snapshot && (
             <>
               <p className="mt-2 text-xs text-slate-300">
@@ -322,12 +369,19 @@ export function DispatchPanel({ onFocusPoint }: Props) {
                 ポッド: {a.label}
               </li>
             ))}
-            {PET_CATEGORIES.map((c) => (
-              <li key={c.key} className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-sm" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
-                {c.label}（{c.range}）
-              </li>
-            ))}
+            {spotColor === 'demand'
+              ? DEMAND_CLASSES.map((c) => (
+                  <li key={c.key} className="flex items-center gap-1.5">
+                    <span className="size-2.5 rounded-sm" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
+                    需要 {c.label}（{c.key === 'none' ? '重みなし' : `1 日の最大の ${c.range}`}）
+                  </li>
+                ))
+              : PET_CATEGORIES.map((c) => (
+                  <li key={c.key} className="flex items-center gap-1.5">
+                    <span className="size-2.5 rounded-sm" style={{ backgroundColor: rgba(c.color) }} aria-hidden="true" />
+                    {c.label}（{c.range}）
+                  </li>
+                ))}
             {jitaiSummary &&
               JITAI_RATE_CLASSES.map((c) => (
                 <li key={c.label} className="flex items-center gap-1.5">
