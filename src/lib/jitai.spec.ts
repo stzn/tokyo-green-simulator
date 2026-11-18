@@ -13,7 +13,7 @@ type Mutable = { stage_ref: { area_id: string; date: string }; grid: { origin_lo
 const sample = () => read('jitai-summary.sample.json') as Mutable
 
 describe('機能: JITAI の集計（jitai-summary.json）を読み込む', () => {
-  it('Given 契約のサンプル / When 舞台と突き合わせて読む / Then 合格する', () => {
+  it('Given 契約のサンプル / When 地点データと突き合わせて読む / Then 合格する', () => {
     const r = parseJitaiSummary(sample(), stage)
     expect(r.ok).toBe(true)
     if (r.ok) expect(r.value.zones).toHaveLength(2)
@@ -35,7 +35,7 @@ describe('機能: JITAI の集計（jitai-summary.json）を読み込む', () =>
     if (!r.ok) expect(r.errors.join()).toContain('重複')
   })
 
-  it('Given 区域・日付・区画の原点が舞台と違う / When 読む / Then それぞれを理由に挙げる', () => {
+  it('Given 区域・日付・区画の原点が地点データと違う / When 読む / Then それぞれを理由に挙げる', () => {
     const data = sample()
     data.stage_ref.area_id = 'shibuya'
     data.stage_ref.date = '2025-07-01'
@@ -63,7 +63,7 @@ describe('機能: 区画を地図に置く', () => {
     expect(ring).toHaveLength(5)
     expect(ring[0]).toEqual([139.758, 35.676])
     expect(ring[4]).toEqual(ring[0])
-    // 南北 400 m ≈ 0.003597 度、東西は緯度で補正（役者側の vmgs.jitai.demand.demand_zones と同じ式）
+    // 南北 400 m ≈ 0.003597 度、東西は緯度で補正（シミュレーター側の vmgs.jitai.demand.demand_zones と同じ式）
     expect(ring[2][1] - 35.676).toBeCloseTo(400 / ((Math.PI / 180) * 6_371_000), 9)
     const midLat = (stage.area.bbox[1] + stage.area.bbox[3]) / 2
     expect(ring[2][0] - 139.758).toBeCloseTo(400 / ((Math.PI / 180) * 6_371_000 * Math.cos((midLat * Math.PI) / 180)), 9)

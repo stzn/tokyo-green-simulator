@@ -15,16 +15,16 @@ const setup = () => {
   return { onFocusPoint }
 }
 const uploadStage = (text = fixture('stage.sample.json')) =>
-  userEvent.upload(screen.getByLabelText('舞台（stage.json）を選ぶ'), jsonFile(text, 'stage.json'))
+  userEvent.upload(screen.getByLabelText('地点データ（stage.json）を選ぶ'), jsonFile(text, 'stage.json'))
 const uploadDispatch = (text = fixture('dispatch.sample.json')) =>
   userEvent.upload(screen.getByLabelText('配車（dispatch.json）を選ぶ'), jsonFile(text, 'dispatch.json'))
 
 beforeEach(() => useAppStore.setState(useAppStore.getInitialState(), true))
 
 describe('機能: 配車の読み込みと時刻の表示', () => {
-  it('Given 初期状態 / Then 舞台・配車の読み込み欄とサンプルのボタンがあり、時刻のスライダーはまだ無い', () => {
+  it('Given 初期状態 / Then 地点データ・配車の読み込み欄とサンプルのボタンがあり、時刻のスライダーはまだ無い', () => {
     setup()
-    expect(screen.getByLabelText('舞台（stage.json）を選ぶ')).toBeInTheDocument()
+    expect(screen.getByLabelText('地点データ（stage.json）を選ぶ')).toBeInTheDocument()
     expect(screen.getByLabelText('配車（dispatch.json）を選ぶ')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'サンプルを読み込む' })).toBeInTheDocument()
     expect(screen.queryByRole('slider', { name: '時刻' })).not.toBeInTheDocument()
@@ -49,17 +49,17 @@ describe('機能: 配車の読み込みと時刻の表示', () => {
     expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent(/P1.*大手町 仲通り北の歩道.*移動/)
   })
 
-  it('Given 舞台を読み込んだ / When 配車ファイルを選ぶ / Then 読み込んで時刻のスライダーを出す', async () => {
+  it('Given 地点データを読み込んだ / When 配車ファイルを選ぶ / Then 読み込んで時刻のスライダーを出す', async () => {
     setup()
     await uploadStage()
     await uploadDispatch()
     expect(await screen.findByRole('slider', { name: '時刻' })).toHaveValue('11')
   })
 
-  it('Given 舞台が無い / When 配車ファイルを選ぶ / Then 先に舞台が要ることを知らせる', async () => {
+  it('Given 地点データが無い / When 配車ファイルを選ぶ / Then 先に地点データが要ることを知らせる', async () => {
     setup()
     await uploadDispatch()
-    expect(await screen.findByRole('alert')).toHaveTextContent('先に舞台')
+    expect(await screen.findByRole('alert')).toHaveTextContent('先に地点データ')
     expect(useAppStore.getState().dispatch).toBeNull()
   })
 
@@ -75,7 +75,7 @@ describe('機能: 配車の読み込みと時刻の表示', () => {
     expect(useAppStore.getState().dispatch).toBe(before)
   })
 
-  it('Given 初期状態 / When 壊れた JSON の舞台を選ぶ / Then 例外にせず理由を知らせる', async () => {
+  it('Given 初期状態 / When 壊れた JSON の地点データを選ぶ / Then 例外にせず理由を知らせる', async () => {
     setup()
     await uploadStage('{"schema_version":')
     expect(await screen.findByRole('alert')).toHaveTextContent('JSON として読めません')
@@ -89,7 +89,7 @@ describe('機能: 配車の読み込みと時刻の表示', () => {
     for (const label of ['滞在', '移動', '散水', '快適', '非常に暑い']) expect(within(legend).getByText(new RegExp(label))).toBeInTheDocument()
   })
 
-  it('Given サンプルを表示中 / When 消去する / Then 舞台も配車も外し、スライダーを消す', async () => {
+  it('Given サンプルを表示中 / When 消去する / Then 地点データも配車も外し、スライダーを消す', async () => {
     setup()
     await userEvent.click(screen.getByRole('button', { name: 'サンプルを読み込む' }))
     await screen.findByRole('slider', { name: '時刻' })
@@ -113,13 +113,13 @@ describe('機能: JITAI の集計の表示', () => {
     expect(within(list).getByText(/介入 2/)).toBeInTheDocument()
   })
 
-  it('Given 舞台が未読み込み / When JITAI の集計を選ぶ / Then 先に舞台を読むよう伝える', async () => {
+  it('Given 地点データが未読み込み / When JITAI の集計を選ぶ / Then 先に地点データを読むよう伝える', async () => {
     setup()
     await uploadJitai()
-    expect(await screen.findByRole('alert')).toHaveTextContent('先に舞台')
+    expect(await screen.findByRole('alert')).toHaveTextContent('先に地点データ')
   })
 
-  it('Given 舞台 / When 区域の違う集計を選ぶ / Then 理由を出し、集計は置かない', async () => {
+  it('Given 地点データ / When 区域の違う集計を選ぶ / Then 理由を出し、集計は置かない', async () => {
     setup()
     await uploadStage()
     const bad = JSON.parse(fixture('jitai-summary.sample.json')) as { stage_ref: { area_id: string } }

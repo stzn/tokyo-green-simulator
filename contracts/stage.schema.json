@@ -76,7 +76,7 @@
     },
     "GreenContext": {
       "additionalProperties": false,
-      "description": "地点まわりの緑（舞台の computeGreenContext と同じ数え方）。",
+      "description": "地点まわりの緑（地点データの computeGreenContext と同じ数え方）。",
       "properties": {
         "radius_m": {
           "exclusiveMinimum": 0,
@@ -255,7 +255,7 @@
       "type": "string"
     },
     "generator": {
-      "description": "書き出した舞台の版など（例: tokyo-green-simulator@abc1234）",
+      "description": "書き出した地図アプリの版など（例: tokyo-green-simulator@abc1234）",
       "title": "Generator",
       "type": "string"
     },

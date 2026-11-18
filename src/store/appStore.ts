@@ -55,7 +55,7 @@ export type AppState = {
   /** 読み込んだ計測ログ。健康データを含むため、メモリにだけ置き、保存・共有リンクには入れない */
   measurements: Measurement[]
   measurementRadiusM: MeasurementRadiusM
-  /** 読み込んだ舞台（stage.json）。配車の地点の座標と容量をここから引く */
+  /** 読み込んだ地点データ（stage.json）。配車の地点の座標と容量をここから引く */
   stage: Stage | null
   /** 読み込んだ配車（dispatch.json）。stage と食い違わないことを確かめてから置く */
   dispatch: Dispatch | null
@@ -81,12 +81,12 @@ export type AppState = {
   setMeasurements: (measurements: Measurement[]) => void
   clearMeasurements: () => void
   setMeasurementRadius: (radiusM: MeasurementRadiusM) => void
-  /** 舞台を置き換える。古い舞台に合わせて確かめた配車は外す */
+  /** 地点データを置き換える。古い地点データに合わせて確かめた配車は外す */
   setStage: (stage: Stage) => void
   /** 配車を置き換え、時刻をその配車の最初の時刻に合わせる */
   setDispatch: (dispatch: Dispatch) => void
   setDispatchHour: (hour: number) => void
-  /** JITAI の集計を置き換える（舞台と食い違わないことを確かめてから置く） */
+  /** JITAI の集計を置き換える（地点データと食い違わないことを確かめてから置く） */
   setJitaiSummary: (summary: JitaiSummary) => void
   clearDispatch: () => void
 }

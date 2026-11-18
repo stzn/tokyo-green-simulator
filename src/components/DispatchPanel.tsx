@@ -18,7 +18,7 @@ import { useAppStore } from '../store/appStore'
 import { Panel } from './ui'
 
 type Props = {
-  /** 舞台を読み込んだとき、地図をその区域へ動かす */
+  /** 地点データを読み込んだとき、地図をその区域へ動かす */
   onFocusPoint: (view: ScenarioView) => void
 }
 
@@ -57,7 +57,7 @@ const viewOf = (stage: Stage): ScenarioView => {
 const describeDispatch = (stage: Stage, dispatch: Dispatch) =>
   `${stage.area.name}（${stage.date}・${dispatch.weather_scenario}）の配車 ${dispatch.pods.length} 台を読み込みました`
 
-/** 役者が書き出した配車（dispatch.json）を舞台（stage.json）と突き合わせて読み込み、時刻を選んで地図に重ねる */
+/** シミュレーターが書き出した配車（dispatch.json）を地点データ（stage.json）と突き合わせて読み込み、時刻を選んで地図に重ねる */
 export function DispatchPanel({ onFocusPoint }: Props) {
   const stage = useAppStore((s) => s.stage)
   const dispatch = useAppStore((s) => s.dispatch)
@@ -76,10 +76,10 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     setErrors(errs)
   }
 
-  /** 舞台・配車・JITAI の集計をまとめて確かめ、すべて合格したときだけ置き換える */
+  /** 地点データ・配車・JITAI の集計をまとめて確かめ、すべて合格したときだけ置き換える */
   const applyAll = (stageInput: unknown, dispatchInput: unknown, jitaiInput: unknown, demo = false) => {
     const s = parseStage(stageInput)
-    if (!s.ok) return fail(s.errors.map((e) => `舞台: ${e}`))
+    if (!s.ok) return fail(s.errors.map((e) => `地点データ: ${e}`))
     const d = parseDispatch(dispatchInput, s.value)
     if (!d.ok) return fail(d.errors.map((e) => `配車: ${e}`))
     const j = parseJitaiSummary(jitaiInput, s.value)
@@ -121,13 +121,13 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     if (!s.ok) return fail(s.errors)
     setStage(s.value)
     setErrors([])
-    setMessage(`舞台「${s.value.area.name}」（${s.value.spots.length} 地点）を読み込みました。続けて配車を選んでください`)
+    setMessage(`地点データ「${s.value.area.name}」（${s.value.spots.length} 地点）を読み込みました。続けて配車を選んでください`)
     onFocusPoint(viewOf(s.value))
   }
 
   const loadDispatchFile = async (file: File | undefined) => {
     if (!file) return
-    if (!stage) return fail(['先に舞台（stage.json）を読み込んでください（地点の座標と容量を舞台から引きます）'])
+    if (!stage) return fail(['先に地点データ（stage.json）を読み込んでください（地点の座標と容量を地点データから引きます）'])
     const json = await readJsonFile(file)
     if (!json.ok) return fail(json.errors)
     // 合格しなかったときは、表示中の配車を残す
@@ -140,7 +140,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
 
   const loadJitaiFile = async (file: File | undefined) => {
     if (!file) return
-    if (!stage) return fail(['先に舞台（stage.json）を読み込んでください（区画の位置を舞台の区域から決めます）'])
+    if (!stage) return fail(['先に地点データ（stage.json）を読み込んでください（区画の位置を地点データの区域から決めます）'])
     const json = await readJsonFile(file)
     if (!json.ok) return fail(json.errors)
     const j = parseJitaiSummary(json.value, stage)
@@ -168,14 +168,14 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   const zones = useMemo(() => (stage && jitaiSummary ? zoneCellsAt(jitaiSummary, stage, hour) : []), [stage, jitaiSummary, hour])
 
   return (
-    <Panel title="配車（役者の結果）">
+    <Panel title="配車（シミュレーターの結果）">
       <div className="space-y-2">
         <label className="block text-[11px] text-slate-400">
-          舞台（stage.json）
+          地点データ（stage.json）
           <input
             type="file"
             accept=".json,application/json"
-            aria-label="舞台（stage.json）を選ぶ"
+            aria-label="地点データ（stage.json）を選ぶ"
             onChange={(e) => {
               void loadStageFile(e.target.files?.[0])
               // 同じファイルを選び直しても読み込めるようにする

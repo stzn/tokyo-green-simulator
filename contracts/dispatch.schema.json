@@ -127,7 +127,7 @@
       "$ref": "#/$defs/StageRef"
     },
     "generator": {
-      "description": "書き出した役者の版と配車方式（例: vmgs@abc1234 greedy）",
+      "description": "書き出したシミュレーターの版と配車方式（例: vmgs@abc1234 greedy）",
       "title": "Generator",
       "type": "string"
     },
