@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAppStore } from '../store/appStore'
 import { DispatchPanel } from './DispatchPanel'
 
@@ -127,5 +127,49 @@ describe('機能: JITAI の集計の表示', () => {
     await uploadJitai(JSON.stringify(bad))
     expect(await screen.findByRole('alert')).toHaveTextContent('shibuya')
     expect(useAppStore.getState().jitaiSummary).toBeNull()
+  })
+})
+
+describe('機能: 配車のデモ（heatwave・5 台）', () => {
+  const demo = (name: string) => readFileSync(join(process.cwd(), 'public', 'data', 'demo', 'heatwave-p5', name), 'utf-8')
+  const stubDemo = () =>
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => new Response(demo(String(url).split('/').pop() ?? ''), { status: 200 })),
+    )
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('Given 初期状態 / When 「デモ: coverage」を押す / Then 3 つを読み込み、方式と判定・介入の件数を出してスライダーを出す', async () => {
+    stubDemo()
+    const { onFocusPoint } = setup()
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('coverage')
+    expect(status).toHaveTextContent('判定 719 件・介入 167 件')
+    expect(useAppStore.getState().dispatch?.pods).toHaveLength(5)
+    expect(screen.getByRole('slider', { name: '時刻' })).toBeInTheDocument()
+    expect(onFocusPoint).toHaveBeenCalled()
+  })
+
+  it('Given coverage を表示中 / When 「デモ: greedy」を押す / Then 配車と集計が greedy に替わる', async () => {
+    stubDemo()
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
+    await screen.findByText(/coverage/, { selector: '[role=status]' })
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: greedy' }))
+    expect(await screen.findByText(/greedy/, { selector: '[role=status]' })).toHaveTextContent('判定 896 件・介入 35 件')
+    expect(useAppStore.getState().dispatch?.generator).toMatch(/greedy$/)
+    expect(useAppStore.getState().jitaiSummary?.totals.interventions).toBe(35)
+  })
+
+  it('Given coverage を表示中 / When デモのファイルが 404 / Then 理由を出し、表示中の配車を残す', async () => {
+    stubDemo()
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
+    await screen.findByText(/coverage/, { selector: '[role=status]' })
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })))
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: greedy' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('404')
+    expect(useAppStore.getState().dispatch?.generator).toMatch(/coverage$/)
   })
 })

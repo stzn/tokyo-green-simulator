@@ -171,18 +171,45 @@ PR ごとに GitHub Actions（`.github/workflows/ci.yml`）で、テスト・型
 - UI：地図（`MapView`）をモックにして、ストア経由の振る舞いを検証
 - 実描画：ブラウザで確認
 
+### 配車のデモ（coverage と greedy）
+
+パネルの「デモ: coverage」「デモ: greedy」で、役者の結果（heatwave・ポッド 5 台）をワンクリックで重ねられます。舞台は 2 つの方式で共通なので、ボタンを押し替えると配車と JITAI の集計だけが替わります。
+
+| 方式 | 判定 | 介入 | 介入率 |
+| --- | --- | --- | --- |
+| coverage（徒歩圏で覆える需要を見る。役者の既定） | 719 | 167 | 23.2% |
+| greedy（地点ごとの需要だけを見る） | 896 | 35 | 3.9% |
+
+暑い時刻（12〜16 時）に、greedy では区画ごとの見送りに PET（暑さ）が多く出ます。
+
+- **データ**：`public/data/demo/heatwave-p5/`（`stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、計 1.7 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した舞台です
+- **出どころ**：役者 `vmgs@0798ea4` の `vmgs loop`（樹冠ありの舞台、heatwave、ポッド 5 台、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）
+- **契約の確認**：`src/lib/demo.spec.ts` が、置いたファイルを契約 v1 で確かめます。契約や舞台を変えて合わなくなったら CI が落ちるので、下の手順で作り直してください
+- **作り直す手順**（役者のリポジトリで）：
+
+```bash
+for p in coverage greedy; do uv run vmgs loop --stage ~/tokyo-green-simulator/public/data/stage/otemachi.json --scenario heatwave --pods 5 --rounds 1 --policy $p --out-dir runs/demo-$p; done
+```
+
+```bash
+D=~/tokyo-green-simulator/public/data/demo/heatwave-p5; cp runs/demo-coverage/stage.r1.json $D/stage.json; for p in coverage greedy; do cp runs/demo-$p/dispatch.r1.json $D/dispatch.$p.json; cp runs/demo-$p/jitai-summary.r1.json $D/jitai-summary.$p.json; done
+```
+
+作り直したら、この節の表の件数と出どころの版を書き換えます。
+
 ## 構成
 
 ```
 scripts/            データ取得（fetch-*.ts）、舞台の書き出し（export-stage.ts）と変換ロジック（lib/）
 contracts/          役者（virtual-greening-sim）とのデータ契約 v1 の写し（スキーマとサンプル。直接編集しない）
-public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/ / stage/）
+public/data/        生成済みデータ（trees.json / parks.geojson / wards.geojson / city-trees.geojson / dem/ / stage/ / demo/）
 src/
   data/cityTrees.ts           区道の街路樹（路線）の読み込み・絞り込み・線への展開・範囲集計
   data/parks.ts               公園ポリゴンの読み込みと範囲集計
   data/greenContext.ts        計測地点まわり（半径R m）の緑の集計
   lib/measurementLog.ts       計測ログCSVの読み込みと、緑の文脈つきCSVの書き出し
   lib/dispatch.ts             舞台・配車（データ契約 v1）の検証と、時刻ごとの表示データ（ポッドの位置・地点の PET）
+  lib/demo.ts                 配車のデモ（public/data/demo/）の読み込み
   lib/scenario.ts             シナリオの保存・共有（localStorageとURLハッシュへの符号化）
   lib/dem.ts                  標高タイルのエンコーディング（取得スクリプトと共用）
   lib/solar.ts                太陽位置（方位・高度）
