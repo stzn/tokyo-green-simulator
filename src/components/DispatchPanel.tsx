@@ -11,6 +11,7 @@ import {
   type LoadResult,
   type Stage,
 } from '../lib/dispatch'
+import { DEMO_LABEL, DEMO_POLICIES, fetchDemo, policyOf, type DemoPolicy } from '../lib/demo'
 import { JITAI_RATE_CLASSES, parseJitaiSummary, zoneCellsAt } from '../lib/jitai'
 import type { ScenarioView } from '../lib/scenario'
 import { useAppStore } from '../store/appStore'
@@ -76,7 +77,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
   }
 
   /** 舞台・配車・JITAI の集計をまとめて確かめ、すべて合格したときだけ置き換える */
-  const applyAll = (stageInput: unknown, dispatchInput: unknown, jitaiInput: unknown) => {
+  const applyAll = (stageInput: unknown, dispatchInput: unknown, jitaiInput: unknown, demo = false) => {
     const s = parseStage(stageInput)
     if (!s.ok) return fail(s.errors.map((e) => `舞台: ${e}`))
     const d = parseDispatch(dispatchInput, s.value)
@@ -87,8 +88,19 @@ export function DispatchPanel({ onFocusPoint }: Props) {
     setDispatch(d.value)
     setJitaiSummary(j.value)
     setErrors([])
-    setMessage(describeDispatch(s.value, d.value))
+    setMessage(
+      demo
+        ? `デモ（${DEMO_LABEL}・方式 ${policyOf(d.value.generator)}）: 判定 ${j.value.totals.decisions} 件・介入 ${j.value.totals.interventions} 件`
+        : describeDispatch(s.value, d.value),
+    )
     onFocusPoint(viewOf(s.value))
+  }
+
+  const loadDemo = async (policy: DemoPolicy) => {
+    // 読み込みに失敗したときは、表示中のデータを残す
+    const r = await fetchDemo(policy)
+    if (!r.ok) return fail(r.errors)
+    applyAll(r.value.stage, r.value.dispatch, r.value.jitai, true)
   }
 
   const loadSample = async () => {
@@ -206,6 +218,14 @@ export function DispatchPanel({ onFocusPoint }: Props) {
         <button type="button" disabled={!stage && !dispatch} onClick={clear} className={buttonClass}>
           消去
         </button>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-2" role="group" aria-label={`デモ（${DEMO_LABEL}）`}>
+        <span className="text-[11px] text-slate-400">デモ（{DEMO_LABEL}）</span>
+        {DEMO_POLICIES.map((policy) => (
+          <button key={policy} type="button" onClick={() => void loadDemo(policy)} className={buttonClass}>
+            デモ: {policy}
+          </button>
+        ))}
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
         データ契約 v1（contracts/）で確かめてから重ねます。ファイルはこの端末の中だけで扱います。
