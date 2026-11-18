@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { DEMO_CONDITIONS, DEMO_POLICIES, demoUrls, fetchDemo, fetchDemoComparison, policyOf } from './demo'
+import { DEMO_CONDITIONS, DEMO_POLICIES, demoLabel, demoUrls, fetchDemo, fetchDemoComparison, policyOf } from './demo'
 import { parseDispatch, parseStage } from './dispatch'
 import { parseJitaiSummary } from './jitai'
 
@@ -16,8 +16,8 @@ const diskFetch = vi.fn(async (url: string) => {
 afterEach(() => vi.clearAllMocks())
 
 describe('機能: 配車のデモのデータ（public/data/demo/）', () => {
-  it('Given デモの条件 / Then heatwave・5 台を先頭（既定）に、台数と天気の違う条件を並べる', () => {
-    expect(DEMO_CONDITIONS.map((c) => c.id)).toEqual(['heatwave-p5', 'heatwave-p8', 'normal-p5', 'rainy-p5'])
+  it('Given デモの条件 / Then heatwave・5 台を先頭（既定）に、台数と天気と雨よけの有無の違う条件を並べる', () => {
+    expect(DEMO_CONDITIONS.map((c) => c.id)).toEqual(['heatwave-p5', 'heatwave-p8', 'normal-p5', 'rainy-p5', 'rainy-p5-nocover'])
     expect(new Set(DEMO_CONDITIONS.map((c) => c.label)).size).toBe(DEMO_CONDITIONS.length)
   })
 
@@ -42,6 +42,11 @@ describe('機能: 配車のデモのデータ（public/data/demo/）', () => {
       dispatch: '/base/data/demo/rainy-p5/dispatch.greedy.json',
       jitai: '/base/data/demo/rainy-p5/jitai-summary.greedy.json',
     })
+  })
+
+  it('Given 雨よけ無しの条件 / Then その条件のディレクトリを指し、ラベルで雨よけ無しと分かる', () => {
+    expect(demoUrls('rainy-p5-nocover', 'coverage', '/').dispatch).toBe('/data/demo/rainy-p5-nocover/dispatch.coverage.json')
+    expect(demoLabel('rainy-p5-nocover')).toContain('雨よけ無し')
   })
 
   it('Given 配車の generator / Then 最後の語を方式として読む', () => {

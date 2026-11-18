@@ -4,7 +4,7 @@
   "area_id": "otemachi",
   "date": "2025-08-30"
  },
- "generator": "vmgs@049abc5 jitai",
+ "generator": "vmgs@d596361 jitai",
  "weather_scenario": "rainy",
  "workers": 300,
  "min_workers": 3,
@@ -14,8 +14,8 @@
   "zone_m": 400.0
  },
  "totals": {
-  "decisions": 930,
-  "interventions": 19
+  "decisions": 833,
+  "interventions": 96
  },
  "recovery": {
   "enabled": true,
@@ -28,11 +28,11 @@
     0
    ],
    "hour": 9,
-   "decisions": 5,
-   "interventions": 0,
+   "decisions": 3,
+   "interventions": 2,
    "skipped_calendar": 0,
    "skipped_pods": 0,
-   "skipped_pet": 5
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -67,8 +67,8 @@
    "decisions": 7,
    "interventions": 0,
    "skipped_calendar": 5,
-   "skipped_pods": 0,
-   "skipped_pet": 2
+   "skipped_pods": 1,
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -100,11 +100,11 @@
     0
    ],
    "hour": 17,
-   "decisions": 8,
-   "interventions": 0,
+   "decisions": 6,
+   "interventions": 4,
    "skipped_calendar": 0,
-   "skipped_pods": 0,
-   "skipped_pet": 8
+   "skipped_pods": 2,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -124,11 +124,11 @@
     1
    ],
    "hour": 17,
-   "decisions": 6,
-   "interventions": 0,
+   "decisions": 4,
+   "interventions": 3,
    "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 5
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -196,22 +196,10 @@
     2
    ],
    "hour": 17,
-   "decisions": 6,
-   "interventions": 0,
+   "decisions": 4,
+   "interventions": 3,
    "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 18,
-   "decisions": 3,
-   "interventions": 1,
-   "skipped_calendar": 1,
-   "skipped_pods": 1,
    "skipped_pet": 0
   },
   {
@@ -268,11 +256,11 @@
     3
    ],
    "hour": 17,
-   "decisions": 10,
-   "interventions": 0,
+   "decisions": 8,
+   "interventions": 2,
    "skipped_calendar": 1,
    "skipped_pods": 5,
-   "skipped_pet": 4
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -281,10 +269,10 @@
    ],
    "hour": 13,
    "decisions": 7,
-   "interventions": 0,
+   "interventions": 1,
    "skipped_calendar": 3,
    "skipped_pods": 3,
-   "skipped_pet": 1
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -304,11 +292,11 @@
     4
    ],
    "hour": 17,
-   "decisions": 8,
-   "interventions": 0,
+   "decisions": 6,
+   "interventions": 2,
    "skipped_calendar": 1,
    "skipped_pods": 3,
-   "skipped_pet": 4
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -364,11 +352,11 @@
     0
    ],
    "hour": 13,
-   "decisions": 13,
-   "interventions": 0,
-   "skipped_calendar": 4,
+   "decisions": 7,
+   "interventions": 4,
+   "skipped_calendar": 2,
    "skipped_pods": 0,
-   "skipped_pet": 9
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -412,11 +400,11 @@
     0
    ],
    "hour": 17,
-   "decisions": 11,
-   "interventions": 0,
+   "decisions": 9,
+   "interventions": 3,
    "skipped_calendar": 1,
-   "skipped_pods": 3,
-   "skipped_pet": 7
+   "skipped_pods": 5,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -460,11 +448,11 @@
     1
    ],
    "hour": 13,
-   "decisions": 9,
-   "interventions": 0,
+   "decisions": 7,
+   "interventions": 2,
    "skipped_calendar": 0,
-   "skipped_pods": 3,
-   "skipped_pet": 6
+   "skipped_pods": 5,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -508,18 +496,6 @@
     1
    ],
    "hour": 17,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 0,
-   "skipped_pet": 9
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 18,
    "decisions": 5,
    "interventions": 3,
    "skipped_calendar": 0,
@@ -529,9 +505,45 @@
   {
    "zone": [
     1,
+    1
+   ],
+   "hour": 18,
+   "decisions": 4,
+   "interventions": 3,
+   "skipped_calendar": 0,
+   "skipped_pods": 1,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    1,
     2
    ],
    "hour": 9,
+   "decisions": 5,
+   "interventions": 3,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 10,
+   "decisions": 7,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 3,
+   "skipped_pet": 4
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 11,
    "decisions": 9,
    "interventions": 0,
    "skipped_calendar": 2,
@@ -543,36 +555,12 @@
     1,
     2
    ],
-   "hour": 10,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 3,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 11,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 0,
-   "skipped_pet": 7
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
    "hour": 13,
-   "decisions": 15,
-   "interventions": 0,
+   "decisions": 11,
+   "interventions": 4,
    "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 13
+   "skipped_pods": 4,
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -592,11 +580,11 @@
     2
    ],
    "hour": 15,
-   "decisions": 13,
+   "decisions": 12,
    "interventions": 0,
    "skipped_calendar": 9,
    "skipped_pods": 0,
-   "skipped_pet": 4
+   "skipped_pet": 3
   },
   {
    "zone": [
@@ -616,11 +604,11 @@
     2
    ],
    "hour": 17,
-   "decisions": 15,
-   "interventions": 0,
+   "decisions": 12,
+   "interventions": 5,
    "skipped_calendar": 3,
-   "skipped_pods": 0,
-   "skipped_pet": 12
+   "skipped_pods": 4,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -640,11 +628,11 @@
     3
    ],
    "hour": 9,
-   "decisions": 14,
-   "interventions": 0,
+   "decisions": 10,
+   "interventions": 3,
    "skipped_calendar": 6,
    "skipped_pods": 0,
-   "skipped_pet": 8
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -652,11 +640,11 @@
     3
    ],
    "hour": 10,
-   "decisions": 13,
+   "decisions": 10,
    "interventions": 0,
    "skipped_calendar": 2,
    "skipped_pods": 0,
-   "skipped_pet": 11
+   "skipped_pet": 8
   },
   {
    "zone": [
@@ -688,11 +676,11 @@
     3
    ],
    "hour": 13,
-   "decisions": 7,
-   "interventions": 0,
+   "decisions": 6,
+   "interventions": 3,
    "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 6
+   "skipped_pods": 2,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -700,11 +688,11 @@
     3
    ],
    "hour": 14,
-   "decisions": 7,
+   "decisions": 4,
    "interventions": 0,
-   "skipped_calendar": 3,
+   "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 4
+   "skipped_pet": 3
   },
   {
    "zone": [
@@ -724,11 +712,11 @@
     3
    ],
    "hour": 17,
-   "decisions": 4,
-   "interventions": 0,
+   "decisions": 3,
+   "interventions": 2,
    "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 3
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -760,11 +748,11 @@
     0
    ],
    "hour": 13,
-   "decisions": 13,
-   "interventions": 0,
+   "decisions": 8,
+   "interventions": 3,
    "skipped_calendar": 5,
    "skipped_pods": 0,
-   "skipped_pet": 8
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -772,11 +760,11 @@
     0
    ],
    "hour": 14,
-   "decisions": 9,
+   "decisions": 6,
    "interventions": 0,
-   "skipped_calendar": 5,
+   "skipped_calendar": 3,
    "skipped_pods": 0,
-   "skipped_pet": 4
+   "skipped_pet": 3
   },
   {
    "zone": [
@@ -808,11 +796,11 @@
     0
    ],
    "hour": 17,
-   "decisions": 9,
-   "interventions": 0,
+   "decisions": 8,
+   "interventions": 2,
    "skipped_calendar": 1,
    "skipped_pods": 5,
-   "skipped_pet": 3
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -820,11 +808,11 @@
     1
    ],
    "hour": 9,
-   "decisions": 8,
-   "interventions": 0,
+   "decisions": 6,
+   "interventions": 3,
    "skipped_calendar": 2,
    "skipped_pods": 0,
-   "skipped_pet": 6
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -856,11 +844,11 @@
     1
    ],
    "hour": 13,
-   "decisions": 11,
-   "interventions": 0,
+   "decisions": 9,
+   "interventions": 3,
    "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 9
+   "skipped_pods": 3,
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -868,11 +856,11 @@
     1
    ],
    "hour": 14,
-   "decisions": 7,
+   "decisions": 5,
    "interventions": 0,
-   "skipped_calendar": 4,
+   "skipped_calendar": 3,
    "skipped_pods": 0,
-   "skipped_pet": 3
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -916,11 +904,11 @@
     2
    ],
    "hour": 13,
-   "decisions": 12,
-   "interventions": 0,
+   "decisions": 8,
+   "interventions": 4,
    "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 11
+   "skipped_pods": 3,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -952,11 +940,11 @@
     2
    ],
    "hour": 17,
-   "decisions": 9,
-   "interventions": 0,
+   "decisions": 7,
+   "interventions": 4,
    "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 7
+   "skipped_pods": 1,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -1000,11 +988,11 @@
     3
    ],
    "hour": 13,
-   "decisions": 6,
-   "interventions": 0,
+   "decisions": 4,
+   "interventions": 1,
    "skipped_calendar": 0,
    "skipped_pods": 3,
-   "skipped_pet": 3
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -1037,10 +1025,10 @@
    ],
    "hour": 17,
    "decisions": 9,
-   "interventions": 0,
+   "interventions": 1,
    "skipped_calendar": 1,
-   "skipped_pods": 5,
-   "skipped_pet": 3
+   "skipped_pods": 7,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -1060,23 +1048,11 @@
     4
    ],
    "hour": 9,
-   "decisions": 5,
-   "interventions": 0,
+   "decisions": 4,
+   "interventions": 1,
    "skipped_calendar": 1,
    "skipped_pods": 2,
-   "skipped_pet": 2
-  },
-  {
-   "zone": [
-    2,
-    4
-   ],
-   "hour": 10,
-   "decisions": 7,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 4,
-   "skipped_pet": 1
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -1099,8 +1075,8 @@
    "decisions": 7,
    "interventions": 0,
    "skipped_calendar": 2,
-   "skipped_pods": 3,
-   "skipped_pet": 2
+   "skipped_pods": 5,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -1123,8 +1099,8 @@
    "decisions": 5,
    "interventions": 0,
    "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 4
+   "skipped_pods": 4,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -1132,11 +1108,11 @@
     1
    ],
    "hour": 17,
-   "decisions": 10,
-   "interventions": 0,
+   "decisions": 8,
+   "interventions": 3,
    "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 8
+   "skipped_pods": 3,
+   "skipped_pet": 0
   },
   {
    "zone": [
