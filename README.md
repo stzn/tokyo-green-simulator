@@ -190,12 +190,14 @@ PR ごとに GitHub Actions（`.github/workflows/ci.yml`）で、テスト・型
 | heatwave・5 台（既定） | 719・167・23.2% | 896・35・3.9% |
 | heatwave・8 台 | 691・198・28.7% | 867・66・7.6% |
 | normal・5 台 | 631・234・37.1% | 750・132・17.6% |
-| rainy・5 台 | 930・19・2.0% | 934・15・1.6% |
+| rainy・5 台 | 833・96・11.5% | 851・69・8.1% |
+| rainy・5 台・雨よけ無し | 930・19・2.0% | 934・15・1.6% |
 
 coverage は徒歩圏で覆える需要を見る方式（シミュレーターの既定）、greedy は地点ごとの需要だけを見る方式です。
 
 - heatwave の暑い時刻（12〜16 時）は、greedy では区画ごとの見送りに天候（PET の暑さ）が多く出ます
-- rainy は 9〜17 時に 1 mm/h 以上の雨が続くため、その時刻は両方式とも介入が 0 件で、見送りは天候（雨）になります。介入は雨のやむ 18 時だけです
+- ポッドには雨よけ（屋根）があるものとしています（シミュレーターの既定）。rainy では、行き帰りが 5 mm/h 未満の雨の時刻なら勧めるので、雨の弱い 9・13・17 時にも介入します。5 mm/h 以上の 10〜12 時・14〜16 時は見送り、理由は天候（雨）です
+- 「rainy・5 台・雨よけ無し」は、屋外の席で 1 mm/h 以上の雨を見送る場合です。9〜17 時は両方式とも介入が 0 件になります。雨よけの有無を 1 画面で比べるには、「rainy・5 台」のデモを読み込んだあと、「比較（配車と JITAI の集計）」で `public/data/demo/rainy-p5-nocover/` の `dispatch.coverage.json` と `jitai-summary.coverage.json` を選びます（地点データは両条件で同じです）
 
 「デモ: 比べる」を押すと、選んだ条件の coverage を主、greedy を比較として 1 画面に重ねます。
 
@@ -205,17 +207,18 @@ coverage は徒歩圏で覆える需要を見る方式（シミュレーター�
 - ほかのデモ・サンプル・ファイルを読み込むか、消去すると比較は外れます（「比較を外す」でも外せます）
 - **自分のファイルで比べる**：主の地点データ・配車・JITAI の集計を読み込んだあと、「比較（配車と JITAI の集計）」で比べたい配車と集計の 2 ファイルをまとめて選びます。どちらのファイルかは中身で見分け、主の地点データと突き合わせて確かめます（地点データが違う結果どうしは比べられません）。方式が同じなら気象を足して（例「coverage・heatwave」）、それでも同じなら「主」「比較」と呼びます
 
-- **データ**：`public/data/demo/{heatwave-p5,heatwave-p8,normal-p5,rainy-p5}/`（それぞれ `stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、1 条件あたり 1.7 MB、計 6.8 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した地点データです
-- **出どころ**：シミュレーターの `vmgs loop`（樹冠ありの地点データ、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）。heatwave・5 台は `vmgs@0798ea4`、ほかは `vmgs@049abc5`（雨の見送り入り。heatwave・5 台も作り直して件数が同じことを確かめた）
+- **データ**：`public/data/demo/{heatwave-p5,heatwave-p8,normal-p5,rainy-p5,rainy-p5-nocover}/`（それぞれ `stage.json`、`dispatch.{coverage,greedy}.json`、`jitai-summary.{coverage,greedy}.json`、1 条件あたり 1.7 MB、計 8.5 MB）。公開サイトにも載ります。中身は合成のワーカー 300 人の集計（3 人未満の区画・時刻は無し、個人の記録・ID は無し）と、`public/data/stage/otemachi.json` に需要を書き戻した地点データです
+- **出どころ**：シミュレーターの `vmgs loop`（樹冠ありの地点データ、ワーカー 300 人、seed 0、`--rounds 1`）の周 1（集計した需要で配車し直した結果）。heatwave・5 台は `vmgs@0798ea4`、heatwave・8 台と normal・5 台は `vmgs@049abc5`（雨の見送り入り。heatwave・5 台も作り直して件数が同じことを確かめた）、rainy の 2 条件は `vmgs@d596361`（雨よけを既定にした版。雨の無い気象では雨よけの有無で記録が変わらないことを確かめたので、ほかの条件は作り直していない）。雨よけ無しは `--no-rain-cover`
 - **契約の確認**：`src/lib/demo.spec.ts` が、置いた全条件のファイルを契約 v1 で確かめます。契約や地点データを変えて合わなくなったら CI が落ちるので、下の手順で作り直してください
 - **作り直す手順**（シミュレーターのリポジトリで。条件は `気象:台数`）：
 
 ```bash
 for c in heatwave:5 heatwave:8 normal:5 rainy:5; do s=${c%%:*}; n=${c##*:}; for p in coverage greedy; do uv run vmgs loop --stage ~/tokyo-green-simulator/public/data/stage/otemachi.json --scenario $s --pods $n --rounds 1 --policy $p --out-dir runs/demo/$s-p$n-$p; done; done
+for p in coverage greedy; do uv run vmgs loop --stage ~/tokyo-green-simulator/public/data/stage/otemachi.json --scenario rainy --pods 5 --rounds 1 --policy $p --no-rain-cover --out-dir runs/demo/rainy-p5-nocover-$p; done
 ```
 
 ```bash
-for c in heatwave-p5 heatwave-p8 normal-p5 rainy-p5; do D=~/tokyo-green-simulator/public/data/demo/$c; mkdir -p $D; cp runs/demo/$c-coverage/stage.r1.json $D/stage.json; for p in coverage greedy; do cp runs/demo/$c-$p/dispatch.r1.json $D/dispatch.$p.json; cp runs/demo/$c-$p/jitai-summary.r1.json $D/jitai-summary.$p.json; done; done
+for c in heatwave-p5 heatwave-p8 normal-p5 rainy-p5 rainy-p5-nocover; do D=~/tokyo-green-simulator/public/data/demo/$c; mkdir -p $D; cp runs/demo/$c-coverage/stage.r1.json $D/stage.json; for p in coverage greedy; do cp runs/demo/$c-$p/dispatch.r1.json $D/dispatch.$p.json; cp runs/demo/$c-$p/jitai-summary.r1.json $D/jitai-summary.$p.json; done; done
 ```
 
 条件を足すときは、`src/lib/demo.ts` の `DEMO_CONDITIONS` にも足します。作り直したら、この節の表の件数と出どころの版を書き換えます。

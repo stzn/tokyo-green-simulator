@@ -6,12 +6,13 @@ import { parseJson, type LoadResult } from './dispatch'
 export const DEMO_POLICIES = ['coverage', 'greedy'] as const
 export type DemoPolicy = (typeof DEMO_POLICIES)[number]
 
-/** デモの条件（気象 × ポッドの台数）。先頭が既定。データの出どころは README の「配車のデモ」 */
+/** デモの条件（気象 × ポッドの台数。ポッドの雨よけは、雨よけ無しと書いたもの以外は有り）。先頭が既定。データの出どころは README の「配車のデモ」 */
 export const DEMO_CONDITIONS = [
   { id: 'heatwave-p5', label: 'heatwave・5 台' },
   { id: 'heatwave-p8', label: 'heatwave・8 台' },
   { id: 'normal-p5', label: 'normal・5 台' },
   { id: 'rainy-p5', label: 'rainy・5 台' },
+  { id: 'rainy-p5-nocover', label: 'rainy・5 台・雨よけ無し' },
 ] as const
 export type DemoCondition = (typeof DEMO_CONDITIONS)[number]['id']
 

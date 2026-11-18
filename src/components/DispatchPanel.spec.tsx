@@ -158,8 +158,17 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'デモの条件' }), 'rainy・5 台')
     await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('デモ（rainy・5 台・方式 coverage）: 判定 930 件・介入 19 件')
+    expect(status).toHaveTextContent('デモ（rainy・5 台・方式 coverage）: 判定 833 件・介入 96 件')
     expect(useAppStore.getState().jitaiSummary?.weather_scenario).toBe('rainy')
+  })
+
+  it('Given デモの条件で rainy・5 台・雨よけ無しを選ぶ / When 「デモ: coverage」を押す / Then 雨よけ有りより介入が少ない', async () => {
+    stubDemo()
+    setup()
+    await userEvent.selectOptions(screen.getByRole('combobox', { name: 'デモの条件' }), 'rainy・5 台・雨よけ無し')
+    await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
+    const status = await screen.findByRole('status')
+    expect(status).toHaveTextContent('デモ（rainy・5 台・雨よけ無し・方式 coverage）: 判定 930 件・介入 19 件')
   })
 
   it('Given coverage を表示中 / When 「デモ: greedy」を押す / Then 配車と集計が greedy に替わる', async () => {
