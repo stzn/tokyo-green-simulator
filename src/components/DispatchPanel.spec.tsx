@@ -111,6 +111,8 @@ describe('機能: JITAI の集計の表示', () => {
     const list = screen.getByRole('list', { name: 'この時刻の JITAI（区画ごと）' })
     expect(within(list).getByText(/判定 5/)).toBeInTheDocument()
     expect(within(list).getByText(/介入 2/)).toBeInTheDocument()
+    // 天候の段階（雨・PET）の見送りは「天候」と出す
+    expect(within(list).getAllByText(/天候 \d+/).length).toBeGreaterThan(0)
   })
 
   it('Given 地点データが未読み込み / When JITAI の集計を選ぶ / Then 先に地点データを読むよう伝える', async () => {

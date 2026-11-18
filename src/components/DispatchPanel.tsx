@@ -351,7 +351,7 @@ export function DispatchPanel({ onFocusPoint }: Props) {
                       <span className="ml-1.5">判定 {z.decisions}</span>
                       <span className="ml-1.5">介入 {z.interventions}（{Math.round(z.rate * 100)}%）</span>
                       <span className="ml-1.5 text-slate-500">
-                        見送り 予定 {z.skipped_calendar}・ポッド {z.skipped_pods}・PET {z.skipped_pet}
+                        見送り 予定 {z.skipped_calendar}・ポッド {z.skipped_pods}・天候 {z.skipped_pet}
                       </span>
                     </li>
                   ))}
