@@ -229,3 +229,49 @@ export function petCategory(petC: number): PetCategory {
   const found = PET_CATEGORIES.find((c) => (c.key === 'cool' ? petC < c.maxC : petC <= c.maxC))
   return found ?? PET_CATEGORIES[PET_CATEGORIES.length - 1]
 }
+
+// --- 地点の需要（stage.json の demand） ---
+
+/** ある時刻の地点の需要。share は 1 日の最大の重みに対する割合（時刻をまたいで比べられるように） */
+export type DemandMarker = { spotId: string; spotName: string; lon: number; lat: number; weight: number; share: number }
+
+/** 地点データに需要が 1 件でもあるか（無ければシミュレーターは 8〜19 時に全地点で一様とみなす） */
+export function hasDemand(stage: Stage): boolean {
+  return stage.spots.some((s) => (s.demand ?? []).some((d) => d.weight > 0))
+}
+
+/** 1 日（全地点・全時刻）の最大の重み */
+export function demandMax(stage: Stage): number {
+  let max = 0
+  for (const s of stage.spots) for (const d of s.demand ?? []) max = Math.max(max, d.weight)
+  return max
+}
+
+/** ある時刻の全地点の需要（重みの無い地点は 0）。座標は地点データの地点から引く */
+export function demandAt(stage: Stage, hour: number): DemandMarker[] {
+  const max = demandMax(stage)
+  return stage.spots.map((s) => {
+    const weight = (s.demand ?? []).find((d) => d.hour === hour)?.weight ?? 0
+    return { spotId: s.id, spotName: s.name, lon: s.lon, lat: s.lat, weight, share: max > 0 ? weight / max : 0 }
+  })
+}
+
+export type DemandClassKey = 'none' | 'trace' | 'some' | 'many' | 'most'
+export type DemandClass = { key: DemandClassKey; label: string; range: string; color: Color }
+
+/**
+ * 需要の区分（1 日の最大に対する割合。上限を含まない）。PET の暖色と取り違えないよう寒色で塗る。
+ * 「わずか」には、少人数の区画を時刻ごとに合算して全地点に薄く配った分が入る
+ */
+export const DEMAND_CLASSES: (DemandClass & { below: number })[] = [
+  { key: 'none', label: '無し', range: '0', below: Number.MIN_VALUE, color: [100, 116, 139, 110] },
+  { key: 'trace', label: 'わずか', range: '10% 未満', below: 0.1, color: [186, 230, 253, 170] },
+  { key: 'some', label: 'やや多い', range: '10〜30%', below: 0.3, color: [56, 189, 248, 180] },
+  { key: 'many', label: '多い', range: '30〜60%', below: 0.6, color: [37, 99, 235, 190] },
+  { key: 'most', label: 'とても多い', range: '60% 以上', below: Number.POSITIVE_INFINITY, color: [67, 56, 202, 210] },
+]
+
+export function demandClass(share: number): DemandClass {
+  if (share <= 0) return DEMAND_CLASSES[0]
+  return DEMAND_CLASSES.slice(1).find((c) => share < c.below) ?? DEMAND_CLASSES[DEMAND_CLASSES.length - 1]
+}

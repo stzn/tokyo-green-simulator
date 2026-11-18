@@ -173,3 +173,35 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     expect(useAppStore.getState().dispatch?.generator).toMatch(/coverage$/)
   })
 })
+
+describe('機能: 地点の需要の表示', () => {
+  it('Given サンプルを 12 時で表示 / When 地点の色を需要にする / Then 需要の要約（合計・地点数・多い順）と需要の凡例を出す', async () => {
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'サンプルを読み込む' }))
+    fireEvent.change(await screen.findByRole('slider', { name: '時刻' }), { target: { value: '12' } })
+    await userEvent.click(screen.getByRole('radio', { name: '需要' }))
+    expect(useAppStore.getState().spotColor).toBe('demand')
+    expect(screen.getByText(/需要: 合計 1\.8（2 地点）/)).toHaveTextContent('大手町 仲通り北の歩道')
+    const legend = screen.getByRole('list', { name: '凡例' })
+    expect(within(legend).getByText(/とても多い/)).toBeInTheDocument()
+    expect(within(legend).queryByText(/非常に暑い/)).not.toBeInTheDocument()
+  })
+
+  it('Given 需要を表示中 / When 需要の無い時刻（3 時） / Then 需要が無いことを伝える', async () => {
+    setup()
+    await userEvent.click(screen.getByRole('button', { name: 'サンプルを読み込む' }))
+    await userEvent.click(await screen.findByRole('radio', { name: '需要' }))
+    fireEvent.change(screen.getByRole('slider', { name: '時刻' }), { target: { value: '3' } })
+    expect(screen.getByText('この時刻の需要はありません')).toBeInTheDocument()
+  })
+
+  it('Given 需要が 1 件も無い地点データ / Then 需要を選べず、シミュレーターが一様とみなすことを伝える', async () => {
+    setup()
+    const stage = JSON.parse(fixture('stage.sample.json')) as { spots: { demand?: unknown[] }[] }
+    for (const spot of stage.spots) spot.demand = []
+    await uploadStage(JSON.stringify(stage))
+    await uploadDispatch()
+    expect(await screen.findByRole('radio', { name: '需要' })).toBeDisabled()
+    expect(screen.getByText(/この地点データには需要がありません/)).toBeInTheDocument()
+  })
+})

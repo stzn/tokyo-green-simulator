@@ -8,6 +8,7 @@ import type { PolygonRings } from '../lib/geo'
 import type { Measurement } from '../lib/measurementLog'
 import { simulateGreening, type GreeningPlan, type GreeningResult } from '../lib/simulation/greening'
 
+export type SpotColor = 'pet' | 'demand'
 export type LayerKey = 'terrain' | 'buildings' | 'parks' | 'trees' | 'cityTrees' | 'measurements' | 'dispatch'
 export type TreeMode = 'columns' | 'heatmap'
 
@@ -63,6 +64,8 @@ export type AppState = {
   dispatchHour: number
   /** 読み込んだ JITAI の集計（jitai-summary.json）。区画×時刻の件数だけで、個人の記録は含まない */
   jitaiSummary: JitaiSummary | null
+  /** 地点の円を何で塗るか（PET の暑さか、需要か） */
+  spotColor: SpotColor
 
   toggleLayer: (key: LayerKey) => void
   setTreeMode: (mode: TreeMode) => void
@@ -89,6 +92,7 @@ export type AppState = {
   /** JITAI の集計を置き換える（地点データと食い違わないことを確かめてから置く） */
   setJitaiSummary: (summary: JitaiSummary) => void
   clearDispatch: () => void
+  setSpotColor: (spotColor: SpotColor) => void
 }
 
 const DEFAULT_DISPATCH_HOUR = 12
@@ -106,6 +110,7 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   stage: null,
   dispatch: null,
   dispatchHour: DEFAULT_DISPATCH_HOUR,
+  spotColor: 'pet',
   jitaiSummary: null,
 
   toggleLayer: (key) => set((s) => ({ layers: { ...s.layers, [key]: !s.layers[key] } })),
@@ -134,11 +139,12 @@ const initializer = (set: (fn: (s: AppState) => Partial<AppState>) => void, get:
   setMeasurements: (measurements) => set((s) => ({ measurements, selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   clearMeasurements: () => set((s) => ({ measurements: [], selection: s.selection?.kind === 'measurement' ? null : s.selection })),
   setMeasurementRadius: (measurementRadiusM) => set(() => ({ measurementRadiusM })),
-  setStage: (stage) => set(() => ({ stage, dispatch: null, jitaiSummary: null })),
+  setStage: (stage) => set(() => ({ stage, dispatch: null, jitaiSummary: null, spotColor: 'pet' })),
   setDispatch: (dispatch) => set(() => ({ dispatch, dispatchHour: dispatchHours(dispatch)[0] ?? DEFAULT_DISPATCH_HOUR })),
   setDispatchHour: (hour) => set(() => ({ dispatchHour: Math.min(23, Math.max(0, Math.round(hour))) })),
   setJitaiSummary: (jitaiSummary) => set(() => ({ jitaiSummary })),
-  clearDispatch: () => set(() => ({ stage: null, dispatch: null, jitaiSummary: null, dispatchHour: DEFAULT_DISPATCH_HOUR })),
+  clearDispatch: () => set(() => ({ stage: null, dispatch: null, jitaiSummary: null, dispatchHour: DEFAULT_DISPATCH_HOUR, spotColor: 'pet' })),
+  setSpotColor: (spotColor) => set(() => ({ spotColor })),
 })
 
 /** テストや複数インスタンス用のファクトリ */

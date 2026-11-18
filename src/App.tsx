@@ -37,7 +37,7 @@ import type { Extent } from './lib/projection'
 import { fromScenario, readScenarioFromHash, type ScenarioView } from './lib/scenario'
 import { useDebouncedValue } from './lib/useDebouncedValue'
 import { computeGreenContext } from './data/greenContext'
-import { snapshotAt } from './lib/dispatch'
+import { demandAt, snapshotAt } from './lib/dispatch'
 import { zoneCellsAt } from './lib/jitai'
 import { useAppStore } from './store/appStore'
 
@@ -134,7 +134,7 @@ export default function App() {
   const parks = useParks()
   const [viewBounds, setViewBounds] = useState<Extent | null>(null)
 
-  const { layers, treeMode, speciesFilter, wardFilter, selection, greened, measurements, measurementRadiusM, stage, dispatch, dispatchHour, jitaiSummary } = useAppStore(
+  const { layers, treeMode, speciesFilter, wardFilter, selection, greened, measurements, measurementRadiusM, stage, dispatch, dispatchHour, jitaiSummary, spotColor } = useAppStore(
     useShallow((s) => ({
       layers: s.layers,
       treeMode: s.treeMode,
@@ -148,6 +148,7 @@ export default function App() {
       dispatch: s.dispatch,
       dispatchHour: s.dispatchHour,
       jitaiSummary: s.jitaiSummary,
+      spotColor: s.spotColor,
     })),
   )
   const select = useAppStore((s) => s.select)
@@ -192,6 +193,7 @@ export default function App() {
   // 選んだ時刻のポッドの位置と地点の PET
   const dispatchSnapshot = useMemo(() => (stage && dispatch ? snapshotAt(stage, dispatch, dispatchHour) : null), [stage, dispatch, dispatchHour])
   const jitaiZones = useMemo(() => (stage && jitaiSummary ? zoneCellsAt(jitaiSummary, stage, dispatchHour) : []), [stage, jitaiSummary, dispatchHour])
+  const demandMarkers = useMemo(() => (stage && spotColor === 'demand' ? demandAt(stage, dispatchHour) : []), [stage, spotColor, dispatchHour])
 
   const greenedList = useMemo(() => Object.values(greened), [greened])
   const selectedBuildingId = selection?.kind === 'building' ? selection.building.id : null
@@ -218,7 +220,14 @@ export default function App() {
       createBuildingsLayer({ visible: layers.buildings, selectedId: selectedBuildingId, greenedIds: new Set(Object.keys(greened)), terrain: onTerrain }),
       ...(treeData && mask ? createTreeLayers({ data: treeData, mask, mode: treeMode, visible: layers.trees, terrain: onTerrain }) : []),
       ...createGreeningLayers(greenedList, onTerrain),
-      ...createDispatchLayers({ snapshot: dispatchSnapshot, zones: jitaiZones, visible: layers.dispatch, terrain: onTerrain }),
+      ...createDispatchLayers({
+        snapshot: dispatchSnapshot,
+        zones: jitaiZones,
+        demand: demandMarkers,
+        spotColor,
+        visible: layers.dispatch,
+        terrain: onTerrain,
+      }),
       // 計測地点は最前面に置く（他のレイヤーに埋もれないように）
       ...createMeasurementLayers({
         measurements,
@@ -240,6 +249,8 @@ export default function App() {
       measurementRadiusM,
       dispatchSnapshot,
       jitaiZones,
+      demandMarkers,
+      spotColor,
       cityTreePaths,
       greened,
       greenedList,

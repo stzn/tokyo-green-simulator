@@ -292,3 +292,20 @@ describe('機能: JITAI の集計の保持', () => {
     expect(s.getState().jitaiSummary).toBeNull()
   })
 })
+
+describe('機能: 地点の色（PET・需要）の切り替え', () => {
+  it('Given 初期状態 / Then 地点の色は PET', () => {
+    expect(createAppStore().getState().spotColor).toBe('pet')
+  })
+
+  it('Given 需要を表示中 / When 地点データを置き換える・消去する / Then PET に戻す（次の地点データに需要が無いことがある）', () => {
+    const s = createAppStore()
+    s.getState().setSpotColor('demand')
+    expect(s.getState().spotColor).toBe('demand')
+    s.getState().setStage({} as Stage)
+    expect(s.getState().spotColor).toBe('pet')
+    s.getState().setSpotColor('demand')
+    s.getState().clearDispatch()
+    expect(s.getState().spotColor).toBe('pet')
+  })
+})
