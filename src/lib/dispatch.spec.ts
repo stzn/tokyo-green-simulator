@@ -60,6 +60,20 @@ describe('機能: 地点データ（stage.json）を読み込む', () => {
     if (r.ok) expect(r.value.spots.map((s) => s.id)).toEqual(['OTM-001', 'OTM-002', 'OTM-003'])
   })
 
+  it('Given 版 2 のサンプル / When 読み込む / Then 屋根付きの地点を含めて読み込める', () => {
+    const r = parseStage(read('stage.v2.sample.json'))
+    expect(r.ok).toBe(true)
+    if (r.ok) expect(r.value.spots[0]).toMatchObject({ shelter: 'covered', shelter_network: 'N1' })
+  })
+
+  it('Given 網の番号の無い屋根付きの地点 / When 読み込む / Then 理由を返す', () => {
+    const data = read('stage.v2.sample.json') as { spots: Record<string, unknown>[] }
+    delete data.spots[0].shelter_network
+    const r = parseStage(data)
+    expect(r.ok).toBe(false)
+    if (!r.ok) expect(r.errors.join()).toMatch('shelter_network')
+  })
+
   it('Given 形が契約に合わない（知らないキー） / When 読み込む / Then 例外にせず、場所つきの理由を返す', () => {
     const data = rawStage()
     data.spotz = []
@@ -219,6 +233,15 @@ describe('機能: 時刻ごとの表示データ', () => {
     const { comfort } = snapshotAt(sampleStage(), sampleDispatch(), 12)
     expect(comfort).toHaveLength(3)
     expect(comfort[0]).toEqual({ spotId: 'OTM-001', spotName: '大手町 仲通り北の歩道', lon: 139.7652, lat: 35.6872, petC: 38.5, podsPresent: 1 })
+  })
+
+  it('Given 版 2 の地点データ（OTM-001 が屋根付き） / When 12 時を表示データにする / Then ポッドと PET の説明に屋根付きの網を添える', () => {
+    const r = parseStage(read('stage.v2.sample.json'))
+    if (!r.ok) throw new Error(r.errors.join('\n'))
+    const { pods, comfort } = snapshotAt(r.value, sampleDispatch(), 12)
+    expect(pods[0].spotName).toBe('大手町 地下通路（屋根付きの例）・屋根付き（網 N1）')
+    expect(comfort[0].spotName).toBe('大手町 地下通路（屋根付きの例）・屋根付き（網 N1）')
+    expect(comfort[1].spotName).not.toMatch('屋根付き')
   })
 
   it('Given データの無い時刻（3 時） / When 表示データにする / Then ポッドも快適度も空', () => {

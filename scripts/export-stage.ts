@@ -1,4 +1,4 @@
-// パイロット区域（大手町・丸の内）の地点データ（stage.json、データ契約 v1）を書き出す。
+// パイロット区域（大手町・丸の内）の地点データ（stage.json、データ契約の版 2）を書き出す。
 //   npm run stage:export                     # 2025-08-30 で計算
 //   npm run stage:export -- --date 2025-07-15
 // 建物は地図表示と同じ PLATEAU の MVT、街路樹の樹冠は public/data/trees.json、通路は OpenStreetMap（Overpass API）から取り、
@@ -71,13 +71,13 @@ async function fetchBuildingTile(x: number, y: number): Promise<Uint8Array | nul
   return body.length > 0 ? body : null
 }
 
-/** 区域の中の歩行者用の通路（地上かどうかなどの絞り込みは stageSpots.ts で行う） */
+/** 区域の中の歩行者用の通路と地下・屋内の廊下・階段（地上・屋根付きの分類は stageSpots.ts で行う）。網を作るためノードの番号も取る */
 async function fetchPedestrianWays(): Promise<OverpassElement[]> {
-  const cachePath = `${CACHE_DIR}/osm-ways-${AREA.id}.json`
+  const cachePath = `${CACHE_DIR}/osm-ways-v2-${AREA.id}.json`
   const cached = await readFile(cachePath, 'utf8').catch(() => null)
   if (cached) return JSON.parse(cached)
   const [west, south, east, north] = AREA.bbox
-  const query = `[out:json][timeout:120];way["highway"~"^(footway|pedestrian|path)$"](${south},${west},${north},${east});out tags geom;`
+  const query = `[out:json][timeout:120];way["highway"~"^(footway|pedestrian|path|corridor|steps)$"](${south},${west},${north},${east});out body geom;`
   const res = await fetchWithRetry('Overpass（歩行者用の通路）', (attempt) =>
     fetch(OVERPASS_ENDPOINTS[(attempt - 1) % OVERPASS_ENDPOINTS.length], {
       method: 'POST',
@@ -181,6 +181,11 @@ const kindCounts = new Map<string, number>()
 for (const { kind } of stage.spots) kindCounts.set(kind, (kindCounts.get(kind) ?? 0) + 1)
 const byKind = [...kindCounts].map(([kind, n]) => `${kind} ${n}`)
 console.log(`\n候補地点 ${stage.spots.length} 件（${byKind.join('、')}）。規則: ${JSON.stringify(DEFAULT_SPOT_RULES)}`)
+const covered = stage.spots.filter((s) => s.shelter === 'covered')
+const netSizes = new Map<string, number>()
+for (const s of covered) netSizes.set(s.shelter_network!, (netSizes.get(s.shelter_network!) ?? 0) + 1)
+const largest = [...netSizes.values()].sort((a, b) => b - a).slice(0, 5)
+console.log(`うち屋根付き ${covered.length} 件、網 ${netSizes.size} 個（地点の多い網: ${largest.join('、')} 件）`)
 console.log('時刻  日影(≥0.5)の割合  平均遮蔽率')
 for (let hour = 0; hour < 24; hour++) {
   const values = stage.spots.map((s) => s.hourly[hour].shade_fraction)

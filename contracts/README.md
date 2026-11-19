@@ -1,4 +1,4 @@
-# データ契約 v1（地図アプリ ↔ シミュレーター）
+# データ契約（地図アプリ ↔ シミュレーター）
 
 [tokyo-green-simulator](https://github.com/stzn/tokyo-green-simulator)（地図アプリ: 都市緑化デジタルツイン）と、本リポジトリ（シミュレーター: 仮想移動緑化シミュレータ）の間で受け渡す JSON の形式です。全体の計画は [docs/integration-plan.md](../docs/integration-plan.md) にあります。
 
@@ -15,7 +15,17 @@
   uv run python -m vmgs.contracts
   ```
 - `contracts/` 一式（スキーマとサンプル）を、tokyo-green-simulator の `contracts/` へそのまま写します。両リポジトリのテストが、同じサンプルを同じスキーマで検証します。
-- 互換性のない変更は `schema_version` を上げます（v1 を読む側は、知らない版を拒否します）。
+- 互換性のない変更は `schema_version` を上げます（読む側は、知らない版を拒否します）。
+
+## 版
+| 版 | 対象 | 違い |
+| --- | --- | --- |
+| 1 | 地点データ・配車・JITAI の集計 | 最初の版 |
+| 2 | 地点データだけ | 地点に `shelter`（`open` / `covered`）と `shelter_network`（屋根付きの通路の網の番号）を足した。サンプルは `fixtures/stage.v2.sample.json` |
+
+- シミュレーターは版 1 と版 2 の地点データを両方読みます。版 1 の地点はすべて屋根なし（`open`）とみなします。
+- 版 1 の地点データは屋根付きの地点を持てません。版 2 では、屋根付きの地点だけが `shelter_network` を持ちます。
+- `covered` は地下通路・屋内の通路・アーケードの上の地点です。同じ `shelter_network` の地点どうしは、濡れずに行き来できるとみなします。JITAI と配車は、勤務地とポッドの地点が同じ網の上なら雨で見送りません。
 
 ## 決めごと
 - 時刻は `Asia/Tokyo` の 0〜23 時。`hourly` の時刻と地点 ID は重複させない。
