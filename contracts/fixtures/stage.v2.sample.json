@@ -1,0 +1,388 @@
+{
+  "schema_version": "2",
+  "area": {
+    "id": "otemachi",
+    "name": "大手町・丸の内",
+    "bbox": [
+      139.758,
+      35.676,
+      139.772,
+      35.692
+    ]
+  },
+  "date": "2025-08-30",
+  "timezone": "Asia/Tokyo",
+  "generator": "sample（手で作った契約確認用。実測・実計算ではない）",
+  "spots": [
+    {
+      "id": "OTM-001",
+      "name": "大手町 地下通路（屋根付きの例）",
+      "lat": 35.6872,
+      "lon": 139.7652,
+      "kind": "sidewalk",
+      "capacity_pods": 2,
+      "sky_view_factor": 0.0,
+      "green": {
+        "radius_m": 100,
+        "trees_all": 18,
+        "trees_tall": 12,
+        "parks_count": 0,
+        "parks_area_m2": 0,
+        "nearest_park_m": 240.0
+      },
+      "hourly": [
+        {
+          "hour": 0,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 1,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 2,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 3,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 4,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 5,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 6,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 7,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 8,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 9,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 10,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 11,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 12,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 13,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 14,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 15,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 16,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 17,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 18,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 19,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 20,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 21,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 22,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 23,
+          "shade_fraction": 1.0
+        }
+      ],
+      "demand": [
+        {
+          "hour": 12,
+          "weight": 1.0
+        },
+        {
+          "hour": 15,
+          "weight": 0.6
+        }
+      ],
+      "shelter": "covered",
+      "shelter_network": "N1"
+    },
+    {
+      "id": "OTM-002",
+      "name": "丸の内 仲通りの広場",
+      "lat": 35.6812,
+      "lon": 139.7651,
+      "kind": "plaza",
+      "capacity_pods": 3,
+      "sky_view_factor": 0.55,
+      "green": {
+        "radius_m": 100,
+        "trees_all": 34,
+        "trees_tall": 25,
+        "parks_count": 1,
+        "parks_area_m2": 1800,
+        "nearest_park_m": 0.0
+      },
+      "hourly": [
+        {
+          "hour": 0,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 1,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 2,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 3,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 4,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 5,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 6,
+          "shade_fraction": 0.4
+        },
+        {
+          "hour": 7,
+          "shade_fraction": 0.4
+        },
+        {
+          "hour": 8,
+          "shade_fraction": 0.4
+        },
+        {
+          "hour": 9,
+          "shade_fraction": 0.4
+        },
+        {
+          "hour": 10,
+          "shade_fraction": 0.1
+        },
+        {
+          "hour": 11,
+          "shade_fraction": 0.1
+        },
+        {
+          "hour": 12,
+          "shade_fraction": 0.1
+        },
+        {
+          "hour": 13,
+          "shade_fraction": 0.1
+        },
+        {
+          "hour": 14,
+          "shade_fraction": 0.1
+        },
+        {
+          "hour": 15,
+          "shade_fraction": 0.5
+        },
+        {
+          "hour": 16,
+          "shade_fraction": 0.5
+        },
+        {
+          "hour": 17,
+          "shade_fraction": 0.5
+        },
+        {
+          "hour": 18,
+          "shade_fraction": 0.5
+        },
+        {
+          "hour": 19,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 20,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 21,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 22,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 23,
+          "shade_fraction": 1.0
+        }
+      ],
+      "demand": [
+        {
+          "hour": 12,
+          "weight": 0.8
+        },
+        {
+          "hour": 13,
+          "weight": 0.7
+        }
+      ],
+      "shelter": "open"
+    },
+    {
+      "id": "OTM-003",
+      "name": "和田倉 公園沿いの歩道",
+      "lat": 35.6838,
+      "lon": 139.7604,
+      "kind": "park_edge",
+      "capacity_pods": 1,
+      "sky_view_factor": 0.7,
+      "green": {
+        "radius_m": 100,
+        "trees_all": 52,
+        "trees_tall": 40,
+        "parks_count": 2,
+        "parks_area_m2": 32000,
+        "nearest_park_m": 0.0
+      },
+      "hourly": [
+        {
+          "hour": 0,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 1,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 2,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 3,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 4,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 5,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 6,
+          "shade_fraction": 0.2
+        },
+        {
+          "hour": 7,
+          "shade_fraction": 0.2
+        },
+        {
+          "hour": 8,
+          "shade_fraction": 0.2
+        },
+        {
+          "hour": 9,
+          "shade_fraction": 0.2
+        },
+        {
+          "hour": 10,
+          "shade_fraction": 0.0
+        },
+        {
+          "hour": 11,
+          "shade_fraction": 0.0
+        },
+        {
+          "hour": 12,
+          "shade_fraction": 0.0
+        },
+        {
+          "hour": 13,
+          "shade_fraction": 0.0
+        },
+        {
+          "hour": 14,
+          "shade_fraction": 0.0
+        },
+        {
+          "hour": 15,
+          "shade_fraction": 0.3
+        },
+        {
+          "hour": 16,
+          "shade_fraction": 0.3
+        },
+        {
+          "hour": 17,
+          "shade_fraction": 0.3
+        },
+        {
+          "hour": 18,
+          "shade_fraction": 0.3
+        },
+        {
+          "hour": 19,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 20,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 21,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 22,
+          "shade_fraction": 1.0
+        },
+        {
+          "hour": 23,
+          "shade_fraction": 1.0
+        }
+      ],
+      "demand": [],
+      "shelter": "open"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-// シミュレーター（virtual-greening-sim）へ渡す地点データ（stage.json、データ契約 v1）の型と、スキーマで表せない整合性の確認。
+// シミュレーター（virtual-greening-sim）へ渡す地点データ（stage.json、データ契約の版 2）の型と、スキーマで表せない整合性の確認。
 // 型は contracts/stage.schema.json（正本はシミュレーター側の src/vmgs/contracts.py）に合わせる
 import type { GreenContext } from './measurementLog'
 
@@ -25,10 +25,16 @@ export type StageSpot = {
   hourly: { hour: number; shade_fraction: number }[]
   /** 地点・時刻ごとの集計値のみ（個人の計測値は入れない） */
   demand?: { hour: number; weight: number }[]
+  /** 屋根の有無（版 2 から。無ければ open）。covered は地下通路・屋内の通路・アーケードの上 */
+  shelter?: Shelter
+  /** 屋根付きの通路の網の番号（版 2 から、covered の地点だけ）。同じ番号の地点どうしは濡れずに行き来できる */
+  shelter_network?: string
 }
 
+export type Shelter = 'open' | 'covered'
+
 export type Stage = {
-  schema_version: '1'
+  schema_version: '1' | '2'
   area: { id: string; name: string; bbox: [number, number, number, number] }
   date: string
   timezone: 'Asia/Tokyo'
@@ -51,7 +57,25 @@ export function toStageGreen(context: GreenContext, radiusM: number): StageGreen
   }
 }
 
-/** 地点 ID の重複と、地点ごとの時刻の重複（JSON Schema では表せない決めごと）を確かめる */
+type ShelterSpot = { id: string; name: string; shelter?: Shelter; shelter_network?: string | null }
+
+/** 屋根の決めごと（JSON Schema では表せない）。版 1 は屋根付きの地点を持てず、屋根付きの地点だけが網の番号を持つ */
+export function shelterErrors(stage: { schema_version: string; spots: ShelterSpot[] }): string[] {
+  const errors: string[] = []
+  for (const spot of stage.spots) {
+    const covered = spot.shelter === 'covered'
+    if (covered && stage.schema_version === '1') errors.push(`${spot.id}: 版 1 の地点データは屋根付きの地点を持てません（版 2 にする）`)
+    else if (covered !== (spot.shelter_network != null)) errors.push(`${spot.id}: 屋根付きの地点だけが網の番号（shelter_network）を持ちます`)
+  }
+  return errors
+}
+
+/** 地図の説明に出す地点の名前。屋根付きの地点には網の番号を添える */
+export function spotLabel(spot: ShelterSpot): string {
+  return spot.shelter === 'covered' ? `${spot.name}・屋根付き（網 ${spot.shelter_network}）` : spot.name
+}
+
+/** 地点 ID の重複、地点ごとの時刻の重複、屋根の決めごと（JSON Schema では表せない決めごと）を確かめる */
 export function stageIntegrityErrors(stage: Stage): string[] {
   const errors: string[] = []
   const ids = new Set<string>()
@@ -64,5 +88,5 @@ export function stageIntegrityErrors(stage: Stage): string[] {
       hours.add(hour)
     }
   }
-  return errors
+  return [...errors, ...shelterErrors(stage)]
 }

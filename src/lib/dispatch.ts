@@ -1,10 +1,11 @@
 // シミュレーター（virtual-greening-sim）が書き出す配車（dispatch.json）と、地点データ（stage.json）の読み込み・表示データ化。
-// 形の検証は contracts/ の JSON Schema（データ契約 v1 の写し）に任せ、JSON Schema では表せないこと
+// 形の検証は contracts/ の JSON Schema（データ契約の写し。地点データは版 1・2）に任せ、JSON Schema では表せないこと
 // （重複・地点データとの食い違い・容量超過）はシミュレーター側の dispatch_errors_against_stage と同じ基準でここで確かめる。
 // 壊れた入力は例外にせず、理由の一覧を返す（呼び出し側で画面に出す）
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020'
 import dispatchSchema from '../../contracts/dispatch.schema.json'
 import stageSchema from '../../contracts/stage.schema.json'
+import { type Shelter, shelterErrors, spotLabel } from './stage'
 
 // --- 契約の型（contracts/*.schema.json に対応。表示に使う項目だけ書く） ---
 
@@ -19,10 +20,12 @@ export type StageSpot = {
   capacity_pods: number
   hourly: { hour: number; shade_fraction: number }[]
   demand?: { hour: number; weight: number }[]
+  shelter?: Shelter
+  shelter_network?: string
 }
 
 export type Stage = {
-  schema_version: '1'
+  schema_version: '1' | '2'
   area: { id: string; name: string; bbox: [number, number, number, number] }
   date: string
   generator: string
@@ -91,6 +94,7 @@ export function parseStage(input: unknown): LoadResult<Stage> {
     const dupDemand = duplicatesOf((spot.demand ?? []).map((d) => d.hour))
     if (dupDemand.length > 0) errors.push(`地点 ${spot.id} の demand の時刻が重複しています: ${dupDemand.join(', ')}`)
   }
+  errors.push(...shelterErrors(stage))
   return errors.length > 0 ? { ok: false, errors: errors.slice(0, MAX_ERRORS) } : { ok: true, value: stage }
 }
 
@@ -181,7 +185,7 @@ export function snapshotAt(stage: Stage, dispatch: Dispatch, hour: number): Disp
     pods.push({
       podId: pod.id,
       spotId: spot.id,
-      spotName: spot.name,
+      spotName: spotLabel(spot),
       lon: spot.lon,
       lat: spot.lat,
       action: step.action,
@@ -193,7 +197,7 @@ export function snapshotAt(stage: Stage, dispatch: Dispatch, hour: number): Disp
   for (const c of dispatch.comfort) {
     const spot = spots.get(c.spot_id)
     if (c.hour !== hour || !spot) continue
-    comfort.push({ spotId: spot.id, spotName: spot.name, lon: spot.lon, lat: spot.lat, petC: c.pet_c, podsPresent: c.pods_present })
+    comfort.push({ spotId: spot.id, spotName: spotLabel(spot), lon: spot.lon, lat: spot.lat, petC: c.pet_c, podsPresent: c.pods_present })
   }
   return { pods, comfort }
 }

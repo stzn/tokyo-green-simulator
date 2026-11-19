@@ -216,6 +216,29 @@
           },
           "title": "Demand",
           "type": "array"
+        },
+        "shelter": {
+          "default": "open",
+          "description": "屋根の有無（版 2 から）。covered は地下通路・屋内の通路・アーケードの上の地点",
+          "enum": [
+            "open",
+            "covered"
+          ],
+          "title": "Shelter",
+          "type": "string"
+        },
+        "shelter_network": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "屋根付きの通路の網の番号（版 2 から）。同じ番号の地点どうしは濡れずに行き来できる",
+          "title": "Shelter Network"
         }
       },
       "required": [
@@ -236,7 +259,11 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1",
+      "description": "1: 屋根の情報なし。2: 地点に shelter・shelter_network を足した版",
+      "enum": [
+        "1",
+        "2"
+      ],
       "title": "Schema Version",
       "type": "string"
     },

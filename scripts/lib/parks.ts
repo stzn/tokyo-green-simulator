@@ -7,6 +7,8 @@ export type OverpassElement = {
   type: 'way' | 'relation' | 'node'
   id: number
   tags?: Record<string, string>
+  /** 通路のノードの番号（out body で取ったときだけ。通路どうしのつながりを見る） */
+  nodes?: number[]
   geometry?: LatLon[]
   members?: { type: string; role: string; geometry?: LatLon[] }[]
 }

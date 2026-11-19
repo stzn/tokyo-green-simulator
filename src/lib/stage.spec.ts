@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { contractValidator, readJson } from '../test/contracts'
 import type { GreenContext } from './measurementLog'
-import { STAGE_OUTPUT_PATH, stageIntegrityErrors, toStageGreen, type Stage } from './stage'
+import { spotLabel, STAGE_OUTPUT_PATH, stageIntegrityErrors, toStageGreen, type Stage } from './stage'
 
 const sample = () => readJson('contracts', 'fixtures', 'stage.sample.json') as Stage
+const sampleV2 = () => readJson('contracts', 'fixtures', 'stage.v2.sample.json') as Stage
 
 describe('機能: 地点データ（stage.json）の整合性', () => {
   describe('シナリオ: 地点 ID と時刻の重複', () => {
@@ -21,6 +22,34 @@ describe('機能: 地点データ（stage.json）の整合性', () => {
       const stage = sample()
       stage.spots[0].hourly[13].hour = 12
       expect(stageIntegrityErrors(stage)).toEqual([`${stage.spots[0].id}: 時刻 12 が重複しています`])
+    })
+  })
+
+  describe('シナリオ: 屋根付きの地点（版 2）', () => {
+    it('Given 版 2 のサンプル / When 確かめる / Then 問題なし', () => {
+      expect(stageIntegrityErrors(sampleV2())).toEqual([])
+    })
+
+    it('Given 版 1 に屋根付きの地点 / When 確かめる / Then 版を上げるよう知らせる', () => {
+      const stage = sample()
+      Object.assign(stage.spots[0], { shelter: 'covered', shelter_network: 'N1' })
+      expect(stageIntegrityErrors(stage)).toEqual([`${stage.spots[0].id}: 版 1 の地点データは屋根付きの地点を持てません（版 2 にする）`])
+    })
+
+    it('Given 網の番号の無い屋根付きの地点と、網の番号のある屋根なしの地点 / When 確かめる / Then 両方を知らせる', () => {
+      const stage = sampleV2()
+      delete stage.spots[0].shelter_network
+      stage.spots[1].shelter_network = 'N1'
+      expect(stageIntegrityErrors(stage)).toEqual([
+        `${stage.spots[0].id}: 屋根付きの地点だけが網の番号（shelter_network）を持ちます`,
+        `${stage.spots[1].id}: 屋根付きの地点だけが網の番号（shelter_network）を持ちます`,
+      ])
+    })
+
+    it('Given 屋根付きの地点と屋根なしの地点 / When 説明の名前を作る / Then 屋根付きには網の番号を添える', () => {
+      const [covered, open] = sampleV2().spots
+      expect(spotLabel(covered)).toBe(`${covered.name}・屋根付き（網 N1）`)
+      expect(spotLabel(open)).toBe(open.name)
     })
   })
 
