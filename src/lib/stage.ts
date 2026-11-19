@@ -29,6 +29,8 @@ export type StageSpot = {
   shelter?: Shelter
   /** 屋根付きの通路の網の番号（版 2 から、covered の地点だけ）。同じ番号の地点どうしは濡れずに行き来できる */
   shelter_network?: string
+  /** 屋根なしの地点から近く（50 m 以内）の出入口で入れる、屋根付きの通路の網の番号（版 2 から、open の地点だけ） */
+  shelter_access?: string
 }
 
 export type Shelter = 'open' | 'covered'
@@ -57,22 +59,26 @@ export function toStageGreen(context: GreenContext, radiusM: number): StageGreen
   }
 }
 
-type ShelterSpot = { id: string; name: string; shelter?: Shelter; shelter_network?: string | null }
+type ShelterSpot = { id: string; name: string; shelter?: Shelter; shelter_network?: string | null; shelter_access?: string | null }
 
-/** 屋根の決めごと（JSON Schema では表せない）。版 1 は屋根付きの地点を持てず、屋根付きの地点だけが網の番号を持つ */
+/** 屋根の決めごと（JSON Schema では表せない）。版 1 は屋根付きの地点・網への入口を持てず、屋根付きの地点だけが網の番号を持ち、網への入口は屋根なしの地点だけが持つ */
 export function shelterErrors(stage: { schema_version: string; spots: ShelterSpot[] }): string[] {
   const errors: string[] = []
   for (const spot of stage.spots) {
     const covered = spot.shelter === 'covered'
     if (covered && stage.schema_version === '1') errors.push(`${spot.id}: 版 1 の地点データは屋根付きの地点を持てません（版 2 にする）`)
     else if (covered !== (spot.shelter_network != null)) errors.push(`${spot.id}: 屋根付きの地点だけが網の番号（shelter_network）を持ちます`)
+    if (spot.shelter_access == null) continue
+    if (stage.schema_version === '1') errors.push(`${spot.id}: 版 1 の地点データは網への入口を持てません（版 2 にする）`)
+    else if (covered) errors.push(`${spot.id}: 屋根付きの地点は網の上にいるので、網への入口（shelter_access）を持てません`)
   }
   return errors
 }
 
-/** 地図の説明に出す地点の名前。屋根付きの地点には網の番号を添える */
+/** 地図の説明に出す地点の名前。屋根付きの地点には網の番号を、近くの出入口から網へ入れる地点には入れる網を添える */
 export function spotLabel(spot: ShelterSpot): string {
-  return spot.shelter === 'covered' ? `${spot.name}・屋根付き（網 ${spot.shelter_network}）` : spot.name
+  if (spot.shelter === 'covered') return `${spot.name}・屋根付き（網 ${spot.shelter_network}）`
+  return spot.shelter_access ? `${spot.name}・網 ${spot.shelter_access} へ入れる` : spot.name
 }
 
 /** 地点 ID の重複、地点ごとの時刻の重複、屋根の決めごと（JSON Schema では表せない決めごと）を確かめる */

@@ -92,6 +92,28 @@ async function fetchPedestrianWays(): Promise<OverpassElement[]> {
   return elements
 }
 
+/** 区域の中の出入口（建物の出入口と地下鉄の出入口）の点。屋根付きの網に接するかは stageSpots.ts で見る */
+async function fetchEntrances(): Promise<OverpassElement[]> {
+  const cachePath = `${CACHE_DIR}/osm-entrances-${AREA.id}.json`
+  const cached = await readFile(cachePath, 'utf8').catch(() => null)
+  if (cached) return JSON.parse(cached)
+  const [west, south, east, north] = AREA.bbox
+  const box = `${south},${west},${north},${east}`
+  const query = `[out:json][timeout:120];(node["entrance"](${box});node["railway"="subway_entrance"](${box}););out body;`
+  const res = await fetchWithRetry('Overpass（出入口）', (attempt) =>
+    fetch(OVERPASS_ENDPOINTS[(attempt - 1) % OVERPASS_ENDPOINTS.length], {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': USER_AGENT },
+      body: new URLSearchParams({ data: query }),
+      signal: AbortSignal.timeout(150_000),
+    }),
+  )
+  if (!res) throw new Error('Overpass が 404 を返しました')
+  const { elements } = (await res.json()) as { elements: OverpassElement[] }
+  await writeFile(cachePath, JSON.stringify(elements))
+  return elements
+}
+
 const readJson = async <T>(path: string): Promise<T> => JSON.parse(await readFile(path, 'utf8')) as T
 
 function dateFromArgs(): string {
@@ -129,10 +151,11 @@ const index = createBuildingIndex(buildings)
 
 // 2. 通路・公園・街路樹
 const ways = await fetchPedestrianWays()
+const entrances = await fetchEntrances()
 const parks = (await readJson<{ features: ParkFeature[] }>('public/data/parks.geojson')).features
 const trees = toTreeData(await readJson<TreesColumnar>('public/data/trees.json'))
 const cityTrees = (await readJson<{ features: CityTreeFeature[] }>('public/data/city-trees.geojson')).features
-console.log(`歩行者用の通路 ${ways.length} 本、公園 ${parks.length.toLocaleString()} 件、街路樹 ${trees.count.toLocaleString()} 本`)
+console.log(`歩行者用の通路 ${ways.length} 本、出入口 ${entrances.length} 個、公園 ${parks.length.toLocaleString()} 件、街路樹 ${trees.count.toLocaleString()} 本`)
 
 // 街路樹の樹冠：建物と同じく区域から遮蔽を数える距離ぶん広げた範囲の木を使う。
 // 区道の街路樹（city-trees.geojson）は路線ごとの樹種・本数だけで単木の位置・高さ・枝張りが無いため、樹冠には入れない
@@ -152,7 +175,7 @@ console.log(`  樹冠に使う街路樹 ${localTrees.length.toLocaleString()} �
 const treeIndex = createTreeIndex(localTrees)
 
 // 3. 候補地点 → 遮蔽率・天空率・緑の文脈
-const candidates = extractCandidateSpots({ ways, parks, index, proj, bbox: AREA.bbox, idPrefix: ID_PREFIX })
+const candidates = extractCandidateSpots({ ways, parks, index, proj, bbox: AREA.bbox, idPrefix: ID_PREFIX, entrances })
 const stage = assembleStage({
   area: AREA,
   date,
@@ -186,6 +209,12 @@ const netSizes = new Map<string, number>()
 for (const s of covered) netSizes.set(s.shelter_network!, (netSizes.get(s.shelter_network!) ?? 0) + 1)
 const largest = [...netSizes.values()].sort((a, b) => b - a).slice(0, 5)
 console.log(`うち屋根付き ${covered.length} 件、網 ${netSizes.size} 個（地点の多い網: ${largest.join('、')} 件）`)
+const access = stage.spots.filter((s) => s.shelter_access)
+const accessByNet = new Map<string, number>()
+for (const s of access) accessByNet.set(s.shelter_access!, (accessByNet.get(s.shelter_access!) ?? 0) + 1)
+console.log(
+  `地上 ${stage.spots.length - covered.length} 件のうち、${DEFAULT_SPOT_RULES.shelterAccessM}m 以内の出入口から網へ入れる地点 ${access.length} 件（${[...accessByNet].map(([n, k]) => `${n} ${k}`).join('、')}）`,
+)
 console.log('時刻  日影(≥0.5)の割合  平均遮蔽率')
 for (let hour = 0; hour < 24; hour++) {
   const values = stage.spots.map((s) => s.hourly[hour].shade_fraction)

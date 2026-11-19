@@ -239,6 +239,19 @@
           "default": null,
           "description": "屋根付きの通路の網の番号（版 2 から）。同じ番号の地点どうしは濡れずに行き来できる",
           "title": "Shelter Network"
+        },
+        "shelter_access": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "屋根なしの地点から近く（50 m 以内）の出入口で入れる、屋根付きの通路の網の番号（版 2 から）",
+          "title": "Shelter Access"
         }
       },
       "required": [
@@ -259,7 +272,7 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "description": "1: 屋根の情報なし。2: 地点に shelter・shelter_network を足した版",
+      "description": "1: 屋根の情報なし。2: 地点に shelter・shelter_network・shelter_access を足した版",
       "enum": [
         "1",
         "2"
