@@ -1,7 +1,7 @@
 // ポッドを置ける候補地点の抽出と、地点データ（stage.json、データ契約の版 2）の組み立て。
 // 候補地点は OpenStreetMap の歩行者用の通路（歩道・歩行者専用道・地下通路・屋内の通路）の上に一定間隔で点を打ち、
 // 地上の点は建物・公園との位置関係で種類を決め、屋根付きの点はノードを共有する屋根付きの通路の網の番号を付けてから、
-// 地点どうしが近すぎないよう間引く。規則は README に書いている
+// 地点どうしが近すぎないよう間引く。地上の点には、近くの出入口から入れる網の番号を付ける。規則は README に書いている
 import { outerRings, type ParkFeature } from '../../src/data/parks'
 import { distanceM, distanceToPathM, pointInRing } from '../../src/lib/geo'
 import {
@@ -22,7 +22,7 @@ import type { OverpassElement } from './parks'
 type Projection = ReturnType<typeof localProjection>
 type Bbox = [west: number, south: number, east: number, north: number]
 
-export type CandidateSpot = Pick<StageSpot, 'id' | 'name' | 'lat' | 'lon' | 'kind' | 'capacity_pods' | 'shelter' | 'shelter_network'>
+export type CandidateSpot = Pick<StageSpot, 'id' | 'name' | 'lat' | 'lon' | 'kind' | 'capacity_pods' | 'shelter' | 'shelter_network' | 'shelter_access'>
 
 export const DEFAULT_SPOT_RULES = {
   /** 通路の上に点を打つ間隔[m] */
@@ -35,6 +35,8 @@ export const DEFAULT_SPOT_RULES = {
   plazaOpenM: 15,
   /** 地点どうしの最小間隔[m] */
   minSpacingM: 60,
+  /** 地上の地点からこの距離以内に屋根付きの網に接する出入口があれば、その網へ入れる[m]（雨の中を歩く距離） */
+  shelterAccessM: 50,
 }
 export type SpotRules = typeof DEFAULT_SPOT_RULES
 
@@ -169,10 +171,19 @@ const round3 = (n: number) => Math.round(n * 1e3) / 1e3
  * 番号は北から（同じ緯度なら西から）振り、屋根付きの網の番号は地点の番号順に N1 から振る
  */
 export function extractCandidateSpots(
-  input: { ways: OverpassElement[]; parks: ParkFeature[]; index: BuildingIndex; proj: Projection; bbox: Bbox; idPrefix: string },
+  input: {
+    ways: OverpassElement[]
+    parks: ParkFeature[]
+    index: BuildingIndex
+    proj: Projection
+    bbox: Bbox
+    idPrefix: string
+    /** 出入口の点（OSM の entrance・subway_entrance のノード）。屋根付きの網の通路とノードを共有するものだけ使う */
+    entrances?: OverpassElement[]
+  },
   rules: SpotRules = DEFAULT_SPOT_RULES,
 ): CandidateSpot[] {
-  const { ways, parks, index, proj, bbox, idPrefix } = input
+  const { ways, parks, index, proj, bbox, idPrefix, entrances = [] } = input
   const [west, south, east, north] = bbox
   const points: Classified[] = []
   const usable = [...ways]
@@ -180,7 +191,8 @@ export function extractCandidateSpots(
     .map((w) => ({ w, shelter: classifyWay(w.tags) }))
     .filter((x): x is { w: OverpassElement; shelter: Shelter } => x.shelter !== null)
     .sort((a, b) => a.w.id - b.w.id)
-  const networks = shelterNetworks(usable.filter((x) => x.shelter === 'covered').map((x) => x.w))
+  const coveredWays = usable.filter((x) => x.shelter === 'covered').map((x) => x.w)
+  const networks = shelterNetworks(coveredWays)
   for (const { w, shelter } of usable) {
     const tags = w.tags ?? {}
     if (!placesPods(tags)) continue
@@ -198,7 +210,7 @@ export function extractCandidateSpots(
     if (kept.every((k) => k.shelter !== p.shelter || distanceM([k.lon, k.lat], [p.lon, p.lat]) >= rules.minSpacingM)) kept.push(p)
   }
   const networkNames = new Map<number, string>()
-  return kept
+  const spots = kept
     .sort((a, b) => b.lat - a.lat || a.lon - b.lon)
     .map(({ name, lat, lon, kind, capacity_pods, shelter, network }, i) => {
       const spot: CandidateSpot = { id: `${idPrefix}-${String(i + 1).padStart(3, '0')}`, name, lat, lon, kind, capacity_pods, shelter }
@@ -206,6 +218,37 @@ export function extractCandidateSpots(
       if (!networkNames.has(network)) networkNames.set(network, `N${networkNames.size + 1}`)
       return { ...spot, shelter_network: networkNames.get(network) }
     })
+  const doors = networkEntrances(entrances, coveredWays, networks, networkNames)
+  return spots.map((spot) => {
+    if (spot.shelter === 'covered') return spot
+    let best: { net: string; m: number } | null = null
+    for (const d of doors) {
+      const m = distanceM([spot.lon, spot.lat], [d.lon, d.lat])
+      if (m <= rules.shelterAccessM && (best === null || m < best.m)) best = { net: d.net, m }
+    }
+    return best ? { ...spot, shelter_access: best.net } : spot
+  })
+}
+
+/**
+ * 屋根付きの網に接する出入口：屋根付きの通路（階段を含む）とノードを共有する出入口の点と、その網の名前。
+ * 地点の無い網（階段だけの網など）の出入口は使わない
+ */
+function networkEntrances(
+  entrances: OverpassElement[],
+  coveredWays: OverpassElement[],
+  networks: Map<number, number>,
+  names: Map<number, string>,
+): { lon: number; lat: number; net: string }[] {
+  const nodeNetwork = new Map<number, number>()
+  for (const w of coveredWays) for (const node of w.nodes ?? []) nodeNetwork.set(node, networks.get(w.id)!)
+  const out: { lon: number; lat: number; net: string }[] = []
+  for (const e of entrances) {
+    const rep = nodeNetwork.get(e.id)
+    const net = rep === undefined ? undefined : names.get(rep)
+    if (e.type === 'node' && e.lat !== undefined && e.lon !== undefined && net) out.push({ lon: e.lon, lat: e.lat, net })
+  }
+  return out
 }
 
 /**

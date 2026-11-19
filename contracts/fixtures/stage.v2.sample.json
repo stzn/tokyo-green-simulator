@@ -265,7 +265,8 @@
           "weight": 0.7
         }
       ],
-      "shelter": "open"
+      "shelter": "open",
+      "shelter_access": "N1"
     },
     {
       "id": "OTM-003",

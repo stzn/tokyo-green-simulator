@@ -46,10 +46,20 @@ describe('機能: 地点データ（stage.json）の整合性', () => {
       ])
     })
 
-    it('Given 屋根付きの地点と屋根なしの地点 / When 説明の名前を作る / Then 屋根付きには網の番号を添える', () => {
-      const [covered, open] = sampleV2().spots
+    it('Given 屋根付きの地点と屋根なしの地点 / When 説明の名前を作る / Then 屋根付きには網の番号、入口のある地点には入れる網を添える', () => {
+      const [covered, access, open] = sampleV2().spots
       expect(spotLabel(covered)).toBe(`${covered.name}・屋根付き（網 N1）`)
+      expect(spotLabel(access)).toBe(`${access.name}・網 N1 へ入れる`)
       expect(spotLabel(open)).toBe(open.name)
+    })
+
+    it('Given 網への入口を持つ屋根付きの地点と、版 1 の入口 / When 確かめる / Then 両方を知らせる', () => {
+      const v2 = sampleV2()
+      v2.spots[0].shelter_access = 'N1'
+      expect(stageIntegrityErrors(v2)).toEqual([`${v2.spots[0].id}: 屋根付きの地点は網の上にいるので、網への入口（shelter_access）を持てません`])
+      const v1 = sample()
+      v1.spots[1].shelter_access = 'N1'
+      expect(stageIntegrityErrors(v1)).toEqual([`${v1.spots[1].id}: 版 1 の地点データは網への入口を持てません（版 2 にする）`])
     })
   })
 

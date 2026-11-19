@@ -37,8 +37,13 @@ const park = (x0: number, y0: number, x1: number, y1: number, name: string): Par
   properties: { id: name, name, ward: '千代田区', areaM2: (x1 - x0) * (y1 - y0), manager: '', managerEstimated: false },
 })
 
-const extract = (ways: OverpassElement[], buildings: LocalBuilding[] = [], parks: ParkFeature[] = []) =>
-  extractCandidateSpots({ ways, parks, index: createBuildingIndex(buildings), proj, bbox: BBOX, idPrefix: 'OTM' })
+const extract = (ways: OverpassElement[], buildings: LocalBuilding[] = [], parks: ParkFeature[] = [], entrances: OverpassElement[] = []) =>
+  extractCandidateSpots({ ways, parks, index: createBuildingIndex(buildings), proj, bbox: BBOX, idPrefix: 'OTM', entrances })
+/** 出入口の点（OSM のノード）。id を通路のノード番号と同じにすると、その通路に接する */
+const entrance = (id: number, p: LocalPoint, tags: Record<string, string> = { railway: 'subway_entrance' }): OverpassElement => {
+  const [lon, lat] = proj.toLonLat(p)
+  return { type: 'node', id, lat, lon, tags }
+}
 const xyOf = (s: CandidateSpot) => proj.toXY([s.lon, s.lat])
 
 describe('機能: ポッドを置ける候補地点の抽出', () => {
@@ -172,6 +177,53 @@ describe('機能: ポッドを置ける候補地点の抽出', () => {
       const spots = extract([way([[0, 0], [0, 20]], { highway: 'footway' }), way([[0, 0], [0, 20]], { highway: 'footway', tunnel: 'yes' })])
       expect(spots.filter((s) => s.shelter === 'open').length).toBeGreaterThan(0)
       expect(spots.filter((s) => s.shelter === 'covered').length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('シナリオ: 出入口から屋根付きの網へ入れる地上の地点', () => {
+    // 地上の歩道（x = 0、y = 0〜100）と、その東の地下通路（x = 40〜40、y = 0〜100、網 N1）。地下通路の南端のノード 2 に出入口がある
+    const ground = () => way([[0, 0], [0, 100]], { highway: 'footway' })
+    const tunnel = () => way([[40, 100], [40, 0]], { highway: 'footway', tunnel: 'yes' }, [1, 2])
+    const groundSpots = (spots: CandidateSpot[]) => spots.filter((s) => s.shelter === 'open')
+
+    it('Given 地下通路のノードにある出入口 / When 抽出する / Then 50m 以内の地上の地点は、その網へ入れる', () => {
+      const spots = extract([ground(), tunnel()], [], [], [entrance(2, [40, 0])])
+      const near = groundSpots(spots).filter((s) => distanceM([s.lon, s.lat], proj.toLonLat([40, 0])) <= 50)
+      expect(near.length).toBeGreaterThan(0)
+      expect(near.every((s) => s.shelter_access === 'N1')).toBe(true)
+    })
+
+    it('Given 出入口から50mより遠い地上の地点 / When 抽出する / Then 網へは入れない', () => {
+      const spots = extract([ground(), tunnel()], [], [], [entrance(2, [40, 0])])
+      const far = groundSpots(spots).filter((s) => distanceM([s.lon, s.lat], proj.toLonLat([40, 0])) > 50)
+      expect(far.length).toBeGreaterThan(0)
+      expect(far.every((s) => s.shelter_access === undefined)).toBe(true)
+    })
+
+    it('Given 屋根付きの通路に接しない出入口（地上の歩道のノード） / When 抽出する / Then どの地点も網へは入れない', () => {
+      const spots = extract([way([[0, 0], [0, 100]], { highway: 'footway' }, [5, 6]), tunnel()], [], [], [entrance(5, [0, 0], { entrance: 'yes' })])
+      expect(spots.every((s) => s.shelter_access === undefined)).toBe(true)
+    })
+
+    it('Given 出入口のある地下通路 / When 抽出する / Then 屋根付きの地点は網の上にいるので、入口は持たない', () => {
+      const spots = extract([ground(), tunnel()], [], [], [entrance(2, [40, 0])])
+      expect(spots.filter((s) => s.shelter === 'covered').every((s) => s.shelter_access === undefined)).toBe(true)
+    })
+
+    it('Given 別の網の出入口が2つ / When 抽出する / Then 近い方の網へ入れる', () => {
+      const west = way([[-40, 300], [-40, 200]], { highway: 'footway', tunnel: 'yes' }, [10, 11])
+      const east = way([[40, 300], [40, 200]], { highway: 'footway', tunnel: 'yes' }, [20, 21])
+      const spots = extract([way([[-10, 200], [-10, 200.5]], { highway: 'footway' }), west, east], [], [], [entrance(11, [-40, 200]), entrance(21, [40, 200])])
+      const g = groundSpots(spots)
+      expect(g).toHaveLength(1)
+      const westNet = spots.find((s) => s.shelter === 'covered' && proj.toXY([s.lon, s.lat])[0] < 0)!.shelter_network
+      expect(g[0].shelter_access).toBe(westNet)
+    })
+
+    it('Given 出入口がある / When 抽出する / Then 地点の集合（番号・位置）は出入口が無いときと同じ', () => {
+      const ways = [ground(), tunnel()]
+      const strip = (spots: CandidateSpot[]) => spots.map(({ id, lat, lon, shelter }) => ({ id, lat, lon, shelter }))
+      expect(strip(extract(ways, [], [], [entrance(2, [40, 0])]))).toEqual(strip(extract(ways)))
     })
   })
 
