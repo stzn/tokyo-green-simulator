@@ -12,7 +12,7 @@
  },
  "date": "2025-08-30",
  "timezone": "Asia/Tokyo",
- "generator": "tokyo-green-simulator@d162379",
+ "generator": "tokyo-green-simulator@6e8e17f",
  "spots": [
   {
    "id": "OTM-001",
@@ -1471,7 +1471,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N2"
   },
   {
    "id": "OTM-010",
@@ -2931,7 +2932,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N2"
   },
   {
    "id": "OTM-019",
@@ -3579,7 +3581,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N4"
   },
   {
    "id": "OTM-023",
@@ -7472,7 +7475,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N4"
   },
   {
    "id": "OTM-047",
@@ -7796,7 +7800,8 @@
      "weight": 0.2684749849306811
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N6"
   },
   {
    "id": "OTM-049",
@@ -8931,7 +8936,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N4"
   },
   {
    "id": "OTM-056",
@@ -9906,7 +9912,8 @@
      "weight": 0.2684749849306811
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N6"
   },
   {
    "id": "OTM-062",
@@ -12500,7 +12507,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-078",
@@ -13312,7 +13320,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N8"
   },
   {
    "id": "OTM-083",
@@ -13474,7 +13483,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-084",
@@ -13799,7 +13809,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-086",
@@ -14773,7 +14784,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-092",
@@ -15746,7 +15758,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-098",
@@ -16070,7 +16083,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-100",
@@ -17043,7 +17057,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-106",
@@ -17530,7 +17545,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-109",
@@ -17692,7 +17708,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-110",
@@ -18017,7 +18034,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-112",
@@ -19801,7 +19819,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-123",
@@ -20126,7 +20145,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-125",
@@ -20613,7 +20633,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-128",
@@ -22399,7 +22420,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N10"
   },
   {
    "id": "OTM-139",
@@ -22886,7 +22908,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-142",
@@ -23861,7 +23884,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N10"
   },
   {
    "id": "OTM-148",
@@ -24348,7 +24372,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-151",
@@ -24673,7 +24698,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-153",
@@ -24997,7 +25023,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-155",
@@ -25809,7 +25836,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-160",
@@ -26622,7 +26650,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-165",
@@ -27597,7 +27626,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-171",
@@ -27921,7 +27951,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-173",
@@ -28245,7 +28276,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-175",
@@ -29220,7 +29252,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-181",
@@ -30032,7 +30065,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-186",
@@ -30683,7 +30717,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-190",
@@ -30845,7 +30880,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-191",
@@ -31007,7 +31043,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-192",
@@ -31981,7 +32018,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-198",
@@ -32143,7 +32181,8 @@
      "weight": 0.20815752461322082
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-199",
@@ -32305,7 +32344,8 @@
      "weight": 0.1916700694160882
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-200",
@@ -33118,7 +33158,8 @@
      "weight": 0.20180831826401446
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-205",
@@ -33280,7 +33321,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-206",
@@ -33931,7 +33973,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-210",
@@ -34418,7 +34461,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-213",
@@ -35555,7 +35599,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-220",
@@ -36206,7 +36251,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-224",
@@ -36368,7 +36414,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-225",
@@ -37668,7 +37715,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-233",
@@ -38318,7 +38366,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-237",
@@ -39455,7 +39504,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-244",
@@ -39617,7 +39667,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-245",
@@ -39942,7 +39993,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-247",
@@ -43028,7 +43080,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-266",
@@ -43679,7 +43732,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-270",
@@ -44167,7 +44221,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-273",
@@ -44491,7 +44546,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-275",
@@ -44816,7 +44872,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-277",
@@ -44978,7 +45035,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-278",
@@ -45627,7 +45685,8 @@
      "weight": 0.20180831826401446
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-282",
@@ -45952,7 +46011,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-284",
@@ -47254,7 +47314,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-292",
@@ -47903,7 +47964,8 @@
      "weight": 0.20180831826401446
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-296",
@@ -48065,7 +48127,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-297",
@@ -49366,7 +49429,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-305",
@@ -49854,7 +49918,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-308",
@@ -50504,7 +50569,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-312",
@@ -51153,7 +51219,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-316",
@@ -52129,7 +52196,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-322",
@@ -52616,7 +52684,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-325",
@@ -54565,7 +54634,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-337",
@@ -54727,7 +54797,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-338",
@@ -55702,7 +55773,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-344",
@@ -56190,7 +56262,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-347",
@@ -56514,7 +56587,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-349",
@@ -57489,7 +57563,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-355",
@@ -57814,7 +57889,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-357",
@@ -57976,7 +58052,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-358",
@@ -59112,7 +59189,8 @@
      "weight": 0.18037974683544303
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-365",
@@ -61059,7 +61137,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-377",
@@ -62032,7 +62111,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-383",
@@ -62681,7 +62761,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-387",
@@ -62843,7 +62924,8 @@
      "weight": 0.030379746835443037
     }
    ],
-   "shelter": "open"
+   "shelter": "open",
+   "shelter_access": "N7"
   },
   {
    "id": "OTM-388",

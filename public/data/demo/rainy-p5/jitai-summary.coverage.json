@@ -4,7 +4,7 @@
   "area_id": "otemachi",
   "date": "2025-08-30"
  },
- "generator": "vmgs@7cbb589 jitai",
+ "generator": "vmgs@e755c8c jitai",
  "weather_scenario": "rainy",
  "workers": 300,
  "min_workers": 3,
@@ -14,8 +14,8 @@
   "zone_m": 400.0
  },
  "totals": {
-  "decisions": 758,
-  "interventions": 145
+  "decisions": 749,
+  "interventions": 165
  },
  "recovery": {
   "enabled": true,
@@ -29,10 +29,10 @@
    ],
    "hour": 9,
    "decisions": 5,
-   "interventions": 1,
+   "interventions": 2,
    "skipped_calendar": 3,
    "skipped_pods": 0,
-   "skipped_pet": 1
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -40,11 +40,11 @@
     0
    ],
    "hour": 10,
-   "decisions": 11,
-   "interventions": 0,
+   "decisions": 9,
+   "interventions": 1,
    "skipped_calendar": 4,
    "skipped_pods": 2,
-   "skipped_pet": 5
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -52,11 +52,11 @@
     0
    ],
    "hour": 12,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 1,
+   "decisions": 3,
+   "interventions": 3,
+   "skipped_calendar": 0,
    "skipped_pods": 0,
-   "skipped_pet": 7
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -64,10 +64,10 @@
     0
    ],
    "hour": 13,
-   "decisions": 9,
-   "interventions": 4,
-   "skipped_calendar": 5,
-   "skipped_pods": 0,
+   "decisions": 13,
+   "interventions": 2,
+   "skipped_calendar": 7,
+   "skipped_pods": 4,
    "skipped_pet": 0
   },
   {
@@ -77,10 +77,10 @@
    ],
    "hour": 14,
    "decisions": 3,
-   "interventions": 0,
+   "interventions": 1,
    "skipped_calendar": 2,
    "skipped_pods": 0,
-   "skipped_pet": 1
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -91,8 +91,8 @@
    "decisions": 5,
    "interventions": 0,
    "skipped_calendar": 2,
-   "skipped_pods": 2,
-   "skipped_pet": 1
+   "skipped_pods": 3,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -100,11 +100,11 @@
     0
    ],
    "hour": 16,
-   "decisions": 10,
-   "interventions": 2,
+   "decisions": 7,
+   "interventions": 5,
    "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 7
+   "skipped_pods": 1,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -184,11 +184,11 @@
     0
    ],
    "hour": 15,
-   "decisions": 8,
-   "interventions": 1,
+   "decisions": 6,
+   "interventions": 2,
    "skipped_calendar": 3,
    "skipped_pods": 0,
-   "skipped_pet": 4
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -209,9 +209,9 @@
    ],
    "hour": 17,
    "decisions": 10,
-   "interventions": 9,
+   "interventions": 8,
    "skipped_calendar": 1,
-   "skipped_pods": 0,
+   "skipped_pods": 1,
    "skipped_pet": 0
   },
   {
@@ -221,10 +221,10 @@
    ],
    "hour": 9,
    "decisions": 6,
-   "interventions": 3,
+   "interventions": 4,
    "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 2
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -232,11 +232,11 @@
     1
    ],
    "hour": 10,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 5,
+   "decisions": 5,
+   "interventions": 1,
+   "skipped_calendar": 2,
    "skipped_pods": 0,
-   "skipped_pet": 5
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -257,10 +257,10 @@
    ],
    "hour": 12,
    "decisions": 5,
-   "interventions": 2,
+   "interventions": 3,
    "skipped_calendar": 0,
    "skipped_pods": 0,
-   "skipped_pet": 3
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -269,9 +269,9 @@
    ],
    "hour": 13,
    "decisions": 12,
-   "interventions": 10,
+   "interventions": 9,
    "skipped_calendar": 2,
-   "skipped_pods": 0,
+   "skipped_pods": 1,
    "skipped_pet": 0
   },
   {
@@ -280,9 +280,9 @@
     1
    ],
    "hour": 14,
-   "decisions": 10,
+   "decisions": 11,
    "interventions": 1,
-   "skipped_calendar": 6,
+   "skipped_calendar": 7,
    "skipped_pods": 0,
    "skipped_pet": 3
   },
@@ -293,10 +293,10 @@
    ],
    "hour": 15,
    "decisions": 9,
-   "interventions": 1,
-   "skipped_calendar": 5,
+   "interventions": 2,
+   "skipped_calendar": 6,
    "skipped_pods": 0,
-   "skipped_pet": 3
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -305,10 +305,10 @@
    ],
    "hour": 16,
    "decisions": 8,
-   "interventions": 1,
+   "interventions": 2,
    "skipped_calendar": 6,
    "skipped_pods": 0,
-   "skipped_pet": 1
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -340,33 +340,9 @@
     2
    ],
    "hour": 10,
-   "decisions": 7,
-   "interventions": 1,
-   "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 11,
    "decisions": 8,
-   "interventions": 2,
+   "interventions": 3,
    "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 12,
-   "decisions": 5,
-   "interventions": 2,
-   "skipped_calendar": 0,
    "skipped_pods": 0,
    "skipped_pet": 3
   },
@@ -375,11 +351,35 @@
     1,
     2
    ],
+   "hour": 11,
+   "decisions": 5,
+   "interventions": 2,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 1
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 12,
+   "decisions": 8,
+   "interventions": 3,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 5
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
    "hour": 13,
-   "decisions": 7,
+   "decisions": 6,
    "interventions": 5,
    "skipped_calendar": 0,
-   "skipped_pods": 2,
+   "skipped_pods": 1,
    "skipped_pet": 0
   },
   {
@@ -449,10 +449,10 @@
    ],
    "hour": 11,
    "decisions": 6,
-   "interventions": 2,
+   "interventions": 3,
    "skipped_calendar": 1,
-   "skipped_pods": 1,
-   "skipped_pet": 2
+   "skipped_pods": 2,
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -509,9 +509,9 @@
    ],
    "hour": 9,
    "decisions": 5,
-   "interventions": 1,
+   "interventions": 0,
    "skipped_calendar": 0,
-   "skipped_pods": 2,
+   "skipped_pods": 3,
    "skipped_pet": 2
   },
   {
@@ -520,11 +520,11 @@
     0
    ],
    "hour": 10,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 4,
-   "skipped_pet": 5
+   "decisions": 11,
+   "interventions": 1,
+   "skipped_calendar": 1,
+   "skipped_pods": 5,
+   "skipped_pet": 4
   },
   {
    "zone": [
@@ -533,9 +533,9 @@
    ],
    "hour": 12,
    "decisions": 10,
-   "interventions": 1,
+   "interventions": 0,
    "skipped_calendar": 0,
-   "skipped_pods": 6,
+   "skipped_pods": 7,
    "skipped_pet": 3
   },
   {
@@ -544,10 +544,10 @@
     0
    ],
    "hour": 13,
-   "decisions": 3,
-   "interventions": 1,
+   "decisions": 5,
+   "interventions": 0,
    "skipped_calendar": 1,
-   "skipped_pods": 1,
+   "skipped_pods": 4,
    "skipped_pet": 0
   },
   {
@@ -556,9 +556,9 @@
     0
    ],
    "hour": 14,
-   "decisions": 6,
+   "decisions": 8,
    "interventions": 0,
-   "skipped_calendar": 2,
+   "skipped_calendar": 4,
    "skipped_pods": 4,
    "skipped_pet": 0
   },
@@ -593,6 +593,18 @@
    ],
    "hour": 12,
    "decisions": 4,
+   "interventions": 2,
+   "skipped_calendar": 0,
+   "skipped_pods": 1,
+   "skipped_pet": 1
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 13,
+   "decisions": 4,
    "interventions": 3,
    "skipped_calendar": 0,
    "skipped_pods": 1,
@@ -604,11 +616,11 @@
     1
    ],
    "hour": 14,
-   "decisions": 4,
+   "decisions": 5,
    "interventions": 3,
    "skipped_calendar": 0,
    "skipped_pods": 0,
-   "skipped_pet": 1
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -616,11 +628,11 @@
     1
    ],
    "hour": 15,
-   "decisions": 4,
+   "decisions": 5,
    "interventions": 2,
    "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 1
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -652,8 +664,8 @@
     1
    ],
    "hour": 18,
-   "decisions": 5,
-   "interventions": 4,
+   "decisions": 4,
+   "interventions": 3,
    "skipped_calendar": 0,
    "skipped_pods": 1,
    "skipped_pet": 0
@@ -679,8 +691,8 @@
    "decisions": 8,
    "interventions": 1,
    "skipped_calendar": 2,
-   "skipped_pods": 5,
-   "skipped_pet": 0
+   "skipped_pods": 4,
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -688,10 +700,10 @@
     2
    ],
    "hour": 11,
-   "decisions": 9,
-   "interventions": 1,
+   "decisions": 8,
+   "interventions": 2,
    "skipped_calendar": 1,
-   "skipped_pods": 4,
+   "skipped_pods": 2,
    "skipped_pet": 3
   },
   {
@@ -701,10 +713,10 @@
    ],
    "hour": 12,
    "decisions": 10,
-   "interventions": 0,
+   "interventions": 3,
    "skipped_calendar": 0,
-   "skipped_pods": 3,
-   "skipped_pet": 7
+   "skipped_pods": 2,
+   "skipped_pet": 5
   },
   {
    "zone": [
@@ -712,10 +724,10 @@
     2
    ],
    "hour": 13,
-   "decisions": 8,
+   "decisions": 6,
    "interventions": 3,
-   "skipped_calendar": 3,
-   "skipped_pods": 2,
+   "skipped_calendar": 2,
+   "skipped_pods": 1,
    "skipped_pet": 0
   },
   {
@@ -724,11 +736,11 @@
     2
    ],
    "hour": 14,
-   "decisions": 6,
-   "interventions": 0,
+   "decisions": 5,
+   "interventions": 1,
    "skipped_calendar": 4,
    "skipped_pods": 0,
-   "skipped_pet": 2
+   "skipped_pet": 0
   },
   {
    "zone": [
@@ -736,11 +748,11 @@
     2
    ],
    "hour": 15,
-   "decisions": 8,
-   "interventions": 0,
+   "decisions": 7,
+   "interventions": 2,
    "skipped_calendar": 2,
    "skipped_pods": 1,
-   "skipped_pet": 5
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -761,9 +773,9 @@
    ],
    "hour": 18,
    "decisions": 5,
-   "interventions": 0,
+   "interventions": 1,
    "skipped_calendar": 1,
-   "skipped_pods": 4,
+   "skipped_pods": 3,
    "skipped_pet": 0
   },
   {
