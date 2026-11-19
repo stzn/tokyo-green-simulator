@@ -145,7 +145,7 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
     const status = await screen.findByRole('status')
     expect(status).toHaveTextContent('coverage')
-    expect(status).toHaveTextContent('判定 709 件・介入 180 件')
+    expect(status).toHaveTextContent('判定 657 件・介入 211 件')
     expect(useAppStore.getState().dispatch?.pods).toHaveLength(5)
     expect(screen.getByRole('slider', { name: '時刻' })).toBeInTheDocument()
     expect(onFocusPoint).toHaveBeenCalled()
@@ -158,7 +158,7 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'デモの条件' }), 'rainy・5 台')
     await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('デモ（rainy・5 台・方式 coverage）: 判定 826 件・介入 103 件')
+    expect(status).toHaveTextContent('デモ（rainy・5 台・方式 coverage）: 判定 758 件・介入 145 件')
     expect(useAppStore.getState().jitaiSummary?.weather_scenario).toBe('rainy')
   })
 
@@ -168,7 +168,7 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     await userEvent.selectOptions(screen.getByRole('combobox', { name: 'デモの条件' }), 'rainy・5 台・雨よけ無し')
     await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
     const status = await screen.findByRole('status')
-    expect(status).toHaveTextContent('デモ（rainy・5 台・雨よけ無し・方式 coverage）: 判定 934 件・介入 21 件')
+    expect(status).toHaveTextContent('デモ（rainy・5 台・雨よけ無し・方式 coverage）: 判定 783 件・介入 119 件')
   })
 
   it('Given coverage を表示中 / When 「デモ: greedy」を押す / Then 配車と集計が greedy に替わる', async () => {
@@ -177,9 +177,9 @@ describe('機能: 配車のデモ（heatwave・5 台）', () => {
     await userEvent.click(screen.getByRole('button', { name: 'デモ: coverage' }))
     await screen.findByText(/coverage/, { selector: '[role=status]' })
     await userEvent.click(screen.getByRole('button', { name: 'デモ: greedy' }))
-    expect(await screen.findByText(/greedy/, { selector: '[role=status]' })).toHaveTextContent('判定 896 件・介入 35 件')
+    expect(await screen.findByText(/greedy/, { selector: '[role=status]' })).toHaveTextContent('判定 877 件・介入 52 件')
     expect(useAppStore.getState().dispatch?.generator).toMatch(/greedy$/)
-    expect(useAppStore.getState().jitaiSummary?.totals.interventions).toBe(35)
+    expect(useAppStore.getState().jitaiSummary?.totals.interventions).toBe(52)
   })
 
   it('Given coverage を表示中 / When デモのファイルが 404 / Then 理由を出し、表示中の配車を残す', async () => {
@@ -233,7 +233,7 @@ describe('機能: 方式を並べて比べる（デモ）', () => {
   it('Given 初期状態 / When 「デモ: 比べる」を押す / Then coverage を主、greedy を比較に置き、1 日の介入の合計を並べる', async () => {
     setup()
     await userEvent.click(screen.getByRole('button', { name: 'デモ: 比べる' }))
-    expect(await screen.findByText(/1 日の介入: coverage 180 件・greedy 35 件/)).toBeInTheDocument()
+    expect(await screen.findByText(/1 日の介入: coverage 211 件・greedy 52 件/)).toBeInTheDocument()
     expect(useAppStore.getState().dispatch?.generator).toMatch(/coverage$/)
     expect(useAppStore.getState().comparison?.dispatch.generator).toMatch(/greedy$/)
   })
@@ -243,9 +243,9 @@ describe('機能: 方式を並べて比べる（デモ）', () => {
     await userEvent.click(screen.getByRole('button', { name: 'デモ: 比べる' }))
     await screen.findByText(/1 日の介入/)
     fireEvent.change(screen.getByRole('slider', { name: '時刻' }), { target: { value: '14' } })
-    expect(screen.getByText(/この時刻の介入: coverage 16 件・greedy 0 件（差 \+16）/)).toBeInTheDocument()
+    expect(screen.getByText(/この時刻の介入: coverage 20 件・greedy 0 件（差 \+20）/)).toBeInTheDocument()
     const list = screen.getByRole('list', { name: 'この時刻の区画（方式の差）' })
-    expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent('区画 [1, 1] coverage 5・greedy 0（差 +5）')
+    expect(within(list).getAllByRole('listitem')[0]).toHaveTextContent('区画 [1, 0] coverage 4・greedy 0（差 +4）')
   })
 
   it('Given 比較中 / When 「デモ: coverage」を押す / Then 比較を外す', async () => {
@@ -286,7 +286,7 @@ describe('機能: 自分のファイルどうしで比べる', () => {
       jsonFile(demo('jitai-summary.greedy.json'), 'b.json'),
       jsonFile(demo('dispatch.greedy.json'), 'a.json'),
     ])
-    expect(await screen.findByText(/1 日の介入: coverage 180 件・greedy 35 件/)).toBeInTheDocument()
+    expect(await screen.findByText(/1 日の介入: coverage 211 件・greedy 52 件/)).toBeInTheDocument()
     expect(useAppStore.getState().comparison?.dispatch.generator).toMatch(/greedy$/)
     await userEvent.click(screen.getByRole('button', { name: '比較を外す' }))
     expect(useAppStore.getState().comparison).toBeNull()

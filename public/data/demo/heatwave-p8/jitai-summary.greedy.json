@@ -4,7 +4,7 @@
   "area_id": "otemachi",
   "date": "2025-08-30"
  },
- "generator": "vmgs@049abc5 jitai",
+ "generator": "vmgs@7cbb589 jitai",
  "weather_scenario": "heatwave",
  "workers": 300,
  "min_workers": 3,
@@ -14,8 +14,8 @@
   "zone_m": 400.0
  },
  "totals": {
-  "decisions": 867,
-  "interventions": 66
+  "decisions": 876,
+  "interventions": 54
  },
  "recovery": {
   "enabled": true,
@@ -28,630 +28,318 @@
     0
    ],
    "hour": 9,
-   "decisions": 3,
-   "interventions": 2,
-   "skipped_calendar": 0,
-   "skipped_pods": 1,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    0,
-    0
-   ],
-   "hour": 10,
    "decisions": 5,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 3,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    0,
-    0
-   ],
-   "hour": 12,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 8,
-   "skipped_pet": 2
-  },
-  {
-   "zone": [
-    0,
-    0
-   ],
-   "hour": 13,
-   "decisions": 7,
-   "interventions": 0,
-   "skipped_calendar": 5,
-   "skipped_pods": 2,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    0,
-    0
-   ],
-   "hour": 14,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 2,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    0,
-    0
-   ],
-   "hour": 16,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 4,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    0
-   ],
-   "hour": 17,
-   "decisions": 8,
    "interventions": 1,
-   "skipped_calendar": 0,
-   "skipped_pods": 2,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    1
-   ],
-   "hour": 14,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 4,
-   "skipped_pods": 0,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    0,
-    1
-   ],
-   "hour": 17,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 10,
-   "decisions": 6,
-   "interventions": 0,
    "skipped_calendar": 3,
-   "skipped_pods": 1,
-   "skipped_pet": 2
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 12,
-   "decisions": 4,
-   "interventions": 1,
-   "skipped_calendar": 0,
-   "skipped_pods": 3,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 14,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 0,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 15,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 1,
-   "skipped_pet": 2
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 16,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 5,
    "skipped_pods": 0,
    "skipped_pet": 1
   },
   {
    "zone": [
     0,
-    2
-   ],
-   "hour": 17,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    2
-   ],
-   "hour": 18,
-   "decisions": 3,
-   "interventions": 1,
-   "skipped_calendar": 1,
-   "skipped_pods": 1,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    0,
-    3
-   ],
-   "hour": 10,
-   "decisions": 5,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 0,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    0,
-    3
-   ],
-   "hour": 11,
-   "decisions": 5,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    0,
-    3
-   ],
-   "hour": 14,
-   "decisions": 11,
-   "interventions": 1,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 9
-  },
-  {
-   "zone": [
-    0,
-    3
-   ],
-   "hour": 15,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 0,
-   "skipped_pet": 6
-  },
-  {
-   "zone": [
-    0,
-    3
-   ],
-   "hour": 17,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 9
-  },
-  {
-   "zone": [
-    0,
-    4
-   ],
-   "hour": 13,
-   "decisions": 7,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 0,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    0,
-    4
-   ],
-   "hour": 15,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 0,
-   "skipped_pet": 6
-  },
-  {
-   "zone": [
-    0,
-    4
-   ],
-   "hour": 17,
-   "decisions": 4,
-   "interventions": 3,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
     0
-   ],
-   "hour": 9,
-   "decisions": 4,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 2,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 10,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 3,
-   "skipped_pet": 3
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 11,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 3,
-   "skipped_pet": 3
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 12,
-   "decisions": 12,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 12,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 13,
-   "decisions": 13,
-   "interventions": 0,
-   "skipped_calendar": 4,
-   "skipped_pods": 5,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 14,
-   "decisions": 4,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 3,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 15,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 4,
-   "skipped_pods": 2,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 16,
-   "decisions": 3,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 2,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    1,
-    0
-   ],
-   "hour": 17,
-   "decisions": 7,
-   "interventions": 6,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 9,
-   "decisions": 4,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 1,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    1,
-    1
    ],
    "hour": 10,
    "decisions": 11,
    "interventions": 0,
    "skipped_calendar": 4,
-   "skipped_pods": 3,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 11,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 10,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 13,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 5,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 14,
-   "decisions": 12,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 5,
-   "skipped_pet": 6
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 15,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 4,
-   "skipped_pods": 4,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 16,
-   "decisions": 17,
-   "interventions": 0,
-   "skipped_calendar": 9,
-   "skipped_pods": 2,
-   "skipped_pet": 6
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 17,
-   "decisions": 8,
-   "interventions": 1,
-   "skipped_calendar": 0,
-   "skipped_pods": 7,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    1
-   ],
-   "hour": 18,
-   "decisions": 4,
-   "interventions": 4,
-   "skipped_calendar": 0,
-   "skipped_pods": 0,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 9,
-   "decisions": 6,
-   "interventions": 2,
-   "skipped_calendar": 2,
-   "skipped_pods": 1,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 10,
-   "decisions": 7,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 2,
-   "skipped_pet": 5
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 11,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 7,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    1,
-    2
-   ],
-   "hour": 13,
-   "decisions": 12,
-   "interventions": 3,
-   "skipped_calendar": 2,
    "skipped_pods": 0,
    "skipped_pet": 7
   },
   {
    "zone": [
-    1,
-    2
+    0,
+    0
+   ],
+   "hour": 12,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 0,
+   "skipped_pet": 7
+  },
+  {
+   "zone": [
+    0,
+    0
+   ],
+   "hour": 13,
+   "decisions": 14,
+   "interventions": 0,
+   "skipped_calendar": 7,
+   "skipped_pods": 0,
+   "skipped_pet": 7
+  },
+  {
+   "zone": [
+    0,
+    0
    ],
    "hour": 14,
-   "decisions": 6,
+   "decisions": 3,
    "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 2,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
    "skipped_pet": 1
   },
   {
    "zone": [
-    1,
-    2
+    0,
+    0
    ],
    "hour": 15,
-   "decisions": 13,
+   "decisions": 5,
    "interventions": 0,
-   "skipped_calendar": 9,
-   "skipped_pods": 3,
-   "skipped_pet": 1
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 3
   },
   {
    "zone": [
-    1,
-    2
+    0,
+    0
    ],
    "hour": 16,
-   "decisions": 4,
+   "decisions": 12,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 0,
+   "skipped_pet": 11
+  },
+  {
+   "zone": [
+    0,
+    0
+   ],
+   "hour": 17,
+   "decisions": 7,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 7
+  },
+  {
+   "zone": [
+    0,
+    3
+   ],
+   "hour": 14,
+   "decisions": 8,
    "interventions": 0,
    "skipped_calendar": 3,
-   "skipped_pods": 1,
+   "skipped_pods": 5,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    0,
+    4
+   ],
+   "hour": 17,
+   "decisions": 5,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 4,
    "skipped_pet": 0
   },
   {
    "zone": [
     1,
-    2
+    0
    ],
-   "hour": 17,
-   "decisions": 15,
+   "hour": 11,
+   "decisions": 6,
    "interventions": 0,
    "skipped_calendar": 3,
+   "skipped_pods": 0,
+   "skipped_pet": 3
+  },
+  {
+   "zone": [
+    1,
+    0
+   ],
+   "hour": 12,
+   "decisions": 11,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 2,
+   "skipped_pet": 9
+  },
+  {
+   "zone": [
+    1,
+    0
+   ],
+   "hour": 13,
+   "decisions": 15,
+   "interventions": 0,
+   "skipped_calendar": 6,
+   "skipped_pods": 1,
+   "skipped_pet": 8
+  },
+  {
+   "zone": [
+    1,
+    0
+   ],
+   "hour": 14,
+   "decisions": 11,
+   "interventions": 0,
+   "skipped_calendar": 4,
+   "skipped_pods": 2,
+   "skipped_pet": 5
+  },
+  {
+   "zone": [
+    1,
+    0
+   ],
+   "hour": 15,
+   "decisions": 10,
+   "interventions": 0,
+   "skipped_calendar": 5,
+   "skipped_pods": 3,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    1,
+    0
+   ],
+   "hour": 16,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 4,
+   "skipped_pet": 4
+  },
+  {
+   "zone": [
+    1,
+    0
+   ],
+   "hour": 17,
+   "decisions": 13,
+   "interventions": 0,
+   "skipped_calendar": 1,
    "skipped_pods": 6,
    "skipped_pet": 6
   },
   {
    "zone": [
     1,
-    2
+    0
    ],
    "hour": 18,
-   "decisions": 9,
+   "decisions": 4,
    "interventions": 3,
-   "skipped_calendar": 1,
-   "skipped_pods": 5,
+   "skipped_calendar": 0,
+   "skipped_pods": 1,
    "skipped_pet": 0
   },
   {
    "zone": [
     1,
-    3
+    1
    ],
    "hour": 9,
-   "decisions": 10,
+   "decisions": 6,
    "interventions": 3,
-   "skipped_calendar": 6,
+   "skipped_calendar": 1,
    "skipped_pods": 0,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 10,
+   "decisions": 10,
+   "interventions": 0,
+   "skipped_calendar": 5,
+   "skipped_pods": 4,
    "skipped_pet": 1
   },
   {
    "zone": [
     1,
-    3
+    1
    ],
-   "hour": 10,
+   "hour": 11,
+   "decisions": 12,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 9,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 12,
+   "decisions": 6,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 3,
+   "skipped_pet": 3
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 13,
+   "decisions": 21,
+   "interventions": 0,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 19
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 14,
+   "decisions": 16,
+   "interventions": 0,
+   "skipped_calendar": 8,
+   "skipped_pods": 0,
+   "skipped_pet": 8
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 15,
+   "decisions": 12,
+   "interventions": 0,
+   "skipped_calendar": 8,
+   "skipped_pods": 0,
+   "skipped_pet": 4
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 16,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 7,
+   "skipped_pods": 0,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    1,
+    1
+   ],
+   "hour": 17,
    "decisions": 10,
    "interventions": 0,
    "skipped_calendar": 2,
@@ -661,165 +349,177 @@
   {
    "zone": [
     1,
-    3
+    2
    ],
-   "hour": 11,
-   "decisions": 5,
-   "interventions": 3,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    1,
-    3
-   ],
-   "hour": 12,
+   "hour": 9,
    "decisions": 8,
-   "interventions": 4,
+   "interventions": 0,
    "skipped_calendar": 0,
-   "skipped_pods": 0,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    1,
-    3
-   ],
-   "hour": 13,
-   "decisions": 5,
-   "interventions": 2,
-   "skipped_calendar": 1,
-   "skipped_pods": 0,
-   "skipped_pet": 2
-  },
-  {
-   "zone": [
-    1,
-    3
-   ],
-   "hour": 14,
-   "decisions": 7,
-   "interventions": 1,
-   "skipped_calendar": 3,
-   "skipped_pods": 2,
-   "skipped_pet": 1
-  },
-  {
-   "zone": [
-    1,
-    3
-   ],
-   "hour": 16,
-   "decisions": 11,
-   "interventions": 1,
-   "skipped_calendar": 4,
-   "skipped_pods": 4,
-   "skipped_pet": 2
-  },
-  {
-   "zone": [
-    1,
-    3
-   ],
-   "hour": 17,
-   "decisions": 4,
-   "interventions": 1,
-   "skipped_calendar": 1,
-   "skipped_pods": 2,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    0
-   ],
-   "hour": 10,
-   "decisions": 13,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 4,
-   "skipped_pet": 6
-  },
-  {
-   "zone": [
-    2,
-    0
-   ],
-   "hour": 12,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 5,
-   "skipped_pet": 4
-  },
-  {
-   "zone": [
-    2,
-    0
-   ],
-   "hour": 13,
-   "decisions": 13,
-   "interventions": 0,
-   "skipped_calendar": 5,
-   "skipped_pods": 1,
-   "skipped_pet": 7
-  },
-  {
-   "zone": [
-    2,
-    0
-   ],
-   "hour": 14,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 5,
-   "skipped_pods": 4,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    0
-   ],
-   "hour": 15,
-   "decisions": 10,
-   "interventions": 0,
-   "skipped_calendar": 2,
    "skipped_pods": 8,
    "skipped_pet": 0
   },
   {
    "zone": [
-    2,
-    0
+    1,
+    2
    ],
-   "hour": 16,
-   "decisions": 7,
+   "hour": 10,
+   "decisions": 11,
    "interventions": 0,
-   "skipped_calendar": 0,
+   "skipped_calendar": 3,
    "skipped_pods": 7,
+   "skipped_pet": 1
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 11,
+   "decisions": 11,
+   "interventions": 0,
+   "skipped_calendar": 2,
+   "skipped_pods": 9,
    "skipped_pet": 0
   },
   {
    "zone": [
-    2,
-    0
+    1,
+    2
+   ],
+   "hour": 12,
+   "decisions": 10,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 10,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 13,
+   "decisions": 13,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 13
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 14,
+   "decisions": 5,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 0,
+   "skipped_pet": 4
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 15,
+   "decisions": 10,
+   "interventions": 0,
+   "skipped_calendar": 7,
+   "skipped_pods": 2,
+   "skipped_pet": 1
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 16,
+   "decisions": 5,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 5
+  },
+  {
+   "zone": [
+    1,
+    2
    ],
    "hour": 17,
-   "decisions": 7,
-   "interventions": 3,
-   "skipped_calendar": 1,
+   "decisions": 16,
+   "interventions": 5,
+   "skipped_calendar": 4,
+   "skipped_pods": 0,
+   "skipped_pet": 7
+  },
+  {
+   "zone": [
+    1,
+    2
+   ],
+   "hour": 18,
+   "decisions": 4,
+   "interventions": 4,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    1,
+    3
+   ],
+   "hour": 9,
+   "decisions": 6,
+   "interventions": 0,
+   "skipped_calendar": 3,
    "skipped_pods": 3,
    "skipped_pet": 0
   },
   {
    "zone": [
-    2,
-    1
+    1,
+    3
    ],
-   "hour": 9,
+   "hour": 10,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 3,
+   "skipped_pods": 3,
+   "skipped_pet": 3
+  },
+  {
+   "zone": [
+    1,
+    3
+   ],
+   "hour": 11,
+   "decisions": 7,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 4,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    1,
+    3
+   ],
+   "hour": 13,
+   "decisions": 4,
+   "interventions": 0,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    1,
+    3
+   ],
+   "hour": 14,
    "decisions": 8,
    "interventions": 0,
    "skipped_calendar": 2,
@@ -828,13 +528,97 @@
   },
   {
    "zone": [
+    1,
+    3
+   ],
+   "hour": 15,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 4,
+   "skipped_pods": 5,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    1,
+    3
+   ],
+   "hour": 17,
+   "decisions": 7,
+   "interventions": 5,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    0
+   ],
+   "hour": 9,
+   "decisions": 4,
+   "interventions": 2,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
+    2,
+    0
+   ],
+   "hour": 10,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 2,
+   "skipped_pet": 7
+  },
+  {
+   "zone": [
+    2,
+    0
+   ],
+   "hour": 12,
+   "decisions": 10,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 4,
+   "skipped_pet": 6
+  },
+  {
+   "zone": [
+    2,
+    0
+   ],
+   "hour": 13,
+   "decisions": 5,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 1,
+   "skipped_pet": 3
+  },
+  {
+   "zone": [
+    2,
+    0
+   ],
+   "hour": 14,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 4,
+   "skipped_pods": 2,
+   "skipped_pet": 2
+  },
+  {
+   "zone": [
     2,
     1
    ],
-   "hour": 10,
-   "decisions": 5,
-   "interventions": 0,
-   "skipped_calendar": 4,
+   "hour": 9,
+   "decisions": 3,
+   "interventions": 1,
+   "skipped_calendar": 1,
    "skipped_pods": 0,
    "skipped_pet": 1
   },
@@ -843,11 +627,35 @@
     2,
     1
    ],
-   "hour": 12,
-   "decisions": 7,
+   "hour": 10,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 3,
+   "skipped_pods": 2,
+   "skipped_pet": 3
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 11,
+   "decisions": 8,
    "interventions": 0,
    "skipped_calendar": 0,
    "skipped_pods": 0,
+   "skipped_pet": 8
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 12,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 1,
    "skipped_pet": 7
   },
   {
@@ -856,59 +664,119 @@
     1
    ],
    "hour": 13,
-   "decisions": 11,
+   "decisions": 7,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 0,
+   "skipped_pet": 6
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 14,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 1,
+   "skipped_pet": 8
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 15,
+   "decisions": 9,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 2,
+   "skipped_pet": 6
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 16,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 3,
+   "skipped_pods": 5,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 17,
+   "decisions": 16,
    "interventions": 0,
    "skipped_calendar": 2,
+   "skipped_pods": 14,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    1
+   ],
+   "hour": 18,
+   "decisions": 6,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 6,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    2
+   ],
+   "hour": 9,
+   "decisions": 5,
+   "interventions": 0,
+   "skipped_calendar": 5,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    2
+   ],
+   "hour": 10,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 6
+  },
+  {
+   "zone": [
+    2,
+    2
+   ],
+   "hour": 11,
+   "decisions": 10,
+   "interventions": 0,
+   "skipped_calendar": 1,
    "skipped_pods": 0,
    "skipped_pet": 9
   },
   {
    "zone": [
     2,
-    1
-   ],
-   "hour": 14,
-   "decisions": 7,
-   "interventions": 0,
-   "skipped_calendar": 4,
-   "skipped_pods": 3,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    2
-   ],
-   "hour": 10,
-   "decisions": 8,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 6,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    2
-   ],
-   "hour": 11,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 1,
-   "skipped_pet": 7
-  },
-  {
-   "zone": [
-    2,
     2
    ],
    "hour": 12,
-   "decisions": 7,
+   "decisions": 10,
    "interventions": 0,
    "skipped_calendar": 0,
-   "skipped_pods": 1,
-   "skipped_pet": 6
+   "skipped_pods": 0,
+   "skipped_pet": 10
   },
   {
    "zone": [
@@ -916,11 +784,23 @@
     2
    ],
    "hour": 13,
-   "decisions": 12,
+   "decisions": 10,
    "interventions": 0,
-   "skipped_calendar": 1,
+   "skipped_calendar": 3,
    "skipped_pods": 0,
-   "skipped_pet": 11
+   "skipped_pet": 7
+  },
+  {
+   "zone": [
+    2,
+    2
+   ],
+   "hour": 14,
+   "decisions": 6,
+   "interventions": 0,
+   "skipped_calendar": 4,
+   "skipped_pods": 0,
+   "skipped_pet": 2
   },
   {
    "zone": [
@@ -931,8 +811,8 @@
    "decisions": 8,
    "interventions": 0,
    "skipped_calendar": 2,
-   "skipped_pods": 6,
-   "skipped_pet": 0
+   "skipped_pods": 1,
+   "skipped_pet": 5
   },
   {
    "zone": [
@@ -941,22 +821,34 @@
    ],
    "hour": 16,
    "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 3,
-   "skipped_pods": 3,
-   "skipped_pet": 0
+   "interventions": 3,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 1
   },
   {
    "zone": [
     2,
     2
    ],
-   "hour": 17,
-   "decisions": 9,
+   "hour": 18,
+   "decisions": 5,
    "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 7,
+   "skipped_calendar": 1,
+   "skipped_pods": 4,
    "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    3
+   ],
+   "hour": 9,
+   "decisions": 3,
+   "interventions": 2,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 1
   },
   {
    "zone": [
@@ -964,11 +856,11 @@
     3
    ],
    "hour": 10,
-   "decisions": 6,
+   "decisions": 9,
    "interventions": 0,
-   "skipped_calendar": 4,
-   "skipped_pods": 2,
-   "skipped_pet": 0
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 7
   },
   {
    "zone": [
@@ -976,11 +868,11 @@
     3
    ],
    "hour": 11,
-   "decisions": 9,
-   "interventions": 1,
-   "skipped_calendar": 2,
+   "decisions": 8,
+   "interventions": 0,
+   "skipped_calendar": 1,
    "skipped_pods": 0,
-   "skipped_pet": 6
+   "skipped_pet": 7
   },
   {
    "zone": [
@@ -988,11 +880,11 @@
     3
    ],
    "hour": 12,
-   "decisions": 7,
+   "decisions": 10,
    "interventions": 0,
    "skipped_calendar": 0,
-   "skipped_pods": 1,
-   "skipped_pet": 6
+   "skipped_pods": 0,
+   "skipped_pet": 10
   },
   {
    "zone": [
@@ -1000,11 +892,11 @@
     3
    ],
    "hour": 13,
-   "decisions": 6,
+   "decisions": 4,
    "interventions": 0,
    "skipped_calendar": 0,
-   "skipped_pods": 3,
-   "skipped_pet": 3
+   "skipped_pods": 0,
+   "skipped_pet": 4
   },
   {
    "zone": [
@@ -1012,102 +904,18 @@
     3
    ],
    "hour": 14,
-   "decisions": 5,
+   "decisions": 8,
    "interventions": 0,
    "skipped_calendar": 2,
-   "skipped_pods": 3,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    3
-   ],
-   "hour": 16,
-   "decisions": 14,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 12,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    3
-   ],
-   "hour": 17,
-   "decisions": 9,
-   "interventions": 0,
-   "skipped_calendar": 1,
-   "skipped_pods": 8,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    3
-   ],
-   "hour": 18,
-   "decisions": 4,
-   "interventions": 0,
-   "skipped_calendar": 0,
-   "skipped_pods": 4,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    4
-   ],
-   "hour": 9,
-   "decisions": 4,
-   "interventions": 1,
-   "skipped_calendar": 1,
-   "skipped_pods": 2,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    4
-   ],
-   "hour": 13,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 6,
-   "skipped_pods": 0,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    2,
-    4
-   ],
-   "hour": 17,
-   "decisions": 7,
-   "interventions": 0,
-   "skipped_calendar": 2,
-   "skipped_pods": 5,
-   "skipped_pet": 0
-  },
-  {
-   "zone": [
-    3,
-    1
-   ],
-   "hour": 12,
-   "decisions": 6,
-   "interventions": 0,
-   "skipped_calendar": 0,
    "skipped_pods": 0,
    "skipped_pet": 6
   },
   {
    "zone": [
-    3,
-    1
+    2,
+    3
    ],
-   "hour": 13,
+   "hour": 15,
    "decisions": 5,
    "interventions": 0,
    "skipped_calendar": 1,
@@ -1116,27 +924,135 @@
   },
   {
    "zone": [
-    3,
-    1
+    2,
+    3
+   ],
+   "hour": 16,
+   "decisions": 6,
+   "interventions": 4,
+   "skipped_calendar": 2,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    3
    ],
    "hour": 17,
+   "decisions": 5,
+   "interventions": 4,
+   "skipped_calendar": 1,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    4
+   ],
+   "hour": 10,
+   "decisions": 5,
+   "interventions": 0,
+   "skipped_calendar": 4,
+   "skipped_pods": 0,
+   "skipped_pet": 1
+  },
+  {
+   "zone": [
+    2,
+    4
+   ],
+   "hour": 11,
+   "decisions": 7,
+   "interventions": 0,
+   "skipped_calendar": 4,
+   "skipped_pods": 0,
+   "skipped_pet": 3
+  },
+  {
+   "zone": [
+    2,
+    4
+   ],
+   "hour": 13,
+   "decisions": 7,
+   "interventions": 0,
+   "skipped_calendar": 3,
+   "skipped_pods": 0,
+   "skipped_pet": 4
+  },
+  {
+   "zone": [
+    2,
+    4
+   ],
+   "hour": 14,
    "decisions": 6,
+   "interventions": 0,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 6
+  },
+  {
+   "zone": [
+    2,
+    4
+   ],
+   "hour": 15,
+   "decisions": 3,
    "interventions": 3,
+   "skipped_calendar": 0,
+   "skipped_pods": 0,
+   "skipped_pet": 0
+  },
+  {
+   "zone": [
+    2,
+    4
+   ],
+   "hour": 17,
+   "decisions": 4,
+   "interventions": 2,
    "skipped_calendar": 2,
-   "skipped_pods": 1,
+   "skipped_pods": 0,
    "skipped_pet": 0
   },
   {
    "zone": [
     3,
-    4
+    1
    ],
-   "hour": 17,
-   "decisions": 6,
+   "hour": 11,
+   "decisions": 5,
    "interventions": 0,
-   "skipped_calendar": 5,
-   "skipped_pods": 1,
+   "skipped_calendar": 1,
+   "skipped_pods": 0,
+   "skipped_pet": 4
+  },
+  {
+   "zone": [
+    3,
+    1
+   ],
+   "hour": 15,
+   "decisions": 3,
+   "interventions": 0,
+   "skipped_calendar": 1,
+   "skipped_pods": 2,
    "skipped_pet": 0
+  },
+  {
+   "zone": [
+    3,
+    2
+   ],
+   "hour": 16,
+   "decisions": 6,
+   "interventions": 1,
+   "skipped_calendar": 3,
+   "skipped_pods": 1,
+   "skipped_pet": 1
   }
  ]
 }
