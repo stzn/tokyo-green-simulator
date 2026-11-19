@@ -4,7 +4,7 @@
   "area_id": "otemachi",
   "date": "2025-08-30"
  },
- "generator": "vmgs@7cbb589 coverage",
+ "generator": "vmgs@e755c8c coverage",
  "weather_scenario": "rainy",
  "pods": [
   {
@@ -12,145 +12,145 @@
    "timeline": [
     {
      "hour": 0,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 1,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 2,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 3,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 4,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 5,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 6,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 7,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 8,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 9,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 10,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 97.0
     },
     {
      "hour": 11,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 94.0
     },
     {
      "hour": 12,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 91.0
     },
     {
      "hour": 13,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 88.0
     },
     {
      "hour": 14,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 85.0
     },
     {
      "hour": 15,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 82.0
     },
     {
      "hour": 16,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 79.0
     },
     {
      "hour": 17,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 76.0
     },
     {
      "hour": 18,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 73.22
     },
     {
      "hour": 19,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 70.79
     },
     {
      "hour": 20,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 68.67
     },
     {
      "hour": 21,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 66.81
     },
     {
      "hour": 22,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 65.13
     },
     {
      "hour": 23,
-     "spot_id": "OTM-240",
+     "spot_id": "OTM-222",
      "action": "stay",
      "plant_health": 63.58
     }
@@ -310,145 +310,145 @@
    "timeline": [
     {
      "hour": 0,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 1,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 2,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 3,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 4,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 5,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 6,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 7,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 8,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 9,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 100.0
     },
     {
      "hour": 10,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 97.0
     },
     {
      "hour": 11,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 94.0
     },
     {
      "hour": 12,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 91.0
     },
     {
      "hour": 13,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 88.0
     },
     {
      "hour": 14,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 85.0
     },
     {
      "hour": 15,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 82.0
     },
     {
      "hour": 16,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 79.0
     },
     {
      "hour": 17,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 76.0
     },
     {
      "hour": 18,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 73.22
     },
     {
      "hour": 19,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 70.79
     },
     {
      "hour": 20,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 68.67
     },
     {
      "hour": 21,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 66.81
     },
     {
      "hour": 22,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 65.13
     },
     {
      "hour": 23,
-     "spot_id": "OTM-326",
+     "spot_id": "OTM-355",
      "action": "stay",
      "plant_health": 63.58
     }
@@ -456,155 +456,6 @@
   },
   {
    "id": "P4",
-   "timeline": [
-    {
-     "hour": 0,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 1,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 2,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 3,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 4,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 5,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 6,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 7,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 8,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 9,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 100.0
-    },
-    {
-     "hour": 10,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 97.08
-    },
-    {
-     "hour": 11,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 94.08
-    },
-    {
-     "hour": 12,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 91.08
-    },
-    {
-     "hour": 13,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 88.08
-    },
-    {
-     "hour": 14,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 85.08
-    },
-    {
-     "hour": 15,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 82.08
-    },
-    {
-     "hour": 16,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 79.08
-    },
-    {
-     "hour": 17,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 76.08
-    },
-    {
-     "hour": 18,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 73.3
-    },
-    {
-     "hour": 19,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 70.87
-    },
-    {
-     "hour": 20,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 68.75
-    },
-    {
-     "hour": 21,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 66.89
-    },
-    {
-     "hour": 22,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 65.22
-    },
-    {
-     "hour": 23,
-     "spot_id": "OTM-348",
-     "action": "stay",
-     "plant_health": 63.67
-    }
-   ]
-  },
-  {
-   "id": "P5",
    "timeline": [
     {
      "hour": 0,
@@ -749,6 +600,155 @@
      "spot_id": "OTM-100",
      "action": "stay",
      "plant_health": 63.58
+    }
+   ]
+  },
+  {
+   "id": "P5",
+   "timeline": [
+    {
+     "hour": 0,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 1,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 2,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 3,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 4,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 5,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 6,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 7,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 8,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 9,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 100.0
+    },
+    {
+     "hour": 10,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 97.08
+    },
+    {
+     "hour": 11,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 94.08
+    },
+    {
+     "hour": 12,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 91.08
+    },
+    {
+     "hour": 13,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 88.08
+    },
+    {
+     "hour": 14,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 85.08
+    },
+    {
+     "hour": 15,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 82.08
+    },
+    {
+     "hour": 16,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 79.08
+    },
+    {
+     "hour": 17,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 76.08
+    },
+    {
+     "hour": 18,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 73.3
+    },
+    {
+     "hour": 19,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 70.87
+    },
+    {
+     "hour": 20,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 68.75
+    },
+    {
+     "hour": 21,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 66.89
+    },
+    {
+     "hour": 22,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 65.22
+    },
+    {
+     "hour": 23,
+     "spot_id": "OTM-348",
+     "action": "stay",
+     "plant_health": 63.67
     }
    ]
   }
@@ -32582,145 +32582,145 @@
    "spot_id": "OTM-222",
    "hour": 0,
    "pet_c": 26.47,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 1,
    "pet_c": 25.32,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 2,
    "pet_c": 25.43,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 3,
    "pet_c": 25.29,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 4,
    "pet_c": 25.12,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 5,
    "pet_c": 24.75,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 6,
    "pet_c": 24.87,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 7,
    "pet_c": 24.77,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 8,
    "pet_c": 24.82,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 9,
    "pet_c": 25.14,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 10,
    "pet_c": 24.22,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 11,
    "pet_c": 24.59,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 12,
    "pet_c": 24.53,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 13,
    "pet_c": 24.62,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 14,
    "pet_c": 23.81,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 15,
    "pet_c": 23.45,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 16,
    "pet_c": 22.8,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 17,
    "pet_c": 22.9,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 18,
    "pet_c": 22.99,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 19,
    "pet_c": 23.23,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 20,
    "pet_c": 23.45,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 21,
    "pet_c": 23.71,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 22,
    "pet_c": 24.92,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-222",
    "hour": 23,
    "pet_c": 27.39,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-223",
@@ -35174,145 +35174,145 @@
    "spot_id": "OTM-240",
    "hour": 0,
    "pet_c": 26.47,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 1,
    "pet_c": 25.32,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 2,
    "pet_c": 25.43,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 3,
    "pet_c": 25.29,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 4,
    "pet_c": 25.12,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 5,
    "pet_c": 24.75,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 6,
    "pet_c": 24.87,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 7,
    "pet_c": 24.77,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 8,
    "pet_c": 24.82,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 9,
    "pet_c": 25.14,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 10,
    "pet_c": 24.22,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 11,
    "pet_c": 24.59,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 12,
    "pet_c": 24.53,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 13,
    "pet_c": 24.62,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 14,
    "pet_c": 23.81,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 15,
    "pet_c": 23.45,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 16,
    "pet_c": 22.8,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 17,
    "pet_c": 22.9,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 18,
    "pet_c": 22.99,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 19,
    "pet_c": 23.23,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 20,
    "pet_c": 23.45,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 21,
    "pet_c": 23.71,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 22,
    "pet_c": 24.92,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-240",
    "hour": 23,
    "pet_c": 27.39,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-241",
@@ -47558,145 +47558,145 @@
    "spot_id": "OTM-326",
    "hour": 0,
    "pet_c": 26.47,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 1,
    "pet_c": 25.32,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 2,
    "pet_c": 25.43,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 3,
    "pet_c": 25.29,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 4,
    "pet_c": 25.12,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 5,
    "pet_c": 24.75,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 6,
    "pet_c": 24.87,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 7,
    "pet_c": 24.77,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 8,
    "pet_c": 24.82,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 9,
    "pet_c": 25.14,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 10,
    "pet_c": 24.22,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 11,
    "pet_c": 24.59,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 12,
    "pet_c": 24.53,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 13,
    "pet_c": 24.62,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 14,
    "pet_c": 23.81,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 15,
    "pet_c": 23.45,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 16,
    "pet_c": 22.8,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 17,
    "pet_c": 22.9,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 18,
    "pet_c": 22.99,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 19,
    "pet_c": 23.23,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 20,
    "pet_c": 23.45,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 21,
    "pet_c": 23.71,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 22,
    "pet_c": 24.92,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-326",
    "hour": 23,
    "pet_c": 27.39,
-   "pods_present": 1
+   "pods_present": 0
   },
   {
    "spot_id": "OTM-327",
@@ -51734,145 +51734,145 @@
    "spot_id": "OTM-355",
    "hour": 0,
    "pet_c": 26.47,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 1,
    "pet_c": 25.32,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 2,
    "pet_c": 25.43,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 3,
    "pet_c": 25.29,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 4,
    "pet_c": 25.12,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 5,
    "pet_c": 24.75,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 6,
    "pet_c": 24.87,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 7,
    "pet_c": 24.77,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 8,
    "pet_c": 24.82,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 9,
    "pet_c": 25.14,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 10,
    "pet_c": 24.22,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 11,
    "pet_c": 24.59,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 12,
    "pet_c": 24.53,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 13,
    "pet_c": 24.62,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 14,
    "pet_c": 23.81,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 15,
    "pet_c": 23.45,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 16,
    "pet_c": 22.8,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 17,
    "pet_c": 22.9,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 18,
    "pet_c": 22.99,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 19,
    "pet_c": 23.23,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 20,
    "pet_c": 23.45,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 21,
    "pet_c": 23.71,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 22,
    "pet_c": 24.92,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-355",
    "hour": 23,
    "pet_c": 27.39,
-   "pods_present": 0
+   "pods_present": 1
   },
   {
    "spot_id": "OTM-356",
